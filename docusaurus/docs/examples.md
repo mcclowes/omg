@@ -34,15 +34,15 @@ tags: [Users]
 
 Returns a paginated list of users.
 
-```omg.query
+\`\`\`omg.query
 {
   page: integer? @min(1) = 1,
   pageSize: integer? @min(1) @max(100) = 20,
   status: "active" | "inactive"?
 }
-```
+\`\`\`
 
-```omg.response
+\`\`\`omg.response
 {
   results: [{
     id: uuid,
@@ -55,7 +55,7 @@ Returns a paginated list of users.
   pageSize: integer,
   totalResults: integer
 }
-```
+\`\`\`
 ```
 
 ### Get Resource
@@ -72,13 +72,13 @@ tags: [Users]
 
 Returns a user by ID.
 
-```omg.path
+\`\`\`omg.path
 {
   userId: uuid
 }
-```
+\`\`\`
 
-```omg.response
+\`\`\`omg.response
 {
   id: uuid,
   name: string,
@@ -87,7 +87,7 @@ Returns a user by ID.
   createdAt: datetime,
   updatedAt: datetime
 }
-```
+\`\`\`
 ```
 
 ### Create Resource
@@ -104,15 +104,15 @@ tags: [Users]
 
 Creates a new user.
 
-```omg.body
+\`\`\`omg.body
 {
   name: string @minLength(1) @maxLength(200),
   email: string @format("email"),
   role: "admin" | "user" | "guest" = "user"
 }
-```
+\`\`\`
 
-```omg.response.201
+\`\`\`omg.response.201
 {
   id: uuid,
   name: string,
@@ -120,7 +120,7 @@ Creates a new user.
   role: string,
   createdAt: datetime
 }
-```
+\`\`\`
 ```
 
 ### Update Resource
@@ -137,21 +137,21 @@ tags: [Users]
 
 Updates a user.
 
-```omg.path
+\`\`\`omg.path
 {
   userId: uuid
 }
-```
+\`\`\`
 
-```omg.body
+\`\`\`omg.body
 {
   name: string? @maxLength(200),
   email: string? @format("email"),
   status: "active" | "inactive"?
 }
-```
+\`\`\`
 
-```omg.response
+\`\`\`omg.response
 {
   id: uuid,
   name: string,
@@ -159,7 +159,7 @@ Updates a user.
   status: string,
   updatedAt: datetime
 }
-```
+\`\`\`
 ```
 
 ### Delete Resource
@@ -176,15 +176,15 @@ tags: [Users]
 
 Deletes a user.
 
-```omg.path
+\`\`\`omg.path
 {
   userId: uuid
 }
-```
+\`\`\`
 
-```omg.response.204
+\`\`\`omg.response.204
 // Empty response
-```
+\`\`\`
 ```
 
 ## Complex Types
@@ -192,7 +192,7 @@ Deletes a user.
 ### Nested Objects
 
 ```markdown
-```omg.response
+\`\`\`omg.response
 {
   user: {
     id: uuid,
@@ -207,13 +207,13 @@ Deletes a user.
     }
   }
 }
-```
+\`\`\`
 ```
 
 ### Arrays of Objects
 
 ```markdown
-```omg.response
+\`\`\`omg.response
 {
   orders: [{
     id: uuid,
@@ -226,7 +226,7 @@ Deletes a user.
     status: "pending" | "shipped" | "delivered"
   }]
 }
-```
+\`\`\`
 ```
 
 ## Conditional Responses
@@ -243,13 +243,13 @@ tags: [Invoices]
 
 Deletes an invoice if it's in a deletable state.
 
-```omg.path
+\`\`\`omg.path
 {
   invoiceId: uuid
 }
-```
+\`\`\`
 
-```omg.returns
+\`\`\`omg.returns
 204: void
   when status in [draft, void]
   "Invoice deleted"
@@ -261,7 +261,7 @@ Deletes an invoice if it's in a deletable state.
 409: ConflictError
   when status in [sent, paid]
   "Cannot delete sent or paid invoices"
-```
+\`\`\`
 ```
 
 ## API Root File

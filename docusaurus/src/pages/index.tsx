@@ -122,7 +122,7 @@ function CodeComparison() {
           <div className={styles.codePanel}>
             <div className={styles.codePanelHeader}>
               <span className={styles.codePanelLabel}>OpenAPI YAML</span>
-              <span className={styles.codePanelMeta}>52 lines</span>
+              <span className={styles.codePanelMeta}>52 illegible lines</span>
             </div>
             <CodeBlock language="yaml" className={styles.codeBlock}>
               {openApiExample}

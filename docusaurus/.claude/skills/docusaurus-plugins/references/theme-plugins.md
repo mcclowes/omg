@@ -181,10 +181,10 @@ export default function Footer() {
           <h4>Documentation</h4>
           <ul>
             <li>
-              <Link to="/docs/intro">Getting Started</Link>
+              <Link to="/docs/intro">Getting started</Link>
             </li>
             <li>
-              <Link to="/docs/api">API Reference</Link>
+              <Link to="/docs/api">API reference</Link>
             </li>
             <li>
               <Link to="/docs/guides">Guides</Link>
@@ -195,12 +195,6 @@ export default function Footer() {
         <div className="footer-section">
           <h4>Community</h4>
           <ul>
-            <li>
-              <a href={siteConfig.discord}>Discord</a>
-            </li>
-            <li>
-              <a href={siteConfig.twitter}>Twitter</a>
-            </li>
             <li>
               <a href={siteConfig.github}>GitHub</a>
             </li>
@@ -217,7 +211,7 @@ export default function Footer() {
               <a href="/changelog">Changelog</a>
             </li>
             <li>
-              <Link to="/privacy">Privacy Policy</Link>
+              <Link to="/privacy">Privacy policy</Link>
             </li>
           </ul>
         </div>

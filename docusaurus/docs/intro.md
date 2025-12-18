@@ -15,7 +15,7 @@ slug: /
 - **Writer-friendly** — Technical writers can understand and edit specs
 - **Full OpenAPI compatibility** — Compiles to standard OpenAPI 3.1
 
-## Quick Example
+## Quick example
 
 Create a file `get-invoices.omg.md`:
 
@@ -56,16 +56,16 @@ Returns a paginated list of invoices for a company.
   totalResults: integer
 }
 ```
-````
+
 
 This compiles to a complete OpenAPI 3.1 specification with proper schemas, error responses, and all the boilerplate handled automatically.
 
-## Project Status
+## Project status
 
 OMG is in the **MVP Implementation** phase. The core toolchain (parser, compiler, CLI) is functional.
 
-## Next Steps
+## Next steps
 
-- [Getting Started](/docs/getting-started) — Install and run your first build
-- [Syntax Reference](/docs/syntax) — Full syntax documentation
+- [Getting started](/docs/getting-started) — Install and run your first build
+- [Syntax reference](/docs/syntax) — Full syntax documentation
 - [Examples](/docs/examples) — Real-world API examples
