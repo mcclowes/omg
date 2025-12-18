@@ -1,0 +1,1489 @@
+openapi: "3.1.0"
+info:
+  title: "PokéAPI"
+  version: "2.0.0"
+  description: "> All the Pokémon data you'll ever need in one place
+
+
+    PokéAPI provides a RESTful API interface to highly detailed objects built from thousands of lines of data related to Pokémon. We cover everything from Pokémon sprites to berry flavors.
+
+
+    ## Features
+
+
+    - **No authentication required** - Open and free to use
+
+    - **RESTful** - Standard HTTP methods and status codes
+
+    - **Cached** - Resources are cached for 24 hours
+
+    - **Paginated** - List endpoints return paginated results
+
+
+    ## Resources
+
+
+    - Pokemon - Core Pokémon data (list-pokemon, get-pokemon)
+
+    - Abilities - Pokémon abilities (list-abilities, get-ability)
+
+    - Types - Elemental types and damage relations (list-types, get-type)
+
+    - Moves - Battle moves (list-moves, get-move)
+
+    - Species - Species information and evolution (list-species, get-species)"
+paths:
+  /ability/{idOrName}:
+    get:
+      operationId: "get-ability"
+      summary: "Get Ability"
+      description: "Returns detailed information about a specific ability, including which Pokémon can have it."
+      tags:
+        - "Abilities"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  name:
+                    type: "string"
+                  is_main_series:
+                    type: "boolean"
+                  generation:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  names:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetAbilityResponse200Name"
+                  effect_entries:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetAbilityResponse200Effectentry"
+                  flavor_text_entries:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetAbilityResponse200Flavortextentry"
+                  pokemon:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetAbilityResponse200Pokemon"
+                required:
+                  - "id"
+                  - "name"
+                  - "is_main_series"
+                  - "generation"
+                  - "names"
+                  - "effect_entries"
+                  - "flavor_text_entries"
+                  - "pokemon"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  detail:
+                    type: "string"
+                required:
+                  - "detail"
+      parameters:
+        - name: "idOrName"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+  /move/{idOrName}:
+    get:
+      operationId: "get-move"
+      summary: "Get Move"
+      description: "Returns detailed information about a specific move, including power, accuracy, type, and which Pokémon can learn it."
+      tags:
+        - "Moves"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  name:
+                    type: "string"
+                  accuracy:
+                    minimum: 0
+                    maximum: 100
+                    type: "integer"
+                  effect_chance:
+                    type: "integer"
+                  pp:
+                    minimum: 1
+                    type: "integer"
+                  priority:
+                    minimum: -7
+                    maximum: 5
+                    type: "integer"
+                  power:
+                    minimum: 0
+                    type: "integer"
+                  type:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  damage_class:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  target:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  generation:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  names:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetMoveResponse200Name"
+                  effect_entries:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetMoveResponse200Effectentry"
+                  flavor_text_entries:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetMoveResponse200Flavortextentry"
+                  meta:
+                    type: "object"
+                    properties:
+                      ailment:
+                        $ref: "#/components/schemas/GetMoveResponse200MetaAilment"
+                      category:
+                        $ref: "#/components/schemas/GetMoveResponse200MetaCategory"
+                      min_hits:
+                        type: "integer"
+                      max_hits:
+                        type: "integer"
+                      drain:
+                        type: "integer"
+                      healing:
+                        type: "integer"
+                      crit_rate:
+                        minimum: 0
+                        type: "integer"
+                      flinch_chance:
+                        minimum: 0
+                        maximum: 100
+                        type: "integer"
+                      stat_chance:
+                        minimum: 0
+                        maximum: 100
+                        type: "integer"
+                    required:
+                      - "ailment"
+                      - "category"
+                      - "drain"
+                      - "healing"
+                      - "crit_rate"
+                      - "flinch_chance"
+                      - "stat_chance"
+                  learned_by_pokemon:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetMoveResponse200Learnedbypokemon"
+                required:
+                  - "id"
+                  - "name"
+                  - "pp"
+                  - "priority"
+                  - "type"
+                  - "damage_class"
+                  - "target"
+                  - "generation"
+                  - "names"
+                  - "effect_entries"
+                  - "flavor_text_entries"
+                  - "learned_by_pokemon"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  detail:
+                    type: "string"
+                required:
+                  - "detail"
+      parameters:
+        - name: "idOrName"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+  /pokemon/{idOrName}:
+    get:
+      operationId: "get-pokemon"
+      summary: "Get Pokemon"
+      description: "Returns detailed information about a specific Pokémon including its abilities, types, stats, sprites, moves, and more."
+      tags:
+        - "Pokemon"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  name:
+                    type: "string"
+                  base_experience:
+                    type: "integer"
+                  height:
+                    type: "integer"
+                  weight:
+                    type: "integer"
+                  is_default:
+                    type: "boolean"
+                  order:
+                    type: "integer"
+                  abilities:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonResponse200Ability"
+                  types:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonResponse200Type"
+                  stats:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonResponse200Stat"
+                  sprites:
+                    type: "object"
+                    properties:
+                      front_default:
+                        type: "string"
+                      front_shiny:
+                        type: "string"
+                      front_female:
+                        type: "string"
+                      back_default:
+                        type: "string"
+                      back_shiny:
+                        type: "string"
+                      back_female:
+                        type: "string"
+                  species:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  moves:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonResponse200Move"
+                  held_items:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonResponse200Helditem"
+                  forms:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonResponse200Form"
+                  game_indices:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonResponse200Gameindice"
+                required:
+                  - "id"
+                  - "name"
+                  - "height"
+                  - "weight"
+                  - "is_default"
+                  - "order"
+                  - "abilities"
+                  - "types"
+                  - "stats"
+                  - "sprites"
+                  - "species"
+                  - "moves"
+                  - "held_items"
+                  - "forms"
+                  - "game_indices"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  detail:
+                    type: "string"
+                required:
+                  - "detail"
+      parameters:
+        - name: "idOrName"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+  /pokemon-species/{idOrName}:
+    get:
+      operationId: "get-pokemon-species"
+      summary: "Get Pokemon Species"
+      description: "Returns species information including evolution data, breeding info, Pokédex entries, and varieties."
+      tags:
+        - "Pokemon Species"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  name:
+                    type: "string"
+                  order:
+                    type: "integer"
+                  gender_rate:
+                    minimum: -1
+                    maximum: 8
+                    type: "integer"
+                  capture_rate:
+                    minimum: 0
+                    maximum: 255
+                    type: "integer"
+                  base_happiness:
+                    minimum: 0
+                    maximum: 255
+                    type: "integer"
+                  is_baby:
+                    type: "boolean"
+                  is_legendary:
+                    type: "boolean"
+                  is_mythical:
+                    type: "boolean"
+                  hatch_counter:
+                    minimum: 0
+                    type: "integer"
+                  has_gender_differences:
+                    type: "boolean"
+                  forms_switchable:
+                    type: "boolean"
+                  growth_rate:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  generation:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  habitat:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  color:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  shape:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  egg_groups:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonSpeciesResponse200Egggroup"
+                  evolves_from_species:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  evolution_chain:
+                    type: "object"
+                    properties:
+                      url:
+                        type: "string"
+                    required:
+                      - "url"
+                  names:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonSpeciesResponse200Name"
+                  flavor_text_entries:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonSpeciesResponse200Flavortextentry"
+                  genera:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonSpeciesResponse200Genera"
+                  varieties:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetPokemonSpeciesResponse200Variety"
+                required:
+                  - "id"
+                  - "name"
+                  - "order"
+                  - "gender_rate"
+                  - "capture_rate"
+                  - "base_happiness"
+                  - "is_baby"
+                  - "is_legendary"
+                  - "is_mythical"
+                  - "hatch_counter"
+                  - "has_gender_differences"
+                  - "forms_switchable"
+                  - "growth_rate"
+                  - "generation"
+                  - "color"
+                  - "egg_groups"
+                  - "evolution_chain"
+                  - "names"
+                  - "flavor_text_entries"
+                  - "genera"
+                  - "varieties"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  detail:
+                    type: "string"
+                required:
+                  - "detail"
+      parameters:
+        - name: "idOrName"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+  /type/{idOrName}:
+    get:
+      operationId: "get-type"
+      summary: "Get Type"
+      description: "Returns detailed information about a specific type, including damage relations to other types."
+      tags:
+        - "Types"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  id:
+                    type: "integer"
+                  name:
+                    type: "string"
+                  generation:
+                    type: "object"
+                    properties:
+                      name:
+                        type: "string"
+                      url:
+                        type: "string"
+                    required:
+                      - "name"
+                      - "url"
+                  damage_relations:
+                    type: "object"
+                    properties:
+                      no_damage_to:
+                        type: "array"
+                        items:
+                          $ref: "#/components/schemas/GetTypeResponse200DamagerelationsNodamageto"
+                      half_damage_to:
+                        type: "array"
+                        items:
+                          $ref: "#/components/schemas/GetTypeResponse200DamagerelationsHalfdamageto"
+                      double_damage_to:
+                        type: "array"
+                        items:
+                          $ref: "#/components/schemas/GetTypeResponse200DamagerelationsDoubledamageto"
+                      no_damage_from:
+                        type: "array"
+                        items:
+                          $ref: "#/components/schemas/GetTypeResponse200DamagerelationsNodamagefrom"
+                      half_damage_from:
+                        type: "array"
+                        items:
+                          $ref: "#/components/schemas/GetTypeResponse200DamagerelationsHalfdamagefrom"
+                      double_damage_from:
+                        type: "array"
+                        items:
+                          $ref: "#/components/schemas/GetTypeResponse200DamagerelationsDoubledamagefrom"
+                    required:
+                      - "no_damage_to"
+                      - "half_damage_to"
+                      - "double_damage_to"
+                      - "no_damage_from"
+                      - "half_damage_from"
+                      - "double_damage_from"
+                  names:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetTypeResponse200Name"
+                  pokemon:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetTypeResponse200Pokemon"
+                  moves:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/GetTypeResponse200Move"
+                required:
+                  - "id"
+                  - "name"
+                  - "generation"
+                  - "damage_relations"
+                  - "names"
+                  - "pokemon"
+                  - "moves"
+        "404":
+          description: "Not Found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  detail:
+                    type: "string"
+                required:
+                  - "detail"
+      parameters:
+        - name: "idOrName"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+  /ability:
+    get:
+      operationId: "list-abilities"
+      summary: "List Abilities"
+      description: "Returns a paginated list of all ability resources."
+      tags:
+        - "Abilities"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  count:
+                    type: "integer"
+                  next:
+                    type: "string"
+                  previous:
+                    type: "string"
+                  results:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/ListAbilitiesResponse200Result"
+                required:
+                  - "count"
+                  - "results"
+      parameters:
+        - name: "limit"
+          in: "query"
+          required: false
+          schema:
+            minimum: 1
+            maximum: 100
+            type: "integer"
+        - name: "offset"
+          in: "query"
+          required: false
+          schema:
+            minimum: 0
+            type: "integer"
+  /move:
+    get:
+      operationId: "list-moves"
+      summary: "List Moves"
+      description: "Returns a paginated list of all move resources."
+      tags:
+        - "Moves"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  count:
+                    type: "integer"
+                  next:
+                    type: "string"
+                  previous:
+                    type: "string"
+                  results:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/ListMovesResponse200Result"
+                required:
+                  - "count"
+                  - "results"
+      parameters:
+        - name: "limit"
+          in: "query"
+          required: false
+          schema:
+            minimum: 1
+            maximum: 100
+            type: "integer"
+        - name: "offset"
+          in: "query"
+          required: false
+          schema:
+            minimum: 0
+            type: "integer"
+  /pokemon:
+    get:
+      operationId: "list-pokemon"
+      summary: "List Pokemon"
+      description: "Returns a paginated list of all Pokémon resources."
+      tags:
+        - "Pokemon"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  count:
+                    type: "integer"
+                  next:
+                    type: "string"
+                  previous:
+                    type: "string"
+                  results:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/ListPokemonResponse200Result"
+                required:
+                  - "count"
+                  - "results"
+      parameters:
+        - name: "limit"
+          in: "query"
+          required: false
+          schema:
+            minimum: 1
+            maximum: 100
+            type: "integer"
+        - name: "offset"
+          in: "query"
+          required: false
+          schema:
+            minimum: 0
+            type: "integer"
+  /pokemon-species:
+    get:
+      operationId: "list-pokemon-species"
+      summary: "List Pokemon Species"
+      description: "Returns a paginated list of all Pokémon species."
+      tags:
+        - "Pokemon Species"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  count:
+                    type: "integer"
+                  next:
+                    type: "string"
+                  previous:
+                    type: "string"
+                  results:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/ListPokemonSpeciesResponse200Result"
+                required:
+                  - "count"
+                  - "results"
+      parameters:
+        - name: "limit"
+          in: "query"
+          required: false
+          schema:
+            minimum: 1
+            maximum: 100
+            type: "integer"
+        - name: "offset"
+          in: "query"
+          required: false
+          schema:
+            minimum: 0
+            type: "integer"
+  /type:
+    get:
+      operationId: "list-types"
+      summary: "List Types"
+      description: "Returns a list of all elemental types."
+      tags:
+        - "Types"
+      responses:
+        "200":
+          description: "Success"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  count:
+                    type: "integer"
+                  next:
+                    type: "string"
+                  previous:
+                    type: "string"
+                  results:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/ListTypesResponse200Result"
+                required:
+                  - "count"
+                  - "results"
+      parameters:
+        - name: "limit"
+          in: "query"
+          required: false
+          schema:
+            minimum: 1
+            maximum: 100
+            type: "integer"
+        - name: "offset"
+          in: "query"
+          required: false
+          schema:
+            minimum: 0
+            type: "integer"
+components:
+  schemas:
+    GetAbilityResponse200Name:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "name"
+        - "language"
+    GetAbilityResponse200Effectentry:
+      type: "object"
+      properties:
+        effect:
+          type: "string"
+        short_effect:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "effect"
+        - "short_effect"
+        - "language"
+    GetAbilityResponse200Flavortextentry:
+      type: "object"
+      properties:
+        flavor_text:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+        version_group:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "flavor_text"
+        - "language"
+        - "version_group"
+    GetAbilityResponse200Pokemon:
+      type: "object"
+      properties:
+        is_hidden:
+          type: "boolean"
+        slot:
+          minimum: 1
+          maximum: 3
+          type: "integer"
+        pokemon:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "is_hidden"
+        - "slot"
+        - "pokemon"
+    GetMoveResponse200Name:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "name"
+        - "language"
+    GetMoveResponse200Effectentry:
+      type: "object"
+      properties:
+        effect:
+          type: "string"
+        short_effect:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "effect"
+        - "short_effect"
+        - "language"
+    GetMoveResponse200Flavortextentry:
+      type: "object"
+      properties:
+        flavor_text:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+        version_group:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "flavor_text"
+        - "language"
+        - "version_group"
+    GetMoveResponse200MetaAilment:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetMoveResponse200MetaCategory:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetMoveResponse200Learnedbypokemon:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetPokemonResponse200Ability:
+      type: "object"
+      properties:
+        is_hidden:
+          type: "boolean"
+        slot:
+          minimum: 1
+          maximum: 3
+          type: "integer"
+        ability:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "is_hidden"
+        - "slot"
+        - "ability"
+    GetPokemonResponse200Type:
+      type: "object"
+      properties:
+        slot:
+          minimum: 1
+          maximum: 2
+          type: "integer"
+        type:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "slot"
+        - "type"
+    GetPokemonResponse200Stat:
+      type: "object"
+      properties:
+        base_stat:
+          minimum: 1
+          type: "integer"
+        effort:
+          minimum: 0
+          maximum: 3
+          type: "integer"
+        stat:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "base_stat"
+        - "effort"
+        - "stat"
+    GetPokemonResponse200MoveVersiongroupdetail:
+      type: "object"
+      properties:
+        level_learned_at:
+          minimum: 0
+          type: "integer"
+        move_learn_method:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+        version_group:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "level_learned_at"
+        - "move_learn_method"
+        - "version_group"
+    GetPokemonResponse200Move:
+      type: "object"
+      properties:
+        move:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+        version_group_details:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/GetPokemonResponse200MoveVersiongroupdetail"
+      required:
+        - "move"
+        - "version_group_details"
+    GetPokemonResponse200HelditemVersiondetail:
+      type: "object"
+      properties:
+        rarity:
+          minimum: 1
+          maximum: 100
+          type: "integer"
+        version:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "rarity"
+        - "version"
+    GetPokemonResponse200Helditem:
+      type: "object"
+      properties:
+        item:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+        version_details:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/GetPokemonResponse200HelditemVersiondetail"
+      required:
+        - "item"
+        - "version_details"
+    GetPokemonResponse200Form:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetPokemonResponse200Gameindice:
+      type: "object"
+      properties:
+        game_index:
+          type: "integer"
+        version:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "game_index"
+        - "version"
+    GetPokemonSpeciesResponse200Egggroup:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetPokemonSpeciesResponse200Name:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "name"
+        - "language"
+    GetPokemonSpeciesResponse200Flavortextentry:
+      type: "object"
+      properties:
+        flavor_text:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+        version:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "flavor_text"
+        - "language"
+        - "version"
+    GetPokemonSpeciesResponse200Genera:
+      type: "object"
+      properties:
+        genus:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "genus"
+        - "language"
+    GetPokemonSpeciesResponse200Variety:
+      type: "object"
+      properties:
+        is_default:
+          type: "boolean"
+        pokemon:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "is_default"
+        - "pokemon"
+    GetTypeResponse200DamagerelationsNodamageto:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetTypeResponse200DamagerelationsHalfdamageto:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetTypeResponse200DamagerelationsDoubledamageto:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetTypeResponse200DamagerelationsNodamagefrom:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetTypeResponse200DamagerelationsHalfdamagefrom:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetTypeResponse200DamagerelationsDoubledamagefrom:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    GetTypeResponse200Name:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        language:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "name"
+        - "language"
+    GetTypeResponse200Pokemon:
+      type: "object"
+      properties:
+        slot:
+          minimum: 1
+          maximum: 2
+          type: "integer"
+        pokemon:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+            url:
+              type: "string"
+          required:
+            - "name"
+            - "url"
+      required:
+        - "slot"
+        - "pokemon"
+    GetTypeResponse200Move:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    ListAbilitiesResponse200Result:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    ListMovesResponse200Result:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    ListPokemonResponse200Result:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    ListPokemonSpeciesResponse200Result:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+    ListTypesResponse200Result:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+        url:
+          type: "string"
+      required:
+        - "name"
+        - "url"
+servers:
+  - url: "https://pokeapi.co/api/v2"

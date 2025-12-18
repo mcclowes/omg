@@ -1,0 +1,14 @@
+{
+  "name": "pokeapi-omg-example",
+  "version": "1.0.0",
+  "description": "PokéAPI documented using OMG (OpenAPI Markdown Grammar)",
+  "private": true,
+  "scripts": {
+    "build": "omg build api.omg.md -o openapi.yaml",
+    "validate": "npx @apidevtools/swagger-cli validate openapi.yaml",
+    "build:json": "omg build api.omg.md -o openapi.json"
+  },
+  "devDependencies": {
+    "@omg/cli": "file:../../packages/omg-cli"
+  }
+}
