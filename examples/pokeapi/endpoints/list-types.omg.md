@@ -21,10 +21,12 @@ Returns a list of all elemental types.
   count: integer,
   next: string?,
   previous: string?,
-  results: [{
-    name: string,
-    url: string
-  }]
+  results: [
+    {
+      name: string,
+      url: string
+    }
+  ]
 }
 ```
 
@@ -34,11 +36,26 @@ Returns a list of all elemental types.
   "next": null,
   "previous": null,
   "results": [
-    { "name": "normal", "url": "https://pokeapi.co/api/v2/type/1/" },
-    { "name": "fighting", "url": "https://pokeapi.co/api/v2/type/2/" },
-    { "name": "fire", "url": "https://pokeapi.co/api/v2/type/10/" },
-    { "name": "water", "url": "https://pokeapi.co/api/v2/type/11/" },
-    { "name": "electric", "url": "https://pokeapi.co/api/v2/type/13/" }
+    {
+      "name": "normal",
+      "url": "https://pokeapi.co/api/v2/type/1/"
+    },
+    {
+      "name": "fighting",
+      "url": "https://pokeapi.co/api/v2/type/2/"
+    },
+    {
+      "name": "fire",
+      "url": "https://pokeapi.co/api/v2/type/10/"
+    },
+    {
+      "name": "water",
+      "url": "https://pokeapi.co/api/v2/type/11/"
+    },
+    {
+      "name": "electric",
+      "url": "https://pokeapi.co/api/v2/type/13/"
+    }
   ]
 }
 ```

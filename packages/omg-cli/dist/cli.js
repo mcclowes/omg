@@ -308,6 +308,94 @@ program
         process.exit(1);
     }
 });
+// Format command
+program
+    .command('fmt <input>')
+    .description('Format OMG files for consistent style')
+    .option('-w, --write', 'Write formatted output back to file(s)')
+    .option('--check', 'Check if files are formatted (exit 1 if not)')
+    .option('--indent <size>', 'Indentation size', '2')
+    .action(async (input, options) => {
+    try {
+        const inputPath = path.resolve(input);
+        if (!fs.existsSync(inputPath)) {
+            console.error(chalk_1.default.red(`Error: File not found: ${inputPath}`));
+            process.exit(1);
+        }
+        const indentSize = parseInt(options.indent || '2', 10);
+        // Check if input is a directory or file
+        const stat = fs.statSync(inputPath);
+        const files = [];
+        if (stat.isDirectory()) {
+            // Find all .omg.md files recursively
+            const findOmgFiles = (dir) => {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory() && entry.name !== 'node_modules') {
+                        findOmgFiles(fullPath);
+                    }
+                    else if (entry.name.endsWith('.omg.md')) {
+                        files.push(fullPath);
+                    }
+                }
+            };
+            findOmgFiles(inputPath);
+        }
+        else {
+            files.push(inputPath);
+        }
+        if (files.length === 0) {
+            console.error(chalk_1.default.yellow('No .omg.md files found'));
+            process.exit(0);
+        }
+        let unformattedCount = 0;
+        for (const file of files) {
+            const content = fs.readFileSync(file, 'utf-8');
+            const formatted = (0, omg_parser_1.formatDocument)(content, { indent: indentSize });
+            const relativePath = path.relative(process.cwd(), file);
+            if (content !== formatted) {
+                unformattedCount++;
+                if (options.check) {
+                    console.log(chalk_1.default.red(`✖ ${relativePath}`));
+                }
+                else if (options.write) {
+                    fs.writeFileSync(file, formatted);
+                    console.log(chalk_1.default.green(`✓ ${relativePath}`));
+                }
+                else {
+                    // Output to stdout
+                    console.log(chalk_1.default.blue(`--- ${relativePath} ---`));
+                    console.log(formatted);
+                }
+            }
+            else if (!options.check) {
+                console.log(chalk_1.default.gray(`  ${relativePath} (unchanged)`));
+            }
+        }
+        if (options.check) {
+            if (unformattedCount > 0) {
+                console.log();
+                console.log(chalk_1.default.red(`${unformattedCount} file(s) need formatting. Run 'omg fmt -w' to fix.`));
+                process.exit(1);
+            }
+            else {
+                console.log(chalk_1.default.green(`✓ All ${files.length} file(s) are formatted`));
+            }
+        }
+        else if (options.write) {
+            console.log();
+            console.log(chalk_1.default.green(`✓ Formatted ${unformattedCount} of ${files.length} file(s)`));
+        }
+    }
+    catch (error) {
+        console.error(chalk_1.default.red(`Error: ${error.message}`));
+        if (error.stack) {
+            console.error(chalk_1.default.gray(error.stack));
+        }
+        process.exit(1);
+    }
+});
 // Init command
 program
     .command('init [directory]')

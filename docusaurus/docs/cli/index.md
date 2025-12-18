@@ -26,6 +26,7 @@ npx omg-md-cli <command>
 | [`build`](/docs/cli/build) | Compile OMG to OpenAPI |
 | [`parse`](/docs/cli/parse) | Parse and inspect AST |
 | [`lint`](/docs/cli/lint) | Lint OMG files |
+| [`fmt`](/docs/cli/fmt) | Format OMG files |
 
 ## Quick Reference
 
@@ -44,6 +45,9 @@ omg parse endpoint.omg.md
 
 # Lint files
 omg lint my-api/
+
+# Format files
+omg fmt my-api/ --write
 ```
 
 ## Global Options

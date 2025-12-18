@@ -17,8 +17,8 @@
 
   /* Typography and spacing */
   --ifm-code-font-size: 95%;
-  --ifm-font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif;
+  --ifm-font-family-base:
+    system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --ifm-heading-font-weight: 600;
 
   /* Backgrounds */

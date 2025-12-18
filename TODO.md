@@ -32,7 +32,7 @@ Quick Wins
 - [x] **VS Code extension** - Full editor integration (published to marketplace)
 - [ ] **Watch mode** - Incremental compilation
 - [x] **Error messages** - Helpful, actionable diagnostics
-- [ ] **Formatter** - `omg fmt` for consistent style
+- [x] **Formatter** - `omg fmt` for consistent style
 
 ### Long-term (Ecosystem)
 

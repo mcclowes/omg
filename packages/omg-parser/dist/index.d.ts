@@ -10,4 +10,6 @@ export { parseReturnsBlock } from './returns-parser.js';
 export type { ParseReturnsResult } from './returns-parser.js';
 export { resolveDocument, buildEndpoint, loadApi } from './resolver.js';
 export type { ResolvedDocument } from './resolver.js';
+export { formatDocument } from './formatter.js';
+export type { FormatOptions } from './formatter.js';
 //# sourceMappingURL=index.d.ts.map

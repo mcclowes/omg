@@ -10,7 +10,7 @@ import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
-import { loadApi, parseDocument, resolveDocument, buildEndpoint } from 'omg-parser';
+import { loadApi, parseDocument, resolveDocument, buildEndpoint, formatDocument } from 'omg-parser';
 import { compileToOpenApi, serialize, detectFormat } from 'omg-compiler';
 import { lintDocument, summarizeLintResults, type Severity, type LintResult } from 'omg-linter';
 
@@ -328,6 +328,99 @@ program
       }
     }
   );
+
+// Format command
+program
+  .command('fmt <input>')
+  .description('Format OMG files for consistent style')
+  .option('-w, --write', 'Write formatted output back to file(s)')
+  .option('--check', 'Check if files are formatted (exit 1 if not)')
+  .option('--indent <size>', 'Indentation size', '2')
+  .action(async (input: string, options: { write?: boolean; check?: boolean; indent?: string }) => {
+    try {
+      const inputPath = path.resolve(input);
+
+      if (!fs.existsSync(inputPath)) {
+        console.error(chalk.red(`Error: File not found: ${inputPath}`));
+        process.exit(1);
+      }
+
+      const indentSize = parseInt(options.indent || '2', 10);
+
+      // Check if input is a directory or file
+      const stat = fs.statSync(inputPath);
+      const files: string[] = [];
+
+      if (stat.isDirectory()) {
+        // Find all .omg.md files recursively
+        const findOmgFiles = (dir: string) => {
+          const entries = fs.readdirSync(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory() && entry.name !== 'node_modules') {
+              findOmgFiles(fullPath);
+            } else if (entry.name.endsWith('.omg.md')) {
+              files.push(fullPath);
+            }
+          }
+        };
+        findOmgFiles(inputPath);
+      } else {
+        files.push(inputPath);
+      }
+
+      if (files.length === 0) {
+        console.error(chalk.yellow('No .omg.md files found'));
+        process.exit(0);
+      }
+
+      let unformattedCount = 0;
+
+      for (const file of files) {
+        const content = fs.readFileSync(file, 'utf-8');
+        const formatted = formatDocument(content, { indent: indentSize });
+        const relativePath = path.relative(process.cwd(), file);
+
+        if (content !== formatted) {
+          unformattedCount++;
+
+          if (options.check) {
+            console.log(chalk.red(`✖ ${relativePath}`));
+          } else if (options.write) {
+            fs.writeFileSync(file, formatted);
+            console.log(chalk.green(`✓ ${relativePath}`));
+          } else {
+            // Output to stdout
+            console.log(chalk.blue(`--- ${relativePath} ---`));
+            console.log(formatted);
+          }
+        } else if (!options.check) {
+          console.log(chalk.gray(`  ${relativePath} (unchanged)`));
+        }
+      }
+
+      if (options.check) {
+        if (unformattedCount > 0) {
+          console.log();
+          console.log(
+            chalk.red(`${unformattedCount} file(s) need formatting. Run 'omg fmt -w' to fix.`)
+          );
+          process.exit(1);
+        } else {
+          console.log(chalk.green(`✓ All ${files.length} file(s) are formatted`));
+        }
+      } else if (options.write) {
+        console.log();
+        console.log(chalk.green(`✓ Formatted ${unformattedCount} of ${files.length} file(s)`));
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error: ${(error as Error).message}`));
+      if ((error as Error).stack) {
+        console.error(chalk.gray((error as Error).stack));
+      }
+      process.exit(1);
+    }
+  });
 
 // Init command
 program

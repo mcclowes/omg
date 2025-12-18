@@ -5,7 +5,7 @@
  * Parser for OMG (OpenAPI Markdown Grammar) files.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadApi = exports.buildEndpoint = exports.resolveDocument = exports.parseReturnsBlock = exports.inferSchemaFromJson = exports.parseSchema = exports.parseHttpBlock = exports.parseDocument = void 0;
+exports.formatDocument = exports.loadApi = exports.buildEndpoint = exports.resolveDocument = exports.parseReturnsBlock = exports.inferSchemaFromJson = exports.parseSchema = exports.parseHttpBlock = exports.parseDocument = void 0;
 // Document parsing
 var document_parser_js_1 = require("./document-parser.js");
 Object.defineProperty(exports, "parseDocument", { enumerable: true, get: function () { return document_parser_js_1.parseDocument; } });
@@ -22,4 +22,7 @@ var resolver_js_1 = require("./resolver.js");
 Object.defineProperty(exports, "resolveDocument", { enumerable: true, get: function () { return resolver_js_1.resolveDocument; } });
 Object.defineProperty(exports, "buildEndpoint", { enumerable: true, get: function () { return resolver_js_1.buildEndpoint; } });
 Object.defineProperty(exports, "loadApi", { enumerable: true, get: function () { return resolver_js_1.loadApi; } });
+// Formatter
+var formatter_js_1 = require("./formatter.js");
+Object.defineProperty(exports, "formatDocument", { enumerable: true, get: function () { return formatter_js_1.formatDocument; } });
 //# sourceMappingURL=index.js.map

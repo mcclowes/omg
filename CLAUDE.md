@@ -183,6 +183,12 @@ node packages/omg-md-cli/dist/cli.js parse my-api/endpoints/health.omg.md
 
 # Lint OMG files
 node packages/omg-md-cli/dist/cli.js lint my-api/
+
+# Format OMG files
+node packages/omg-md-cli/dist/cli.js fmt my-api/ --write
+
+# Check formatting
+node packages/omg-md-cli/dist/cli.js fmt my-api/ --check
 ```
 
 ## Code Conventions
