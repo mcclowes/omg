@@ -130,3 +130,4 @@ This is an early-stage project. To contribute:
 - [x] Improved error messages with line numbers and context
 - [x] Added parse warnings system for non-fatal issues
 - [x] Stack traces in CLI error output
+- [x] Variant expansion (`expandVariants` + `@when`) for polymorphic endpoints

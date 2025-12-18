@@ -28,6 +28,11 @@ export declare function extractTypeName(content: string): string | null;
  */
 export declare function buildEndpoint(doc: ResolvedDocument): ParsedEndpoint | null;
 /**
+ * Build ParsedEndpoints from a resolved document.
+ * When expandVariants is set, expands into multiple endpoints based on @when conditions.
+ */
+export declare function buildEndpoints(doc: ResolvedDocument): ParsedEndpoint[];
+/**
  * Load and parse an entire API from a directory
  */
 export declare function loadApi(rootPath: string): ParsedApi;

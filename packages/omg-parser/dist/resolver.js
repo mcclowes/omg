@@ -41,6 +41,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolveDocument = resolveDocument;
 exports.extractTypeName = extractTypeName;
 exports.buildEndpoint = buildEndpoint;
+exports.buildEndpoints = buildEndpoints;
 exports.loadApi = loadApi;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
@@ -165,6 +166,14 @@ function extractTypeName(content) {
  * Build a ParsedEndpoint from a resolved document
  */
 function buildEndpoint(doc) {
+    const endpoints = buildEndpoints(doc);
+    return endpoints.length > 0 ? endpoints[0] : null;
+}
+/**
+ * Build ParsedEndpoints from a resolved document.
+ * When expandVariants is set, expands into multiple endpoints based on @when conditions.
+ */
+function buildEndpoints(doc) {
     const frontMatter = doc.frontMatter;
     // Get method and path from front matter or http block
     let method = null;
@@ -185,8 +194,109 @@ function buildEndpoint(doc) {
         }
     }
     if (!method || !urlPath) {
-        return null; // Not an endpoint document
+        return []; // Not an endpoint document
     }
+    // Check for variant expansion
+    const expandVariantsField = frontMatter?.expandVariants;
+    if (expandVariantsField) {
+        return buildExpandedEndpoints(doc, method, urlPath, expandVariantsField, frontMatter);
+    }
+    // Standard single endpoint
+    return [buildSingleEndpoint(doc, method, urlPath, frontMatter)];
+}
+/**
+ * Build expanded endpoints when expandVariants is set
+ */
+function buildExpandedEndpoints(doc, method, basePath, expandField, frontMatter) {
+    // Find all unique variant values from @when conditions matching the expand field
+    const variantValues = new Set();
+    for (const block of doc.resolvedBlocks) {
+        if (block.whenCondition && block.whenCondition.field === expandField) {
+            variantValues.add(block.whenCondition.value);
+        }
+    }
+    if (variantValues.size === 0) {
+        // No variants found, return empty (or could warn)
+        return [];
+    }
+    const endpoints = [];
+    for (const variantValue of variantValues) {
+        // Filter blocks for this variant:
+        // - Include blocks with matching @when condition
+        // - Include blocks without any @when condition (shared)
+        const variantBlocks = doc.resolvedBlocks.filter((block) => {
+            if (!block.whenCondition) {
+                return true; // No condition = shared across all variants
+            }
+            return (block.whenCondition.field === expandField && block.whenCondition.value === variantValue);
+        });
+        // Build operation ID with variant suffix
+        const baseOperationId = frontMatter?.operationId ||
+            `${method.toLowerCase()}-${basePath
+                .replace(/[{}\/]/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '')}`;
+        const operationId = `${baseOperationId}-${variantValue}`;
+        // Build path with #variant suffix
+        const variantPath = `${basePath}#${variantValue}`;
+        // Build summary with variant
+        const baseSummary = frontMatter?.summary || doc.title || '';
+        const summary = baseSummary ? `${baseSummary} (${variantValue})` : variantValue;
+        // Collect blocks by type (from filtered variant blocks)
+        const pathBlock = variantBlocks.find((b) => b.type === 'omg.path');
+        const queryBlock = variantBlocks.find((b) => b.type === 'omg.query');
+        const headersBlock = variantBlocks.find((b) => b.type === 'omg.headers');
+        const bodyBlock = variantBlocks.find((b) => b.type === 'omg.body');
+        const returnsBlocks = variantBlocks.filter((b) => b.type === 'omg.returns');
+        const responseBlocks = variantBlocks.filter((b) => b.type === 'omg.response' || b.type.startsWith('omg.response.'));
+        // Build responses map
+        const responses = {};
+        for (const returnsBlock of returnsBlocks) {
+            if (returnsBlock.parsedResponses) {
+                for (const entry of returnsBlock.parsedResponses.responses) {
+                    responses[entry.statusCode] = {
+                        schema: entry.schema,
+                        condition: entry.condition,
+                        description: entry.description,
+                    };
+                }
+            }
+        }
+        for (const block of responseBlocks) {
+            const statusCode = block.statusCode || 200;
+            if (block.parsed) {
+                if (!responses[statusCode]) {
+                    responses[statusCode] = {
+                        schema: block.parsed,
+                    };
+                }
+            }
+        }
+        endpoints.push({
+            method,
+            path: variantPath,
+            operationId,
+            tags: frontMatter?.tags || [],
+            summary,
+            description: doc.description,
+            deprecated: frontMatter?.deprecated || false,
+            follows: frontMatter?.follows || [],
+            webhooks: frontMatter?.webhooks || {},
+            parameters: {
+                path: pathBlock?.parsed || null,
+                query: queryBlock?.parsed || null,
+                headers: headersBlock?.parsed || null,
+            },
+            requestBody: bodyBlock?.parsed || null,
+            responses,
+        });
+    }
+    return endpoints;
+}
+/**
+ * Build a single endpoint (no variant expansion)
+ */
+function buildSingleEndpoint(doc, method, urlPath, frontMatter) {
     // Build operation ID
     const operationId = frontMatter?.operationId ||
         `${method.toLowerCase()}-${urlPath
@@ -270,11 +380,9 @@ function loadApi(rootPath) {
                 types[typeName] = block.parsed;
             }
         }
-        // Build endpoint
-        const endpoint = buildEndpoint(resolved);
-        if (endpoint) {
-            endpoints.push(endpoint);
-        }
+        // Build endpoints (may be multiple if expandVariants is used)
+        const docEndpoints = buildEndpoints(resolved);
+        endpoints.push(...docEndpoints);
     }
     return {
         name: rootFrontMatter?.name || 'API',

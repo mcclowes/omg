@@ -29,6 +29,7 @@ export type {
   ParsedReturnEntry,
   ParsedReturnsBlock,
   ParseWarning,
+  WhenCondition,
 } from './types.js';
 
 // Document parsing
@@ -42,7 +43,7 @@ export { parseReturnsBlock } from './returns-parser.js';
 export type { ParseReturnsResult } from './returns-parser.js';
 
 // Resolution
-export { resolveDocument, buildEndpoint, loadApi } from './resolver.js';
+export { resolveDocument, buildEndpoint, buildEndpoints, loadApi } from './resolver.js';
 export type { ResolvedDocument } from './resolver.js';
 
 // Formatter

@@ -157,3 +157,65 @@ Include shared content using Handlebars-style syntax:
 \{\{> partials/errors \}\}
 \{\{> partials/pagination \}\}
 ```
+
+## Variant Conditions
+
+### @when annotation
+
+The `@when` annotation allows you to define variant-specific blocks that are used with the `expandVariants` frontmatter option. This enables a single OMG file to generate multiple OpenAPI operations with different schemas.
+
+**Syntax:**
+
+````markdown
+```omg.body @when(fieldName = "value")
+{
+  // Schema for this variant
+}
+```
+````
+
+**Example:**
+
+Define different request bodies for different pet types:
+
+````markdown
+```omg.body @when(petType = "cat")
+{
+  name: string,
+  meowVolume: integer @min(0) @max(11)
+}
+```
+
+```omg.body @when(petType = "dog")
+{
+  name: string,
+  barkVolume: integer,
+  breed: string?
+}
+```
+
+```omg.response
+{
+  id: uuid,
+  createdAt: datetime
+}
+```
+````
+
+When combined with `expandVariants: petType` in the frontmatter, this generates:
+
+- `POST /pets#cat` — Uses the cat-specific body schema
+- `POST /pets#dog` — Uses the dog-specific body schema
+
+Both endpoints share the same response schema (blocks without `@when` are included in all variants).
+
+**Supported block types:**
+
+The `@when` annotation can be used with any code block type:
+
+- `omg.body` — Variant-specific request bodies
+- `omg.response` — Variant-specific responses
+- `omg.query` — Variant-specific query parameters
+- `omg.headers` — Variant-specific headers
+
+See [Frontmatter - expandVariants](./frontmatter#expandvariants) for the full documentation.

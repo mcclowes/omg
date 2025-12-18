@@ -20,11 +20,15 @@ import type {
   OmgBlockType,
   PartialRef,
   EndpointFrontMatter,
+  WhenCondition,
 } from './types.js';
 
 // Block type patterns
+// Matches: omg.body, omg.response.201
 const OMG_BLOCK_PATTERN =
   /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+))?$/;
+// Matches: @when(fieldName = "value") in code block meta
+const WHEN_PATTERN = /@when\((\w+)\s*=\s*"([^"]+)"\)/;
 const PARTIAL_PATTERN = /\{\{>\s*([^}\s]+)\s*\}\}/g;
 
 /**
@@ -148,11 +152,25 @@ function extractCodeBlocks(tree: Root): OmgBlock[] {
       const blockType = `omg.${match[1]}` as OmgBlockType;
       const statusCode = match[3] ? parseInt(match[3], 10) : undefined;
 
+      // Parse @when condition from meta if present
+      // remark-parse puts everything after the language tag in node.meta
+      let whenCondition: WhenCondition | undefined;
+      if (node.meta) {
+        const whenMatch = node.meta.match(WHEN_PATTERN);
+        if (whenMatch) {
+          whenCondition = {
+            field: whenMatch[1],
+            value: whenMatch[2],
+          };
+        }
+      }
+
       blocks.push({
         type: blockType,
         statusCode,
         content: node.value,
         line,
+        whenCondition,
       });
     }
   });
