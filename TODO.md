@@ -1,24 +1,5 @@
 # todo
 
-Quick Wins
-- [X] Publish to NPM
-- [X] Add contributing file
-
-### Recently Completed
-- [x] Fix repo URLs in all package.json files
-- [x] Uncomment .husky/pre-commit and add linting
-- [x] Add engines field to root package.json
-- [x] Set up Prettier with format/format:check scripts
-- [x] Add format:check to pre-commit hook
-- [x] Fix build order for workspace dependencies
-- [x] Update package dependencies from file: to semver references
-- [x] Publish omg-parser, omg-compiler, omg-linter, omg-lsp to npm
-- [x] CI setup (GitHub Actions: format, typecheck, build, test)
-- [x] Run validate on examples in CI
-- [x] Improved error messages with line numbers and context
-- [x] Added parse warnings system for non-fatal issues
-- [x] Stack traces in CLI error output
-
 ### Immediate (Language Design Finalization)
 
 - [ ] **Review syntax with stakeholders** - Get feedback from tech writers, developers, PMs
@@ -126,7 +107,7 @@ This is an early-stage project. To contribute:
 3. Submit PRs for documentation improvements
 4. Help with syntax design decisions
 
-### Short-term (MVP Implementation)
+## Completed
 
 - [x] **Set up TypeScript project** - Monorepo with packages for parser, compiler, CLI (`packages/`)
 - [x] **Implement lexer** - Tokenize OMG syntax (`omg-parser`)
@@ -134,3 +115,18 @@ This is an early-stage project. To contribute:
 - [x] **Implement OpenAPI compiler** - Transform AST to OpenAPI 3.1 (`omg-compiler`)
 - [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`omg-md-cli`)
 - [x] **VS Code syntax highlighting** - TextMate grammar (`packages/omg-vscode/`)
+- [X] Publish to NPM
+- [X] Add contributing file
+- [x] Fix repo URLs in all package.json files
+- [x] Uncomment .husky/pre-commit and add linting
+- [x] Add engines field to root package.json
+- [x] Set up Prettier with format/format:check scripts
+- [x] Add format:check to pre-commit hook
+- [x] Fix build order for workspace dependencies
+- [x] Update package dependencies from file: to semver references
+- [x] Publish omg-parser, omg-compiler, omg-linter, omg-lsp to npm
+- [x] CI setup (GitHub Actions: format, typecheck, build, test)
+- [x] Run validate on examples in CI
+- [x] Improved error messages with line numbers and context
+- [x] Added parse warnings system for non-fatal issues
+- [x] Stack traces in CLI error output

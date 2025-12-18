@@ -42,3 +42,5 @@ jobs:
         run: |
           node packages/omg-md-cli/dist/cli.js build examples/pokeapi/api.omg.md -o /tmp/pokeapi.yaml
           npx @apidevtools/swagger-cli validate /tmp/pokeapi.yaml
+          node packages/omg-md-cli/dist/cli.js build examples/payments-api/api.omg.md -o /tmp/payments-api.yaml
+          npx @apidevtools/swagger-cli validate /tmp/payments-api.yaml
