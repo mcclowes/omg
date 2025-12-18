@@ -20,11 +20,11 @@ functions:
 
 aliases:
   OalDocument:
-    - "$.document"
+    - '$.document'
   FrontMatter:
-    - "$.document.frontMatter"
+    - '$.document.frontMatter'
   Blocks:
-    - "$.document.resolvedBlocks[*]"
+    - '$.document.resolvedBlocks[*]'
   ResponseBlocks:
     - "$.document.resolvedBlocks[?(@.type.startsWith('omg.response'))]"
   QueryBlocks:
@@ -38,46 +38,46 @@ rules:
   # ============================================
 
   omg-frontmatter-method-required:
-    description: "Front matter must include HTTP method"
+    description: 'Front matter must include HTTP method'
     message: "Missing 'method' in front matter. Specify GET, POST, PUT, PATCH, or DELETE."
     severity: error
-    given: "#FrontMatter"
+    given: '#FrontMatter'
     then:
       field: method
       function: truthy
 
   omg-frontmatter-path-required:
-    description: "Front matter must include API path"
+    description: 'Front matter must include API path'
     message: "Missing 'path' in front matter. Specify the endpoint path (e.g., /users/{id})."
     severity: error
-    given: "#FrontMatter"
+    given: '#FrontMatter'
     then:
       field: path
       function: truthy
 
   omg-frontmatter-operationid-required:
-    description: "Front matter must include operationId"
+    description: 'Front matter must include operationId'
     message: "Missing 'operationId' in front matter. Every endpoint needs a unique operationId."
     severity: error
-    given: "#FrontMatter"
+    given: '#FrontMatter'
     then:
       field: operationId
       function: truthy
 
   omg-frontmatter-tags-required:
-    description: "Front matter must include at least one tag"
+    description: 'Front matter must include at least one tag'
     message: "Missing 'tags' in front matter. Add at least one tag to categorize the endpoint."
     severity: warn
-    given: "#FrontMatter"
+    given: '#FrontMatter'
     then:
       field: tags
       function: truthy
 
   omg-frontmatter-method-valid:
-    description: "HTTP method must be valid"
+    description: 'HTTP method must be valid'
     message: "Invalid HTTP method '{{value}}'. Use GET, POST, PUT, PATCH, or DELETE."
     severity: error
-    given: "#FrontMatter.method"
+    given: '#FrontMatter.method'
     then:
       function: enumeration
       functionOptions:
@@ -93,64 +93,64 @@ rules:
   # ============================================
 
   omg-operationid-kebab-case:
-    description: "operationId should be kebab-case"
+    description: 'operationId should be kebab-case'
     message: "operationId '{{value}}' should be kebab-case (e.g., 'list-accounts', 'create-invoice')."
     severity: warn
-    given: "#FrontMatter.operationId"
+    given: '#FrontMatter.operationId'
     then:
       function: pattern
       functionOptions:
-        match: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        match: '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
 
   omg-operationid-verb-prefix:
-    description: "operationId should start with a verb"
+    description: 'operationId should start with a verb'
     message: "operationId '{{value}}' should start with a verb (list-, get-, create-, update-, delete-, etc.)."
     severity: hint
-    given: "#FrontMatter.operationId"
+    given: '#FrontMatter.operationId'
     then:
       function: pattern
       functionOptions:
-        match: "^(list|get|create|update|delete|patch|search|sync|push|pull|upload|download|validate|check|refresh|cancel|archive|restore|export|import)-"
+        match: '^(list|get|create|update|delete|patch|search|sync|push|pull|upload|download|validate|check|refresh|cancel|archive|restore|export|import)-'
 
   # ============================================
   # Path Rules
   # ============================================
 
   omg-path-leading-slash:
-    description: "Path must start with a forward slash"
+    description: 'Path must start with a forward slash'
     message: "Path '{{value}}' must start with '/'."
     severity: error
-    given: "#FrontMatter.path"
+    given: '#FrontMatter.path'
     then:
       function: pattern
       functionOptions:
-        match: "^/"
+        match: '^/'
 
   omg-path-no-trailing-slash:
-    description: "Path should not end with a forward slash"
+    description: 'Path should not end with a forward slash'
     message: "Path '{{value}}' should not end with '/'. Remove the trailing slash."
     severity: warn
-    given: "#FrontMatter.path"
+    given: '#FrontMatter.path'
     then:
       function: pattern
       functionOptions:
-        notMatch: "/$"
+        notMatch: '/$'
 
   omg-path-parameters-camelcase:
-    description: "Path parameters should be camelCase"
-    message: "Path parameter should use camelCase naming."
+    description: 'Path parameters should be camelCase'
+    message: 'Path parameter should use camelCase naming.'
     severity: warn
-    given: "#FrontMatter.path"
+    given: '#FrontMatter.path'
     then:
       function: omg-path-parameter-defined
       functionOptions:
         casing: camelCase
 
   omg-path-no-file-extensions:
-    description: "Paths should not include file extensions"
+    description: 'Paths should not include file extensions'
     message: "Path '{{value}}' should not include file extensions like .json or .xml."
     severity: warn
-    given: "#FrontMatter.path"
+    given: '#FrontMatter.path'
     then:
       function: pattern
       functionOptions:
@@ -161,18 +161,18 @@ rules:
   # ============================================
 
   omg-response-required:
-    description: "Endpoint must define at least one response"
-    message: "No response block defined. Add an omg.response block."
+    description: 'Endpoint must define at least one response'
+    message: 'No response block defined. Add an omg.response block.'
     severity: error
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: omg-response-required
 
   omg-response-success-required:
-    description: "Endpoint should define a success response (2xx)"
-    message: "No success response (2xx) defined. Consider adding omg.response.200 or omg.response.201."
+    description: 'Endpoint should define a success response (2xx)'
+    message: 'No success response (2xx) defined. Consider adding omg.response.200 or omg.response.201.'
     severity: warn
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: omg-response-required
       functionOptions:
@@ -183,28 +183,28 @@ rules:
   # ============================================
 
   omg-title-required:
-    description: "Endpoint must have a title"
+    description: 'Endpoint must have a title'
     message: "Missing title (H1 heading). Add a '# Title' heading after front matter."
     severity: error
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       field: title
       function: truthy
 
   omg-description-required:
-    description: "Endpoint should have a description"
-    message: "Missing description. Add descriptive text after the title."
+    description: 'Endpoint should have a description'
+    message: 'Missing description. Add descriptive text after the title.'
     severity: warn
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       field: description
       function: truthy
 
   omg-description-min-length:
-    description: "Description should be meaningful"
-    message: "Description is too short. Provide at least 20 characters of description."
+    description: 'Description should be meaningful'
+    message: 'Description is too short. Provide at least 20 characters of description.'
     severity: hint
-    given: "#OalDocument.description"
+    given: '#OalDocument.description'
     then:
       function: length
       functionOptions:
@@ -215,10 +215,10 @@ rules:
   # ============================================
 
   oal-property-casing:
-    description: "Object properties should be camelCase"
-    message: "Property names should be camelCase."
+    description: 'Object properties should be camelCase'
+    message: 'Property names should be camelCase.'
     severity: warn
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: oal-property-casing
       functionOptions:
@@ -229,18 +229,18 @@ rules:
   # ============================================
 
   omg-type-valid:
-    description: "Types must be valid OMG types"
+    description: 'Types must be valid OMG types'
     message: "Invalid type '{{value}}'. Use string, integer, decimal, boolean, date, datetime, uuid, or a custom type."
     severity: error
-    given: "#Blocks[*].parsed.fields[*].type"
+    given: '#Blocks[*].parsed.fields[*].type'
     then:
       function: omg-type-valid
 
   omg-decimal-for-money:
-    description: "Use decimal type for monetary values"
+    description: 'Use decimal type for monetary values'
     message: "Field '{{property}}' appears to be monetary but uses '{{type}}'. Consider using 'decimal' type."
     severity: warn
-    given: "#Blocks[*].parsed.fields[*]"
+    given: '#Blocks[*].parsed.fields[*]'
     then:
       function: omg-annotation-valid
       functionOptions:
@@ -251,30 +251,30 @@ rules:
   # ============================================
 
   omg-annotation-min-max-valid:
-    description: "@min should be less than @max"
-    message: "@min value ({{min}}) should be less than @max value ({{max}})."
+    description: '@min should be less than @max'
+    message: '@min value ({{min}}) should be less than @max value ({{max}}).'
     severity: error
-    given: "#Blocks[*].parsed.fields[*]"
+    given: '#Blocks[*].parsed.fields[*]'
     then:
       function: omg-annotation-valid
       functionOptions:
         rule: min-less-than-max
 
   omg-annotation-length-valid:
-    description: "@minLength should be less than @maxLength"
-    message: "@minLength value ({{min}}) should be less than @maxLength value ({{max}})."
+    description: '@minLength should be less than @maxLength'
+    message: '@minLength value ({{min}}) should be less than @maxLength value ({{max}}).'
     severity: error
-    given: "#Blocks[*].parsed.fields[*]"
+    given: '#Blocks[*].parsed.fields[*]'
     then:
       function: omg-annotation-valid
       functionOptions:
         rule: minLength-less-than-maxLength
 
   omg-annotation-items-valid:
-    description: "@minItems should be less than @maxItems"
-    message: "@minItems value ({{min}}) should be less than @maxItems value ({{max}})."
+    description: '@minItems should be less than @maxItems'
+    message: '@minItems value ({{min}}) should be less than @maxItems value ({{max}}).'
     severity: error
-    given: "#Blocks[*].parsed.fields[*]"
+    given: '#Blocks[*].parsed.fields[*]'
     then:
       function: omg-annotation-valid
       functionOptions:
@@ -285,20 +285,20 @@ rules:
   # ============================================
 
   omg-enum-not-empty:
-    description: "Enums should have at least two values"
-    message: "Enum should have at least two values. Single-value enums are usually unnecessary."
+    description: 'Enums should have at least two values'
+    message: 'Enum should have at least two values. Single-value enums are usually unnecessary.'
     severity: warn
-    given: "#Blocks[*].parsed.fields[*]"
+    given: '#Blocks[*].parsed.fields[*]'
     then:
       function: omg-enum-values
       functionOptions:
         minValues: 2
 
   omg-enum-values-uppercase-or-pascalcase:
-    description: "Enum values should be consistent casing"
-    message: "Enum values should be PascalCase or UPPER_CASE for consistency."
+    description: 'Enum values should be consistent casing'
+    message: 'Enum values should be PascalCase or UPPER_CASE for consistency.'
     severity: hint
-    given: "#Blocks[*].parsed.fields[*]"
+    given: '#Blocks[*].parsed.fields[*]'
     then:
       function: omg-enum-values
       functionOptions:
@@ -311,20 +311,20 @@ rules:
   # ============================================
 
   omg-webhooks-format:
-    description: "Webhook names should be PascalCase"
+    description: 'Webhook names should be PascalCase'
     message: "Webhook name '{{value}}' should be PascalCase (e.g., 'InvoiceCreated', 'PaymentReceived')."
     severity: warn
-    given: "#FrontMatter.webhooks.resulting[*]"
+    given: '#FrontMatter.webhooks.resulting[*]'
     then:
       function: casing
       functionOptions:
         type: pascal
 
   omg-webhooks-listen-format:
-    description: "Webhook listener names should be PascalCase"
+    description: 'Webhook listener names should be PascalCase'
     message: "Webhook name '{{value}}' should be PascalCase."
     severity: warn
-    given: "#FrontMatter.webhooks.listen[*]"
+    given: '#FrontMatter.webhooks.listen[*]'
     then:
       function: casing
       functionOptions:
@@ -335,34 +335,34 @@ rules:
   # ============================================
 
   omg-follows-kebab-case:
-    description: "follows references should match operationId format"
+    description: 'follows references should match operationId format'
     message: "follows reference '{{value}}' should be kebab-case to match operationId format."
     severity: warn
-    given: "#FrontMatter.follows[*]"
+    given: '#FrontMatter.follows[*]'
     then:
       function: pattern
       functionOptions:
-        match: "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+        match: '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
 
   # ============================================
   # Tags Rules
   # ============================================
 
   omg-tags-pascalcase:
-    description: "Tags should be PascalCase"
+    description: 'Tags should be PascalCase'
     message: "Tag '{{value}}' should be PascalCase (e.g., 'Accounts', 'Invoices')."
     severity: warn
-    given: "#FrontMatter.tags[*]"
+    given: '#FrontMatter.tags[*]'
     then:
       function: casing
       functionOptions:
         type: pascal
 
   omg-tags-no-spaces:
-    description: "Tags should not contain spaces"
+    description: 'Tags should not contain spaces'
     message: "Tag '{{value}}' should not contain spaces. Use PascalCase instead."
     severity: error
-    given: "#FrontMatter.tags[*]"
+    given: '#FrontMatter.tags[*]'
     then:
       function: pattern
       functionOptions:
@@ -373,10 +373,10 @@ rules:
   # ============================================
 
   omg-get-no-body:
-    description: "GET requests should not have a request body"
-    message: "GET requests should not have a request body. Use query parameters instead."
+    description: 'GET requests should not have a request body'
+    message: 'GET requests should not have a request body. Use query parameters instead.'
     severity: error
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: omg-annotation-valid
       functionOptions:
@@ -387,10 +387,10 @@ rules:
   # ============================================
 
   omg-post-put-has-body:
-    description: "POST and PUT requests should have a request body"
-    message: "POST/PUT requests typically need a request body. Add an omg.body block."
+    description: 'POST and PUT requests should have a request body'
+    message: 'POST/PUT requests typically need a request body. Add an omg.body block.'
     severity: hint
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: omg-annotation-valid
       functionOptions:
@@ -401,10 +401,10 @@ rules:
   # ============================================
 
   omg-example-recommended:
-    description: "Endpoints should have examples"
-    message: "Consider adding an omg.example block to document expected responses."
+    description: 'Endpoints should have examples'
+    message: 'Consider adding an omg.example block to document expected responses.'
     severity: hint
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: omg-response-required
       functionOptions:
@@ -415,20 +415,20 @@ rules:
   # ============================================
 
   omg-pagination-query-params:
-    description: "Paginated endpoints should use standard pagination parameters"
+    description: 'Paginated endpoints should use standard pagination parameters'
     message: "Paginated endpoint should use 'page' and 'pageSize' query parameters."
     severity: hint
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: omg-annotation-valid
       functionOptions:
         rule: pagination-params
 
   omg-list-endpoint-pagination:
-    description: "List endpoints should support pagination"
+    description: 'List endpoints should support pagination'
     message: "List endpoint (operationId starts with 'list-') should include pagination parameters."
     severity: hint
-    given: "#OalDocument"
+    given: '#OalDocument'
     then:
       function: omg-annotation-valid
       functionOptions:

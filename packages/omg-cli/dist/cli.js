@@ -178,7 +178,9 @@ program
                 const entries = fs.readdirSync(dir, { withFileTypes: true });
                 for (const entry of entries) {
                     const fullPath = path.join(dir, entry.name);
-                    if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== 'partials') {
+                    if (entry.isDirectory() &&
+                        entry.name !== 'node_modules' &&
+                        entry.name !== 'partials') {
                         findOmgFiles(fullPath);
                     }
                     else if (entry.name.endsWith('.omg.md')) {
@@ -249,11 +251,15 @@ program
                     const relativePath = path.relative(process.cwd(), file);
                     console.log(chalk_1.default.underline(relativePath));
                     for (const result of results) {
-                        const icon = result.severity === 'error' ? '✖' :
-                            result.severity === 'warn' ? '⚠' : 'ℹ';
-                        const color = result.severity === 'error' ? chalk_1.default.red :
-                            result.severity === 'warn' ? chalk_1.default.yellow : chalk_1.default.blue;
-                        const pathStr = result.path?.length ? chalk_1.default.gray(` (${result.path.join('.')})`) : '';
+                        const icon = result.severity === 'error' ? '✖' : result.severity === 'warn' ? '⚠' : 'ℹ';
+                        const color = result.severity === 'error'
+                            ? chalk_1.default.red
+                            : result.severity === 'warn'
+                                ? chalk_1.default.yellow
+                                : chalk_1.default.blue;
+                        const pathStr = result.path?.length
+                            ? chalk_1.default.gray(` (${result.path.join('.')})`)
+                            : '';
                         console.log(`  ${color(icon)} ${result.message}${pathStr} ${chalk_1.default.gray(`[${result.rule}]`)}`);
                     }
                     console.log();

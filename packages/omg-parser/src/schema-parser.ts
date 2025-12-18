@@ -27,11 +27,23 @@ import type {
 
 // Token types
 type TokenType =
-  | 'LBRACE' | 'RBRACE'
-  | 'LBRACKET' | 'RBRACKET'
-  | 'LPAREN' | 'RPAREN'
-  | 'COLON' | 'COMMA' | 'PIPE' | 'AMPERSAND' | 'QUESTION' | 'AT'
-  | 'STRING' | 'NUMBER' | 'TRUE' | 'FALSE' | 'NULL'
+  | 'LBRACE'
+  | 'RBRACE'
+  | 'LBRACKET'
+  | 'RBRACKET'
+  | 'LPAREN'
+  | 'RPAREN'
+  | 'COLON'
+  | 'COMMA'
+  | 'PIPE'
+  | 'AMPERSAND'
+  | 'QUESTION'
+  | 'AT'
+  | 'STRING'
+  | 'NUMBER'
+  | 'TRUE'
+  | 'FALSE'
+  | 'NULL'
   | 'IDENTIFIER'
   | 'EOF';
 
@@ -91,13 +103,26 @@ class Lexer {
         this.advance();
         const escaped = this.advance();
         switch (escaped) {
-          case 'n': value += '\n'; break;
-          case 't': value += '\t'; break;
-          case 'r': value += '\r'; break;
-          case '\\': value += '\\'; break;
-          case '"': value += '"'; break;
-          case "'": value += "'"; break;
-          default: value += escaped;
+          case 'n':
+            value += '\n';
+            break;
+          case 't':
+            value += '\t';
+            break;
+          case 'r':
+            value += '\r';
+            break;
+          case '\\':
+            value += '\\';
+            break;
+          case '"':
+            value += '"';
+            break;
+          case "'":
+            value += "'";
+            break;
+          default:
+            value += escaped;
         }
       } else {
         value += this.advance();
@@ -181,18 +206,42 @@ class Lexer {
       const startColumn = this.column;
 
       switch (char) {
-        case '{': this.advance(); return { type: 'LBRACE', value: char, line: startLine, column: startColumn };
-        case '}': this.advance(); return { type: 'RBRACE', value: char, line: startLine, column: startColumn };
-        case '[': this.advance(); return { type: 'LBRACKET', value: char, line: startLine, column: startColumn };
-        case ']': this.advance(); return { type: 'RBRACKET', value: char, line: startLine, column: startColumn };
-        case '(': this.advance(); return { type: 'LPAREN', value: char, line: startLine, column: startColumn };
-        case ')': this.advance(); return { type: 'RPAREN', value: char, line: startLine, column: startColumn };
-        case ':': this.advance(); return { type: 'COLON', value: char, line: startLine, column: startColumn };
-        case ',': this.advance(); return { type: 'COMMA', value: char, line: startLine, column: startColumn };
-        case '|': this.advance(); return { type: 'PIPE', value: char, line: startLine, column: startColumn };
-        case '&': this.advance(); return { type: 'AMPERSAND', value: char, line: startLine, column: startColumn };
-        case '?': this.advance(); return { type: 'QUESTION', value: char, line: startLine, column: startColumn };
-        case '@': this.advance(); return { type: 'AT', value: char, line: startLine, column: startColumn };
+        case '{':
+          this.advance();
+          return { type: 'LBRACE', value: char, line: startLine, column: startColumn };
+        case '}':
+          this.advance();
+          return { type: 'RBRACE', value: char, line: startLine, column: startColumn };
+        case '[':
+          this.advance();
+          return { type: 'LBRACKET', value: char, line: startLine, column: startColumn };
+        case ']':
+          this.advance();
+          return { type: 'RBRACKET', value: char, line: startLine, column: startColumn };
+        case '(':
+          this.advance();
+          return { type: 'LPAREN', value: char, line: startLine, column: startColumn };
+        case ')':
+          this.advance();
+          return { type: 'RPAREN', value: char, line: startLine, column: startColumn };
+        case ':':
+          this.advance();
+          return { type: 'COLON', value: char, line: startLine, column: startColumn };
+        case ',':
+          this.advance();
+          return { type: 'COMMA', value: char, line: startLine, column: startColumn };
+        case '|':
+          this.advance();
+          return { type: 'PIPE', value: char, line: startLine, column: startColumn };
+        case '&':
+          this.advance();
+          return { type: 'AMPERSAND', value: char, line: startLine, column: startColumn };
+        case '?':
+          this.advance();
+          return { type: 'QUESTION', value: char, line: startLine, column: startColumn };
+        case '@':
+          this.advance();
+          return { type: 'AT', value: char, line: startLine, column: startColumn };
         case '"':
         case "'":
           return this.readString();
@@ -203,7 +252,9 @@ class Lexer {
           if (/[a-zA-Z_]/.test(char)) {
             return this.readIdentifier();
           }
-          throw new Error(`Unexpected character '${char}' at line ${startLine}, column ${startColumn}`);
+          throw new Error(
+            `Unexpected character '${char}' at line ${startLine}, column ${startColumn}`
+          );
       }
     }
   }
@@ -377,7 +428,19 @@ class Parser {
       // proper precedence with intersection and union types
 
       // Primitive types
-      const primitives = ['string', 'number', 'integer', 'boolean', 'decimal', 'date', 'datetime', 'uuid', 'any', 'int', 'bool'];
+      const primitives = [
+        'string',
+        'number',
+        'integer',
+        'boolean',
+        'decimal',
+        'date',
+        'datetime',
+        'uuid',
+        'any',
+        'int',
+        'bool',
+      ];
       if (primitives.includes(typeName.toLowerCase())) {
         let type = typeName.toLowerCase();
         if (type === 'int') type = 'integer';
@@ -426,7 +489,9 @@ class Parser {
       return this.parseObject();
     }
 
-    throw new Error(`Unexpected token: ${token.type} at line ${token.line}, column ${token.column}`);
+    throw new Error(
+      `Unexpected token: ${token.type} at line ${token.line}, column ${token.column}`
+    );
   }
 
   /**

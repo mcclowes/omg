@@ -51,7 +51,17 @@ export default function oalAnnotationValid(target, options = {}) {
     case 'decimal-for-money': {
       const name = target.name || target.key || '';
       const type = target.type || '';
-      const moneyFields = ['amount', 'price', 'cost', 'total', 'subtotal', 'tax', 'balance', 'fee', 'rate'];
+      const moneyFields = [
+        'amount',
+        'price',
+        'cost',
+        'total',
+        'subtotal',
+        'tax',
+        'balance',
+        'fee',
+        'rate',
+      ];
       const isMoneyField = moneyFields.some((f) => name.toLowerCase().includes(f));
 
       if (isMoneyField && type !== 'decimal' && !type.includes('decimal')) {
@@ -95,18 +105,18 @@ export default function oalAnnotationValid(target, options = {}) {
       if (queryBlock && queryBlock.parsed) {
         const fields = queryBlock.parsed.fields || [];
         const hasPage = fields.some((f) => f.name === 'page' || f.key === 'page');
-        const hasPageSize = fields.some(
-          (f) => f.name === 'pageSize' || f.key === 'pageSize'
-        );
+        const hasPageSize = fields.some((f) => f.name === 'pageSize' || f.key === 'pageSize');
 
         if (hasPage && !hasPageSize) {
           results.push({
-            message: "Query has 'page' parameter but missing 'pageSize'. Add pageSize for consistent pagination.",
+            message:
+              "Query has 'page' parameter but missing 'pageSize'. Add pageSize for consistent pagination.",
           });
         }
         if (!hasPage && hasPageSize) {
           results.push({
-            message: "Query has 'pageSize' parameter but missing 'page'. Add page for consistent pagination.",
+            message:
+              "Query has 'pageSize' parameter but missing 'page'. Add page for consistent pagination.",
           });
         }
       }
@@ -121,14 +131,13 @@ export default function oalAnnotationValid(target, options = {}) {
 
         if (!queryBlock) {
           results.push({
-            message: "List endpoint should include pagination query parameters. Add an oal.query block with 'page' and 'pageSize'.",
+            message:
+              "List endpoint should include pagination query parameters. Add an oal.query block with 'page' and 'pageSize'.",
           });
         } else if (queryBlock.parsed) {
           const fields = queryBlock.parsed.fields || [];
           const hasPage = fields.some((f) => f.name === 'page' || f.key === 'page');
-          const hasPageSize = fields.some(
-            (f) => f.name === 'pageSize' || f.key === 'pageSize'
-          );
+          const hasPageSize = fields.some((f) => f.name === 'pageSize' || f.key === 'pageSize');
 
           if (!hasPage || !hasPageSize) {
             results.push({

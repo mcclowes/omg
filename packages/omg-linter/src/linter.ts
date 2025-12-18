@@ -83,9 +83,7 @@ export function lintDocument(
 
   // Filter rules if specific ones requested
   const rulesToRun = options.rules
-    ? Object.fromEntries(
-        Object.entries(rules).filter(([name]) => options.rules!.includes(name))
-      )
+    ? Object.fromEntries(Object.entries(rules).filter(([name]) => options.rules!.includes(name)))
     : rules;
 
   // Run each rule
@@ -96,9 +94,7 @@ export function lintDocument(
     }
 
     const rule =
-      typeof ruleConfig === 'string'
-        ? getBuiltInRules()[ruleName]
-        : (ruleConfig as RuleDefinition);
+      typeof ruleConfig === 'string' ? getBuiltInRules()[ruleName] : (ruleConfig as RuleDefinition);
 
     if (!rule || typeof rule !== 'object') {
       continue;
@@ -120,11 +116,7 @@ export function lintDocument(
 /**
  * Run a single rule against the document
  */
-function runRule(
-  ruleName: string,
-  rule: RuleDefinition,
-  document: unknown
-): LintResult[] {
+function runRule(ruleName: string, rule: RuleDefinition, document: unknown): LintResult[] {
   const results: LintResult[] = [];
 
   // Get the target from the document based on 'given' path
@@ -140,7 +132,10 @@ function runRule(
       if (!passed) {
         results.push({
           rule: ruleName,
-          message: formatMessage(rule.message || rule.description || `Rule ${ruleName} failed`, target.value),
+          message: formatMessage(
+            rule.message || rule.description || `Rule ${ruleName} failed`,
+            target.value
+          ),
           severity: rule.severity,
           path: target.path,
         });
@@ -229,7 +224,7 @@ function resolveGivenPath(
 function expandAlias(alias: string): string {
   const aliases: Record<string, string> = {
     '#OmgDocument': '$.document',
-    '#OalDocument': '$.document',  // Alias for config compatibility
+    '#OalDocument': '$.document', // Alias for config compatibility
     '#FrontMatter': '$.document.frontMatter',
     '#Blocks': '$.document.resolvedBlocks[*]',
     '#ResponseBlocks': '$.document.resolvedBlocks[*]',
@@ -243,11 +238,7 @@ function expandAlias(alias: string): string {
 /**
  * Evaluate a rule condition
  */
-function evaluateCondition(
-  condition: RuleThen,
-  target: unknown,
-  _document: unknown
-): boolean {
+function evaluateCondition(condition: RuleThen, target: unknown, _document: unknown): boolean {
   // Get the value to check
   let value = target;
   if (condition.field && target && typeof target === 'object') {
@@ -350,18 +341,13 @@ function evaluateCondition(
 
 // Custom OMG validation functions
 
-function evaluateOmgResponseRequired(
-  target: unknown,
-  options?: Record<string, unknown>
-): boolean {
+function evaluateOmgResponseRequired(target: unknown, options?: Record<string, unknown>): boolean {
   const doc = target as Record<string, unknown>;
   const blocks = (doc?.resolvedBlocks || doc?.blocks || []) as Array<{
     type: string;
   }>;
 
-  const responseBlocks = blocks.filter(
-    (b) => b.type && b.type.startsWith('omg.response')
-  );
+  const responseBlocks = blocks.filter((b) => b.type && b.type.startsWith('omg.response'));
 
   if (responseBlocks.length === 0) return false;
 
@@ -379,19 +365,14 @@ function evaluateOmgResponseRequired(
   }
 
   if (options?.checkExamples) {
-    const hasExample = blocks.some(
-      (b) => b.type && b.type.startsWith('omg.example')
-    );
+    const hasExample = blocks.some((b) => b.type && b.type.startsWith('omg.example'));
     if (!hasExample) return false;
   }
 
   return true;
 }
 
-function evaluateOmgAnnotationValid(
-  target: unknown,
-  options?: Record<string, unknown>
-): boolean {
+function evaluateOmgAnnotationValid(target: unknown, options?: Record<string, unknown>): boolean {
   const doc = target as Record<string, unknown>;
   const rule = options?.rule as string;
 
@@ -420,8 +401,8 @@ function evaluateOmgAnnotationValid(
     }
 
     case 'list-needs-pagination': {
-      const operationId = ((doc?.frontMatter as Record<string, unknown>)
-        ?.operationId || '') as string;
+      const operationId = ((doc?.frontMatter as Record<string, unknown>)?.operationId ||
+        '') as string;
       if (!operationId.startsWith('list-')) return true;
 
       const blocks = (doc?.resolvedBlocks || doc?.blocks || []) as Array<{
@@ -440,10 +421,7 @@ function evaluateOmgAnnotationValid(
   }
 }
 
-function evaluateOmgPathParameter(
-  target: unknown,
-  options?: Record<string, unknown>
-): boolean {
+function evaluateOmgPathParameter(target: unknown, options?: Record<string, unknown>): boolean {
   if (typeof target !== 'string') return true;
 
   const casing = options?.casing as string;
@@ -524,33 +502,27 @@ function findInvalidCasingProperties(
       }
 
       // Recursively check nested schemas
-      const nested = findInvalidCasingProperties(
-        properties[propName],
-        expectedCasing,
-        [...path, propName]
-      );
+      const nested = findInvalidCasingProperties(properties[propName], expectedCasing, [
+        ...path,
+        propName,
+      ]);
       invalidProps.push(...nested);
     }
   }
 
   // Check array items
   if (schemaObj.kind === 'array' && schemaObj.items) {
-    const nested = findInvalidCasingProperties(
-      schemaObj.items,
-      expectedCasing,
-      [...path, '[]']
-    );
+    const nested = findInvalidCasingProperties(schemaObj.items, expectedCasing, [...path, '[]']);
     invalidProps.push(...nested);
   }
 
   // Check union types
   if (schemaObj.kind === 'union' && Array.isArray(schemaObj.types)) {
     for (let i = 0; i < schemaObj.types.length; i++) {
-      const nested = findInvalidCasingProperties(
-        schemaObj.types[i],
-        expectedCasing,
-        [...path, `variant${i + 1}`]
-      );
+      const nested = findInvalidCasingProperties(schemaObj.types[i], expectedCasing, [
+        ...path,
+        `variant${i + 1}`,
+      ]);
       invalidProps.push(...nested);
     }
   }
@@ -558,11 +530,10 @@ function findInvalidCasingProperties(
   // Check intersection types
   if (schemaObj.kind === 'intersection' && Array.isArray(schemaObj.types)) {
     for (let i = 0; i < schemaObj.types.length; i++) {
-      const nested = findInvalidCasingProperties(
-        schemaObj.types[i],
-        expectedCasing,
-        [...path, `part${i + 1}`]
-      );
+      const nested = findInvalidCasingProperties(schemaObj.types[i], expectedCasing, [
+        ...path,
+        `part${i + 1}`,
+      ]);
       invalidProps.push(...nested);
     }
   }
@@ -615,18 +586,12 @@ export function checkCasing(name: string, casing: CasingType | string): boolean 
 // Internal alias for backward compatibility
 const matchesCasing = checkCasing;
 
-function evaluateOmgEnumValues(
-  _target: unknown,
-  _options?: Record<string, unknown>
-): boolean {
+function evaluateOmgEnumValues(_target: unknown, _options?: Record<string, unknown>): boolean {
   // Enum validation - simplified for now
   return true;
 }
 
-function evaluateOmgTypeValid(
-  _target: unknown,
-  _options?: Record<string, unknown>
-): boolean {
+function evaluateOmgTypeValid(_target: unknown, _options?: Record<string, unknown>): boolean {
   // Type validation - simplified for now
   return true;
 }
@@ -813,10 +778,7 @@ export function getBuiltInRules(): Record<string, RuleDefinition> {
 /**
  * Create a summary of lint results
  */
-export function summarizeLintResults(
-  file: string,
-  results: LintResult[]
-): LintSummary {
+export function summarizeLintResults(file: string, results: LintResult[]): LintSummary {
   return {
     file,
     results,

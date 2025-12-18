@@ -304,8 +304,8 @@ describe('lintDocument', () => {
       const results = lintDocument(doc, { configPath: '/nonexistent/.spectral.yaml' });
 
       // Check that the oal-property-casing or omg-property-casing rule fired
-      const casingResults = results.filter(r =>
-        r.rule === 'oal-property-casing' || r.rule === 'omg-property-casing'
+      const casingResults = results.filter(
+        (r) => r.rule === 'oal-property-casing' || r.rule === 'omg-property-casing'
       );
       expect(casingResults.length).toBeGreaterThan(0);
     });
@@ -335,8 +335,8 @@ describe('lintDocument', () => {
       const results = lintDocument(doc, { configPath: '/nonexistent/.spectral.yaml' });
 
       // Check that no property casing errors
-      const casingResults = results.filter(r =>
-        r.rule === 'oal-property-casing' || r.rule === 'omg-property-casing'
+      const casingResults = results.filter(
+        (r) => r.rule === 'oal-property-casing' || r.rule === 'omg-property-casing'
       );
       expect(casingResults).toHaveLength(0);
     });

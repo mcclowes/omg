@@ -83,7 +83,8 @@ class Lexer {
                     case "'":
                         value += "'";
                         break;
-                    default: value += escaped;
+                    default:
+                        value += escaped;
                 }
             }
             else {
@@ -348,7 +349,19 @@ class Parser {
             // Note: nullable "| null" is handled at parseType level to support
             // proper precedence with intersection and union types
             // Primitive types
-            const primitives = ['string', 'number', 'integer', 'boolean', 'decimal', 'date', 'datetime', 'uuid', 'any', 'int', 'bool'];
+            const primitives = [
+                'string',
+                'number',
+                'integer',
+                'boolean',
+                'decimal',
+                'date',
+                'datetime',
+                'uuid',
+                'any',
+                'int',
+                'bool',
+            ];
             if (primitives.includes(typeName.toLowerCase())) {
                 let type = typeName.toLowerCase();
                 if (type === 'int')

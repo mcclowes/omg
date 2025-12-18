@@ -1,5 +1,5 @@
 {
-  "name": "omg-monorepo",
+  "name": "omg",
   "version": "1.0.0",
   "private": true,
   "description": "OpenAPI Markdown Grammar (OMG) - A human-first domain-specific language for API specification",
@@ -36,12 +36,15 @@
     "docs:dev": "npm run start --prefix docusaurus",
     "docs:build": "npm run build --prefix docusaurus",
     "docs:serve": "npm run serve --prefix docusaurus",
-    "publish:all": "npm publish -w omg-parser && npm publish -w omg-linter && npm publish -w omg-compiler && npm publish -w omg-lsp && npm publish -w omg-md-cli"
+    "publish:all": "npm publish -w omg-parser && npm publish -w omg-linter && npm publish -w omg-compiler && npm publish -w omg-lsp && npm publish -w omg-md-cli",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "husky": "^8.0.3"
+    "husky": "^8.0.3",
+    "prettier": "^3.7.4"
   }
 }

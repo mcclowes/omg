@@ -344,7 +344,10 @@ function compileEndpointWithContext(
   }
 
   // Compile responses
-  for (const [statusCode, response] of Object.entries(endpoint.responses) as [string, ParsedResponse][]) {
+  for (const [statusCode, response] of Object.entries(endpoint.responses) as [
+    string,
+    ParsedResponse,
+  ][]) {
     const ctx = { ...parentCtx, path: [baseName, `Response${statusCode}`], depth: 0 };
     const description = response.description || getStatusDescription(parseInt(statusCode));
 

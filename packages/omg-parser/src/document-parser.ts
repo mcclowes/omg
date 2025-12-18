@@ -23,7 +23,8 @@ import type {
 } from './types.js';
 
 // Block type patterns
-const OMG_BLOCK_PATTERN = /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+))?$/;
+const OMG_BLOCK_PATTERN =
+  /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+))?$/;
 const PARTIAL_PATTERN = /\{\{>\s*([^}\s]+)\s*\}\}/g;
 
 /**
@@ -34,9 +35,7 @@ export function parseDocument(content: string, filePath: string): OmgDocument {
   const { data: frontMatter, content: markdownContent } = matter(content);
 
   // Parse Markdown
-  const tree = unified()
-    .use(remarkParse)
-    .parse(markdownContent) as Root;
+  const tree = unified().use(remarkParse).parse(markdownContent) as Root;
 
   // Extract components
   const title = extractTitle(tree);
@@ -46,9 +45,7 @@ export function parseDocument(content: string, filePath: string): OmgDocument {
 
   return {
     filePath,
-    frontMatter: Object.keys(frontMatter).length > 0
-      ? (frontMatter as EndpointFrontMatter)
-      : null,
+    frontMatter: Object.keys(frontMatter).length > 0 ? (frontMatter as EndpointFrontMatter) : null,
     title,
     description,
     blocks,

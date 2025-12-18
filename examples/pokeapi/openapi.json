@@ -11,9 +11,7 @@
         "operationId": "get-ability",
         "summary": "Get Ability",
         "description": "Returns detailed information about a specific ability, including which Pokémon can have it.",
-        "tags": [
-          "Abilities"
-        ],
+        "tags": ["Abilities"],
         "responses": {
           "200": {
             "description": "Success",
@@ -41,10 +39,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "names": {
                       "type": "array",
@@ -96,9 +91,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "detail"
-                  ]
+                  "required": ["detail"]
                 }
               }
             }
@@ -121,9 +114,7 @@
         "operationId": "get-move",
         "summary": "Get Move",
         "description": "Returns detailed information about a specific move, including power, accuracy, type, and which Pokémon can learn it.",
-        "tags": [
-          "Moves"
-        ],
+        "tags": ["Moves"],
         "responses": {
           "200": {
             "description": "Success",
@@ -169,10 +160,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "damage_class": {
                       "type": "object",
@@ -184,10 +172,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "target": {
                       "type": "object",
@@ -199,10 +184,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "generation": {
                       "type": "object",
@@ -214,10 +196,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "names": {
                       "type": "array",
@@ -319,9 +298,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "detail"
-                  ]
+                  "required": ["detail"]
                 }
               }
             }
@@ -344,9 +321,7 @@
         "operationId": "get-pokemon",
         "summary": "Get Pokemon",
         "description": "Returns detailed information about a specific Pokémon including its abilities, types, stats, sprites, moves, and more.",
-        "tags": [
-          "Pokemon"
-        ],
+        "tags": ["Pokemon"],
         "responses": {
           "200": {
             "description": "Success",
@@ -427,10 +402,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "moves": {
                       "type": "array",
@@ -489,9 +461,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "detail"
-                  ]
+                  "required": ["detail"]
                 }
               }
             }
@@ -514,9 +484,7 @@
         "operationId": "get-pokemon-species",
         "summary": "Get Pokemon Species",
         "description": "Returns species information including evolution data, breeding info, Pokédex entries, and varieties.",
-        "tags": [
-          "Pokemon Species"
-        ],
+        "tags": ["Pokemon Species"],
         "responses": {
           "200": {
             "description": "Success",
@@ -578,10 +546,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "generation": {
                       "type": "object",
@@ -593,10 +558,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "habitat": {
                       "type": "object",
@@ -608,10 +570,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "color": {
                       "type": "object",
@@ -623,10 +582,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "shape": {
                       "type": "object",
@@ -638,10 +594,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "egg_groups": {
                       "type": "array",
@@ -659,10 +612,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "evolution_chain": {
                       "type": "object",
@@ -671,9 +621,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "url"
-                      ]
+                      "required": ["url"]
                     },
                     "names": {
                       "type": "array",
@@ -738,9 +686,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "detail"
-                  ]
+                  "required": ["detail"]
                 }
               }
             }
@@ -763,9 +709,7 @@
         "operationId": "get-type",
         "summary": "Get Type",
         "description": "Returns detailed information about a specific type, including damage relations to other types.",
-        "tags": [
-          "Types"
-        ],
+        "tags": ["Types"],
         "responses": {
           "200": {
             "description": "Success",
@@ -790,10 +734,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "name",
-                        "url"
-                      ]
+                      "required": ["name", "url"]
                     },
                     "damage_relations": {
                       "type": "object",
@@ -887,9 +828,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "detail"
-                  ]
+                  "required": ["detail"]
                 }
               }
             }
@@ -912,9 +851,7 @@
         "operationId": "list-abilities",
         "summary": "List Abilities",
         "description": "Returns a paginated list of all ability resources.",
-        "tags": [
-          "Abilities"
-        ],
+        "tags": ["Abilities"],
         "responses": {
           "200": {
             "description": "Success",
@@ -939,10 +876,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "count",
-                    "results"
-                  ]
+                  "required": ["count", "results"]
                 }
               }
             }
@@ -976,9 +910,7 @@
         "operationId": "list-moves",
         "summary": "List Moves",
         "description": "Returns a paginated list of all move resources.",
-        "tags": [
-          "Moves"
-        ],
+        "tags": ["Moves"],
         "responses": {
           "200": {
             "description": "Success",
@@ -1003,10 +935,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "count",
-                    "results"
-                  ]
+                  "required": ["count", "results"]
                 }
               }
             }
@@ -1040,9 +969,7 @@
         "operationId": "list-pokemon",
         "summary": "List Pokemon",
         "description": "Returns a paginated list of all Pokémon resources.",
-        "tags": [
-          "Pokemon"
-        ],
+        "tags": ["Pokemon"],
         "responses": {
           "200": {
             "description": "Success",
@@ -1067,10 +994,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "count",
-                    "results"
-                  ]
+                  "required": ["count", "results"]
                 }
               }
             }
@@ -1104,9 +1028,7 @@
         "operationId": "list-pokemon-species",
         "summary": "List Pokemon Species",
         "description": "Returns a paginated list of all Pokémon species.",
-        "tags": [
-          "Pokemon Species"
-        ],
+        "tags": ["Pokemon Species"],
         "responses": {
           "200": {
             "description": "Success",
@@ -1131,10 +1053,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "count",
-                    "results"
-                  ]
+                  "required": ["count", "results"]
                 }
               }
             }
@@ -1168,9 +1087,7 @@
         "operationId": "list-types",
         "summary": "List Types",
         "description": "Returns a list of all elemental types.",
-        "tags": [
-          "Types"
-        ],
+        "tags": ["Types"],
         "responses": {
           "200": {
             "description": "Success",
@@ -1195,10 +1112,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "count",
-                    "results"
-                  ]
+                  "required": ["count", "results"]
                 }
               }
             }
@@ -1246,16 +1160,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "name",
-          "language"
-        ]
+        "required": ["name", "language"]
       },
       "GetAbilityResponse200Effectentry": {
         "type": "object",
@@ -1276,17 +1184,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "effect",
-          "short_effect",
-          "language"
-        ]
+        "required": ["effect", "short_effect", "language"]
       },
       "GetAbilityResponse200Flavortextentry": {
         "type": "object",
@@ -1304,10 +1205,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           },
           "version_group": {
             "type": "object",
@@ -1319,17 +1217,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "flavor_text",
-          "language",
-          "version_group"
-        ]
+        "required": ["flavor_text", "language", "version_group"]
       },
       "GetAbilityResponse200Pokemon": {
         "type": "object",
@@ -1352,17 +1243,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "is_hidden",
-          "slot",
-          "pokemon"
-        ]
+        "required": ["is_hidden", "slot", "pokemon"]
       },
       "GetMoveResponse200Name": {
         "type": "object",
@@ -1380,16 +1264,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "name",
-          "language"
-        ]
+        "required": ["name", "language"]
       },
       "GetMoveResponse200Effectentry": {
         "type": "object",
@@ -1410,17 +1288,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "effect",
-          "short_effect",
-          "language"
-        ]
+        "required": ["effect", "short_effect", "language"]
       },
       "GetMoveResponse200Flavortextentry": {
         "type": "object",
@@ -1438,10 +1309,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           },
           "version_group": {
             "type": "object",
@@ -1453,17 +1321,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "flavor_text",
-          "language",
-          "version_group"
-        ]
+        "required": ["flavor_text", "language", "version_group"]
       },
       "GetMoveResponse200MetaAilment": {
         "type": "object",
@@ -1475,10 +1336,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetMoveResponse200MetaCategory": {
         "type": "object",
@@ -1490,10 +1348,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetMoveResponse200Learnedbypokemon": {
         "type": "object",
@@ -1505,10 +1360,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetPokemonResponse200Ability": {
         "type": "object",
@@ -1531,17 +1383,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "is_hidden",
-          "slot",
-          "ability"
-        ]
+        "required": ["is_hidden", "slot", "ability"]
       },
       "GetPokemonResponse200Type": {
         "type": "object",
@@ -1561,16 +1406,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "slot",
-          "type"
-        ]
+        "required": ["slot", "type"]
       },
       "GetPokemonResponse200Stat": {
         "type": "object",
@@ -1594,17 +1433,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "base_stat",
-          "effort",
-          "stat"
-        ]
+        "required": ["base_stat", "effort", "stat"]
       },
       "GetPokemonResponse200MoveVersiongroupdetail": {
         "type": "object",
@@ -1623,10 +1455,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           },
           "version_group": {
             "type": "object",
@@ -1638,17 +1467,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "level_learned_at",
-          "move_learn_method",
-          "version_group"
-        ]
+        "required": ["level_learned_at", "move_learn_method", "version_group"]
       },
       "GetPokemonResponse200Move": {
         "type": "object",
@@ -1663,10 +1485,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           },
           "version_group_details": {
             "type": "array",
@@ -1675,10 +1494,7 @@
             }
           }
         },
-        "required": [
-          "move",
-          "version_group_details"
-        ]
+        "required": ["move", "version_group_details"]
       },
       "GetPokemonResponse200HelditemVersiondetail": {
         "type": "object",
@@ -1698,16 +1514,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "rarity",
-          "version"
-        ]
+        "required": ["rarity", "version"]
       },
       "GetPokemonResponse200Helditem": {
         "type": "object",
@@ -1722,10 +1532,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           },
           "version_details": {
             "type": "array",
@@ -1734,10 +1541,7 @@
             }
           }
         },
-        "required": [
-          "item",
-          "version_details"
-        ]
+        "required": ["item", "version_details"]
       },
       "GetPokemonResponse200Form": {
         "type": "object",
@@ -1749,10 +1553,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetPokemonResponse200Gameindice": {
         "type": "object",
@@ -1770,16 +1571,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "game_index",
-          "version"
-        ]
+        "required": ["game_index", "version"]
       },
       "GetPokemonSpeciesResponse200Egggroup": {
         "type": "object",
@@ -1791,10 +1586,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetPokemonSpeciesResponse200Name": {
         "type": "object",
@@ -1812,16 +1604,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "name",
-          "language"
-        ]
+        "required": ["name", "language"]
       },
       "GetPokemonSpeciesResponse200Flavortextentry": {
         "type": "object",
@@ -1839,10 +1625,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           },
           "version": {
             "type": "object",
@@ -1854,17 +1637,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "flavor_text",
-          "language",
-          "version"
-        ]
+        "required": ["flavor_text", "language", "version"]
       },
       "GetPokemonSpeciesResponse200Genera": {
         "type": "object",
@@ -1882,16 +1658,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "genus",
-          "language"
-        ]
+        "required": ["genus", "language"]
       },
       "GetPokemonSpeciesResponse200Variety": {
         "type": "object",
@@ -1909,16 +1679,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "is_default",
-          "pokemon"
-        ]
+        "required": ["is_default", "pokemon"]
       },
       "GetTypeResponse200DamagerelationsNodamageto": {
         "type": "object",
@@ -1930,10 +1694,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetTypeResponse200DamagerelationsHalfdamageto": {
         "type": "object",
@@ -1945,10 +1706,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetTypeResponse200DamagerelationsDoubledamageto": {
         "type": "object",
@@ -1960,10 +1718,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetTypeResponse200DamagerelationsNodamagefrom": {
         "type": "object",
@@ -1975,10 +1730,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetTypeResponse200DamagerelationsHalfdamagefrom": {
         "type": "object",
@@ -1990,10 +1742,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetTypeResponse200DamagerelationsDoubledamagefrom": {
         "type": "object",
@@ -2005,10 +1754,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "GetTypeResponse200Name": {
         "type": "object",
@@ -2026,16 +1772,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "name",
-          "language"
-        ]
+        "required": ["name", "language"]
       },
       "GetTypeResponse200Pokemon": {
         "type": "object",
@@ -2055,16 +1795,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "name",
-              "url"
-            ]
+            "required": ["name", "url"]
           }
         },
-        "required": [
-          "slot",
-          "pokemon"
-        ]
+        "required": ["slot", "pokemon"]
       },
       "GetTypeResponse200Move": {
         "type": "object",
@@ -2076,10 +1810,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "ListAbilitiesResponse200Result": {
         "type": "object",
@@ -2091,10 +1822,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "ListMovesResponse200Result": {
         "type": "object",
@@ -2106,10 +1834,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "ListPokemonResponse200Result": {
         "type": "object",
@@ -2121,10 +1846,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "ListPokemonSpeciesResponse200Result": {
         "type": "object",
@@ -2136,10 +1858,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       },
       "ListTypesResponse200Result": {
         "type": "object",
@@ -2151,10 +1870,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "url"
-        ]
+        "required": ["name", "url"]
       }
     }
   },

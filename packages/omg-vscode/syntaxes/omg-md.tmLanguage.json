@@ -19,9 +19,7 @@
         "1": { "name": "punctuation.definition.frontmatter.end.omg" }
       },
       "contentName": "meta.embedded.block.yaml",
-      "patterns": [
-        { "include": "source.yaml" }
-      ]
+      "patterns": [{ "include": "source.yaml" }]
     },
     "partial-include": {
       "name": "meta.partial-include.omg",

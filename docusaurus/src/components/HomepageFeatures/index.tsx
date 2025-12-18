@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
@@ -13,8 +13,8 @@ const FeatureList: FeatureItem[] = [
     title: '6x Less Code',
     description: (
       <>
-        A typical 30,000 line OpenAPI spec becomes ~5,000 lines in OMG.
-        Write API specs in Markdown that humans can actually read.
+        A typical 30,000 line OpenAPI spec becomes ~5,000 lines in OMG. Write API specs in Markdown
+        that humans can actually read.
       </>
     ),
   },
@@ -22,8 +22,8 @@ const FeatureList: FeatureItem[] = [
     title: 'DRY by Design',
     description: (
       <>
-        Define errors, pagination, and auth once with partials.
-        Reuse them everywhere without copy-pasting YAML.
+        Define errors, pagination, and auth once with partials. Reuse them everywhere without
+        copy-pasting YAML.
       </>
     ),
   },
@@ -31,14 +31,14 @@ const FeatureList: FeatureItem[] = [
     title: 'Full OpenAPI 3.1',
     description: (
       <>
-        Compiles to standard OpenAPI 3.1 specs. Use your existing tooling
-        for code generation, documentation, and testing.
+        Compiles to standard OpenAPI 3.1 specs. Use your existing tooling for code generation,
+        documentation, and testing.
       </>
     ),
   },
 ];
 
-function Feature({title, description}: FeatureItem) {
+function Feature({ title, description }: FeatureItem) {
   return (
     <div className={clsx('col col--4')}>
       <div className="text--center padding-horiz--md">

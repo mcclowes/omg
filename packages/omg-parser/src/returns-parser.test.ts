@@ -128,7 +128,9 @@ describe('parseReturnsBlock', () => {
     const result = parseReturnsBlock(input);
 
     expect(result.responses).toHaveLength(3);
-    expect(result.responses[0].condition).toBe('balance >= amount && toAccount.exists && toAccount.active');
+    expect(result.responses[0].condition).toBe(
+      'balance >= amount && toAccount.exists && toAccount.active'
+    );
     expect(result.responses[1].condition).toBe('amount <= 0');
     expect(result.responses[1].description).toBe('Amount must be positive');
     expect(result.responses[2].condition).toBe('balance < amount');

@@ -16,9 +16,7 @@ export default function oalResponseRequired(document, options = {}) {
   const blocks = document.resolvedBlocks || document.blocks || [];
 
   // Check for any response block
-  const responseBlocks = blocks.filter(
-    (b) => b.type && b.type.startsWith('oal.response')
-  );
+  const responseBlocks = blocks.filter((b) => b.type && b.type.startsWith('oal.response'));
 
   if (responseBlocks.length === 0) {
     results.push({
@@ -50,9 +48,7 @@ export default function oalResponseRequired(document, options = {}) {
 
   // Check for examples
   if (options.checkExamples) {
-    const exampleBlocks = blocks.filter(
-      (b) => b.type && b.type.startsWith('oal.example')
-    );
+    const exampleBlocks = blocks.filter((b) => b.type && b.type.startsWith('oal.example'));
 
     if (exampleBlocks.length === 0) {
       results.push({

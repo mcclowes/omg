@@ -25,8 +25,16 @@ describe('compileToOpenApi - intersection types', () => {
     };
 
     const api = createMinimalApi({
-      TypeA: { kind: 'object', properties: { id: { kind: 'primitive', type: 'string', annotations: [] } }, annotations: [] },
-      TypeB: { kind: 'object', properties: { name: { kind: 'primitive', type: 'string', annotations: [] } }, annotations: [] },
+      TypeA: {
+        kind: 'object',
+        properties: { id: { kind: 'primitive', type: 'string', annotations: [] } },
+        annotations: [],
+      },
+      TypeB: {
+        kind: 'object',
+        properties: { name: { kind: 'primitive', type: 'string', annotations: [] } },
+        annotations: [],
+      },
       CombinedType: intersection,
     });
 
@@ -166,7 +174,8 @@ describe('compileToOpenApi - intersection types', () => {
 
     const result = compileToOpenApi(api);
 
-    const responseSchema = result.paths['/test']?.get?.responses?.['200']?.content?.['application/json']?.schema;
+    const responseSchema =
+      result.paths['/test']?.get?.responses?.['200']?.content?.['application/json']?.schema;
     expect(responseSchema?.allOf).toBeDefined();
     expect(responseSchema?.allOf).toHaveLength(2);
   });

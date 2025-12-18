@@ -116,18 +116,74 @@ connection.onCompletion((params) => {
     const completions = [];
     // Inside code block fence - suggest block types
     if (lineText.match(/^```omg\.?$/)) {
-        completions.push({ label: 'omg.path', kind: CompletionItemKind.Keyword, detail: 'Path parameters' }, { label: 'omg.query', kind: CompletionItemKind.Keyword, detail: 'Query parameters' }, { label: 'omg.headers', kind: CompletionItemKind.Keyword, detail: 'Header parameters' }, { label: 'omg.body', kind: CompletionItemKind.Keyword, detail: 'Request body schema' }, { label: 'omg.response', kind: CompletionItemKind.Keyword, detail: 'Default (200) response' }, { label: 'omg.response.201', kind: CompletionItemKind.Keyword, detail: 'Created response' }, { label: 'omg.response.400', kind: CompletionItemKind.Keyword, detail: 'Bad request response' }, { label: 'omg.response.401', kind: CompletionItemKind.Keyword, detail: 'Unauthorized response' }, { label: 'omg.response.404', kind: CompletionItemKind.Keyword, detail: 'Not found response' }, { label: 'omg.response.500', kind: CompletionItemKind.Keyword, detail: 'Server error response' }, { label: 'omg.returns', kind: CompletionItemKind.Keyword, detail: 'Conditional responses' }, { label: 'omg.type', kind: CompletionItemKind.Keyword, detail: 'Type definition' }, { label: 'omg.example', kind: CompletionItemKind.Keyword, detail: 'Example data (JSON)' }, { label: 'omg.errors', kind: CompletionItemKind.Keyword, detail: 'Error definitions' }, { label: 'omg.config', kind: CompletionItemKind.Keyword, detail: 'Configuration block' });
+        completions.push({ label: 'omg.path', kind: CompletionItemKind.Keyword, detail: 'Path parameters' }, { label: 'omg.query', kind: CompletionItemKind.Keyword, detail: 'Query parameters' }, { label: 'omg.headers', kind: CompletionItemKind.Keyword, detail: 'Header parameters' }, { label: 'omg.body', kind: CompletionItemKind.Keyword, detail: 'Request body schema' }, { label: 'omg.response', kind: CompletionItemKind.Keyword, detail: 'Default (200) response' }, { label: 'omg.response.201', kind: CompletionItemKind.Keyword, detail: 'Created response' }, {
+            label: 'omg.response.400',
+            kind: CompletionItemKind.Keyword,
+            detail: 'Bad request response',
+        }, {
+            label: 'omg.response.401',
+            kind: CompletionItemKind.Keyword,
+            detail: 'Unauthorized response',
+        }, { label: 'omg.response.404', kind: CompletionItemKind.Keyword, detail: 'Not found response' }, {
+            label: 'omg.response.500',
+            kind: CompletionItemKind.Keyword,
+            detail: 'Server error response',
+        }, { label: 'omg.returns', kind: CompletionItemKind.Keyword, detail: 'Conditional responses' }, { label: 'omg.type', kind: CompletionItemKind.Keyword, detail: 'Type definition' }, { label: 'omg.example', kind: CompletionItemKind.Keyword, detail: 'Example data (JSON)' }, { label: 'omg.errors', kind: CompletionItemKind.Keyword, detail: 'Error definitions' }, { label: 'omg.config', kind: CompletionItemKind.Keyword, detail: 'Configuration block' });
         return completions;
     }
     // Typing an annotation
     if (lineText.includes('@')) {
-        completions.push({ label: '@min', kind: CompletionItemKind.Function, detail: 'Minimum value', insertText: '@min(${1:0})' }, { label: '@max', kind: CompletionItemKind.Function, detail: 'Maximum value', insertText: '@max(${1:100})' }, { label: '@minLength', kind: CompletionItemKind.Function, detail: 'Minimum string length', insertText: '@minLength(${1:1})' }, { label: '@maxLength', kind: CompletionItemKind.Function, detail: 'Maximum string length', insertText: '@maxLength(${1:255})' }, { label: '@pattern', kind: CompletionItemKind.Function, detail: 'Regex pattern', insertText: '@pattern("${1:.*}")' }, { label: '@format', kind: CompletionItemKind.Function, detail: 'Format hint', insertText: '@format("${1:email}")' }, { label: '@minItems', kind: CompletionItemKind.Function, detail: 'Minimum array items', insertText: '@minItems(${1:1})' }, { label: '@maxItems', kind: CompletionItemKind.Function, detail: 'Maximum array items', insertText: '@maxItems(${1:100})' });
+        completions.push({
+            label: '@min',
+            kind: CompletionItemKind.Function,
+            detail: 'Minimum value',
+            insertText: '@min(${1:0})',
+        }, {
+            label: '@max',
+            kind: CompletionItemKind.Function,
+            detail: 'Maximum value',
+            insertText: '@max(${1:100})',
+        }, {
+            label: '@minLength',
+            kind: CompletionItemKind.Function,
+            detail: 'Minimum string length',
+            insertText: '@minLength(${1:1})',
+        }, {
+            label: '@maxLength',
+            kind: CompletionItemKind.Function,
+            detail: 'Maximum string length',
+            insertText: '@maxLength(${1:255})',
+        }, {
+            label: '@pattern',
+            kind: CompletionItemKind.Function,
+            detail: 'Regex pattern',
+            insertText: '@pattern("${1:.*}")',
+        }, {
+            label: '@format',
+            kind: CompletionItemKind.Function,
+            detail: 'Format hint',
+            insertText: '@format("${1:email}")',
+        }, {
+            label: '@minItems',
+            kind: CompletionItemKind.Function,
+            detail: 'Minimum array items',
+            insertText: '@minItems(${1:1})',
+        }, {
+            label: '@maxItems',
+            kind: CompletionItemKind.Function,
+            detail: 'Maximum array items',
+            insertText: '@maxItems(${1:100})',
+        });
         return completions;
     }
     // Inside a code block (after colon or at field type position)
     if (isInsideOmgBlock(text, offset)) {
         // Primitive types
-        completions.push({ label: 'string', kind: CompletionItemKind.TypeParameter, detail: 'String type' }, { label: 'integer', kind: CompletionItemKind.TypeParameter, detail: 'Integer type' }, { label: 'number', kind: CompletionItemKind.TypeParameter, detail: 'Number (float) type' }, { label: 'decimal', kind: CompletionItemKind.TypeParameter, detail: 'Decimal type' }, { label: 'boolean', kind: CompletionItemKind.TypeParameter, detail: 'Boolean type' }, { label: 'date', kind: CompletionItemKind.TypeParameter, detail: 'Date type (YYYY-MM-DD)' }, { label: 'datetime', kind: CompletionItemKind.TypeParameter, detail: 'DateTime type (ISO 8601)' }, { label: 'uuid', kind: CompletionItemKind.TypeParameter, detail: 'UUID type' }, { label: 'any', kind: CompletionItemKind.TypeParameter, detail: 'Any type' });
+        completions.push({ label: 'string', kind: CompletionItemKind.TypeParameter, detail: 'String type' }, { label: 'integer', kind: CompletionItemKind.TypeParameter, detail: 'Integer type' }, { label: 'number', kind: CompletionItemKind.TypeParameter, detail: 'Number (float) type' }, { label: 'decimal', kind: CompletionItemKind.TypeParameter, detail: 'Decimal type' }, { label: 'boolean', kind: CompletionItemKind.TypeParameter, detail: 'Boolean type' }, { label: 'date', kind: CompletionItemKind.TypeParameter, detail: 'Date type (YYYY-MM-DD)' }, {
+            label: 'datetime',
+            kind: CompletionItemKind.TypeParameter,
+            detail: 'DateTime type (ISO 8601)',
+        }, { label: 'uuid', kind: CompletionItemKind.TypeParameter, detail: 'UUID type' }, { label: 'any', kind: CompletionItemKind.TypeParameter, detail: 'Any type' });
         return completions;
     }
     // In frontmatter - suggest method

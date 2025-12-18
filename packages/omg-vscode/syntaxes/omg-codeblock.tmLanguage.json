@@ -31,9 +31,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-returns-block": {
       "name": "meta.embedded.block.omg.returns",
@@ -48,9 +46,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-body-block": {
       "name": "meta.embedded.block.omg.body",
@@ -65,9 +61,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-path-block": {
       "name": "meta.embedded.block.omg.path",
@@ -82,9 +76,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-query-block": {
       "name": "meta.embedded.block.omg.query",
@@ -99,9 +91,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-headers-block": {
       "name": "meta.embedded.block.omg.headers",
@@ -116,9 +106,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-example-block": {
       "name": "meta.embedded.block.omg.example",
@@ -133,9 +121,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.json",
-      "patterns": [
-        { "include": "source.json" }
-      ]
+      "patterns": [{ "include": "source.json" }]
     },
     "omg-type-block": {
       "name": "meta.embedded.block.omg.type",
@@ -150,9 +136,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-errors-block": {
       "name": "meta.embedded.block.omg.errors",
@@ -167,9 +151,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-config-block": {
       "name": "meta.embedded.block.omg.config",
@@ -184,9 +166,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "omg-generic-block": {
       "name": "meta.embedded.block.omg",
@@ -201,9 +181,7 @@
         "1": { "name": "punctuation.definition.markdown.end" }
       },
       "contentName": "meta.embedded.block.omg",
-      "patterns": [
-        { "include": "source.omg" }
-      ]
+      "patterns": [{ "include": "source.omg" }]
     },
     "http-block": {
       "name": "meta.embedded.block.http",

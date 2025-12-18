@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
@@ -9,7 +9,7 @@ import Heading from '@theme/Heading';
 import styles from './index.module.css';
 
 function HomepageHeader() {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
@@ -18,15 +18,14 @@ function HomepageHeader() {
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs">
+          <Link className="button button--secondary button--lg" to="/docs">
             Get Started
           </Link>
           <Link
             className="button button--outline button--secondary button--lg"
-            style={{marginLeft: '1rem'}}
-            href="https://github.com/mcclowes/omg">
+            style={{ marginLeft: '1rem' }}
+            href="https://github.com/mcclowes/omg"
+          >
             GitHub
           </Link>
         </div>
@@ -36,11 +35,12 @@ function HomepageHeader() {
 }
 
 export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
+  const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
       title="Human-first API Specification"
-      description="OMG is a Markdown-native language for describing APIs that compiles to OpenAPI 3.1">
+      description="OMG is a Markdown-native language for describing APIs that compiles to OpenAPI 3.1"
+    >
       <HomepageHeader />
       <main>
         <HomepageFeatures />

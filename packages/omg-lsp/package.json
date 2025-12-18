@@ -21,7 +21,9 @@
   "bin": {
     "omg-lsp": "dist/server.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

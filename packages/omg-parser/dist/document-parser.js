@@ -29,9 +29,7 @@ function parseDocument(content, filePath) {
     // Extract front matter
     const { data: frontMatter, content: markdownContent } = (0, gray_matter_1.default)(content);
     // Parse Markdown
-    const tree = (0, unified_1.unified)()
-        .use(remark_parse_1.default)
-        .parse(markdownContent);
+    const tree = (0, unified_1.unified)().use(remark_parse_1.default).parse(markdownContent);
     // Extract components
     const title = extractTitle(tree);
     const description = extractDescription(tree, markdownContent);
@@ -39,9 +37,7 @@ function parseDocument(content, filePath) {
     const partials = extractPartials(markdownContent);
     return {
         filePath,
-        frontMatter: Object.keys(frontMatter).length > 0
-            ? frontMatter
-            : null,
+        frontMatter: Object.keys(frontMatter).length > 0 ? frontMatter : null,
         title,
         description,
         blocks,

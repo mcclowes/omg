@@ -1,4 +1,4 @@
-import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
   docsSidebar: [
@@ -19,13 +19,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'CLI',
-      items: [
-        'cli/index',
-        'cli/build',
-        'cli/parse',
-        'cli/lint',
-        'cli/init',
-      ],
+      items: ['cli/index', 'cli/build', 'cli/parse', 'cli/lint', 'cli/init'],
     },
     'examples',
   ],

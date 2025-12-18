@@ -21,11 +21,7 @@
  * ```
  */
 
-import type {
-  OmgSchema,
-  ParsedReturnsBlock,
-  ParsedReturnEntry,
-} from './types.js';
+import type { OmgSchema, ParsedReturnsBlock, ParsedReturnEntry } from './types.js';
 import { parseSchema } from './schema-parser.js';
 
 /**

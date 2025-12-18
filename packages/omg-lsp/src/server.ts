@@ -160,15 +160,27 @@ connection.onCompletion((params): CompletionItem[] => {
       { label: 'omg.body', kind: CompletionItemKind.Keyword, detail: 'Request body schema' },
       { label: 'omg.response', kind: CompletionItemKind.Keyword, detail: 'Default (200) response' },
       { label: 'omg.response.201', kind: CompletionItemKind.Keyword, detail: 'Created response' },
-      { label: 'omg.response.400', kind: CompletionItemKind.Keyword, detail: 'Bad request response' },
-      { label: 'omg.response.401', kind: CompletionItemKind.Keyword, detail: 'Unauthorized response' },
+      {
+        label: 'omg.response.400',
+        kind: CompletionItemKind.Keyword,
+        detail: 'Bad request response',
+      },
+      {
+        label: 'omg.response.401',
+        kind: CompletionItemKind.Keyword,
+        detail: 'Unauthorized response',
+      },
       { label: 'omg.response.404', kind: CompletionItemKind.Keyword, detail: 'Not found response' },
-      { label: 'omg.response.500', kind: CompletionItemKind.Keyword, detail: 'Server error response' },
+      {
+        label: 'omg.response.500',
+        kind: CompletionItemKind.Keyword,
+        detail: 'Server error response',
+      },
       { label: 'omg.returns', kind: CompletionItemKind.Keyword, detail: 'Conditional responses' },
       { label: 'omg.type', kind: CompletionItemKind.Keyword, detail: 'Type definition' },
       { label: 'omg.example', kind: CompletionItemKind.Keyword, detail: 'Example data (JSON)' },
       { label: 'omg.errors', kind: CompletionItemKind.Keyword, detail: 'Error definitions' },
-      { label: 'omg.config', kind: CompletionItemKind.Keyword, detail: 'Configuration block' },
+      { label: 'omg.config', kind: CompletionItemKind.Keyword, detail: 'Configuration block' }
     );
     return completions;
   }
@@ -176,14 +188,54 @@ connection.onCompletion((params): CompletionItem[] => {
   // Typing an annotation
   if (lineText.includes('@')) {
     completions.push(
-      { label: '@min', kind: CompletionItemKind.Function, detail: 'Minimum value', insertText: '@min(${1:0})' },
-      { label: '@max', kind: CompletionItemKind.Function, detail: 'Maximum value', insertText: '@max(${1:100})' },
-      { label: '@minLength', kind: CompletionItemKind.Function, detail: 'Minimum string length', insertText: '@minLength(${1:1})' },
-      { label: '@maxLength', kind: CompletionItemKind.Function, detail: 'Maximum string length', insertText: '@maxLength(${1:255})' },
-      { label: '@pattern', kind: CompletionItemKind.Function, detail: 'Regex pattern', insertText: '@pattern("${1:.*}")' },
-      { label: '@format', kind: CompletionItemKind.Function, detail: 'Format hint', insertText: '@format("${1:email}")' },
-      { label: '@minItems', kind: CompletionItemKind.Function, detail: 'Minimum array items', insertText: '@minItems(${1:1})' },
-      { label: '@maxItems', kind: CompletionItemKind.Function, detail: 'Maximum array items', insertText: '@maxItems(${1:100})' },
+      {
+        label: '@min',
+        kind: CompletionItemKind.Function,
+        detail: 'Minimum value',
+        insertText: '@min(${1:0})',
+      },
+      {
+        label: '@max',
+        kind: CompletionItemKind.Function,
+        detail: 'Maximum value',
+        insertText: '@max(${1:100})',
+      },
+      {
+        label: '@minLength',
+        kind: CompletionItemKind.Function,
+        detail: 'Minimum string length',
+        insertText: '@minLength(${1:1})',
+      },
+      {
+        label: '@maxLength',
+        kind: CompletionItemKind.Function,
+        detail: 'Maximum string length',
+        insertText: '@maxLength(${1:255})',
+      },
+      {
+        label: '@pattern',
+        kind: CompletionItemKind.Function,
+        detail: 'Regex pattern',
+        insertText: '@pattern("${1:.*}")',
+      },
+      {
+        label: '@format',
+        kind: CompletionItemKind.Function,
+        detail: 'Format hint',
+        insertText: '@format("${1:email}")',
+      },
+      {
+        label: '@minItems',
+        kind: CompletionItemKind.Function,
+        detail: 'Minimum array items',
+        insertText: '@minItems(${1:1})',
+      },
+      {
+        label: '@maxItems',
+        kind: CompletionItemKind.Function,
+        detail: 'Maximum array items',
+        insertText: '@maxItems(${1:100})',
+      }
     );
     return completions;
   }
@@ -198,9 +250,13 @@ connection.onCompletion((params): CompletionItem[] => {
       { label: 'decimal', kind: CompletionItemKind.TypeParameter, detail: 'Decimal type' },
       { label: 'boolean', kind: CompletionItemKind.TypeParameter, detail: 'Boolean type' },
       { label: 'date', kind: CompletionItemKind.TypeParameter, detail: 'Date type (YYYY-MM-DD)' },
-      { label: 'datetime', kind: CompletionItemKind.TypeParameter, detail: 'DateTime type (ISO 8601)' },
+      {
+        label: 'datetime',
+        kind: CompletionItemKind.TypeParameter,
+        detail: 'DateTime type (ISO 8601)',
+      },
       { label: 'uuid', kind: CompletionItemKind.TypeParameter, detail: 'UUID type' },
-      { label: 'any', kind: CompletionItemKind.TypeParameter, detail: 'Any type' },
+      { label: 'any', kind: CompletionItemKind.TypeParameter, detail: 'Any type' }
     );
     return completions;
   }
@@ -212,7 +268,7 @@ connection.onCompletion((params): CompletionItem[] => {
       { label: 'POST', kind: CompletionItemKind.EnumMember },
       { label: 'PUT', kind: CompletionItemKind.EnumMember },
       { label: 'PATCH', kind: CompletionItemKind.EnumMember },
-      { label: 'DELETE', kind: CompletionItemKind.EnumMember },
+      { label: 'DELETE', kind: CompletionItemKind.EnumMember }
     );
     return completions;
   }
@@ -292,7 +348,8 @@ function getTypeDocumentation(type: string): string | null {
     string: '**string**\n\nA text value.\n\n```omg\nname: string\n```',
     integer: '**integer**\n\nA whole number (no decimals).\n\n```omg\ncount: integer\n```',
     number: '**number**\n\nA floating-point number.\n\n```omg\nprice: number\n```',
-    decimal: '**decimal**\n\nA precise decimal number (for currency, etc.).\n\n```omg\namount: decimal\n```',
+    decimal:
+      '**decimal**\n\nA precise decimal number (for currency, etc.).\n\n```omg\namount: decimal\n```',
     boolean: '**boolean**\n\nA true/false value.\n\n```omg\nisActive: boolean\n```',
     date: '**date**\n\nA date in YYYY-MM-DD format.\n\n```omg\nbirthDate: date\n```',
     datetime: '**datetime**\n\nAn ISO 8601 date-time.\n\n```omg\ncreatedAt: datetime\n```',
@@ -307,12 +364,18 @@ function getAnnotationDocumentation(annotation: string): string | null {
   const docs: Record<string, string> = {
     '@min': '**@min(value)**\n\nMinimum numeric value.\n\n```omg\nage: integer @min(0)\n```',
     '@max': '**@max(value)**\n\nMaximum numeric value.\n\n```omg\nage: integer @max(150)\n```',
-    '@minLength': '**@minLength(value)**\n\nMinimum string length.\n\n```omg\nname: string @minLength(1)\n```',
-    '@maxLength': '**@maxLength(value)**\n\nMaximum string length.\n\n```omg\nname: string @maxLength(100)\n```',
-    '@pattern': '**@pattern("regex")**\n\nRegular expression pattern.\n\n```omg\nemail: string @pattern("^[^@]+@[^@]+$")\n```',
-    '@format': '**@format("hint")**\n\nFormat hint (email, uri, etc.).\n\n```omg\nemail: string @format("email")\n```',
-    '@minItems': '**@minItems(value)**\n\nMinimum array items.\n\n```omg\nitems: Product[] @minItems(1)\n```',
-    '@maxItems': '**@maxItems(value)**\n\nMaximum array items.\n\n```omg\nitems: Product[] @maxItems(100)\n```',
+    '@minLength':
+      '**@minLength(value)**\n\nMinimum string length.\n\n```omg\nname: string @minLength(1)\n```',
+    '@maxLength':
+      '**@maxLength(value)**\n\nMaximum string length.\n\n```omg\nname: string @maxLength(100)\n```',
+    '@pattern':
+      '**@pattern("regex")**\n\nRegular expression pattern.\n\n```omg\nemail: string @pattern("^[^@]+@[^@]+$")\n```',
+    '@format':
+      '**@format("hint")**\n\nFormat hint (email, uri, etc.).\n\n```omg\nemail: string @format("email")\n```',
+    '@minItems':
+      '**@minItems(value)**\n\nMinimum array items.\n\n```omg\nitems: Product[] @minItems(1)\n```',
+    '@maxItems':
+      '**@maxItems(value)**\n\nMaximum array items.\n\n```omg\nitems: Product[] @maxItems(100)\n```',
   };
 
   return docs[annotation] || null;

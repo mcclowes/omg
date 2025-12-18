@@ -37,9 +37,7 @@ export function lintDocument(document, options = {}) {
         if (ruleConfig === false || ruleConfig === 'off') {
             continue;
         }
-        const rule = typeof ruleConfig === 'string'
-            ? getBuiltInRules()[ruleName]
-            : ruleConfig;
+        const rule = typeof ruleConfig === 'string' ? getBuiltInRules()[ruleName] : ruleConfig;
         if (!rule || typeof rule !== 'object') {
             continue;
         }
@@ -288,8 +286,8 @@ function evaluateOmgAnnotationValid(target, options) {
             return true;
         }
         case 'list-needs-pagination': {
-            const operationId = (doc?.frontMatter
-                ?.operationId || '');
+            const operationId = (doc?.frontMatter?.operationId ||
+                '');
             if (!operationId.startsWith('list-'))
                 return true;
             const blocks = (doc?.resolvedBlocks || doc?.blocks || []);
@@ -362,7 +360,10 @@ function findInvalidCasingProperties(schema, expectedCasing, path = []) {
                 invalidProps.push([...path, propName].join('.'));
             }
             // Recursively check nested schemas
-            const nested = findInvalidCasingProperties(properties[propName], expectedCasing, [...path, propName]);
+            const nested = findInvalidCasingProperties(properties[propName], expectedCasing, [
+                ...path,
+                propName,
+            ]);
             invalidProps.push(...nested);
         }
     }
@@ -374,14 +375,20 @@ function findInvalidCasingProperties(schema, expectedCasing, path = []) {
     // Check union types
     if (schemaObj.kind === 'union' && Array.isArray(schemaObj.types)) {
         for (let i = 0; i < schemaObj.types.length; i++) {
-            const nested = findInvalidCasingProperties(schemaObj.types[i], expectedCasing, [...path, `variant${i + 1}`]);
+            const nested = findInvalidCasingProperties(schemaObj.types[i], expectedCasing, [
+                ...path,
+                `variant${i + 1}`,
+            ]);
             invalidProps.push(...nested);
         }
     }
     // Check intersection types
     if (schemaObj.kind === 'intersection' && Array.isArray(schemaObj.types)) {
         for (let i = 0; i < schemaObj.types.length; i++) {
-            const nested = findInvalidCasingProperties(schemaObj.types[i], expectedCasing, [...path, `part${i + 1}`]);
+            const nested = findInvalidCasingProperties(schemaObj.types[i], expectedCasing, [
+                ...path,
+                `part${i + 1}`,
+            ]);
             invalidProps.push(...nested);
         }
     }

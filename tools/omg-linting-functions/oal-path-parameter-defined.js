@@ -37,7 +37,11 @@ export default function oalPathParameterDefined(path, options = {}) {
     }
 
     // Check for common naming conventions
-    if (param.toLowerCase().endsWith('id') && !param.endsWith('Id') && options.casing === 'camelCase') {
+    if (
+      param.toLowerCase().endsWith('id') &&
+      !param.endsWith('Id') &&
+      options.casing === 'camelCase'
+    ) {
       results.push({
         message: `Path parameter '{${param}}' should use 'Id' suffix (e.g., '${param.slice(0, -2)}Id').`,
       });

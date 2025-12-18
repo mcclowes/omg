@@ -193,7 +193,10 @@ export function buildEndpoint(doc: ResolvedDocument): ParsedEndpoint | null {
   // Build operation ID
   const operationId =
     frontMatter?.operationId ||
-    `${method.toLowerCase()}-${urlPath.replace(/[{}\/]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')}`;
+    `${method.toLowerCase()}-${urlPath
+      .replace(/[{}\/]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')}`;
 
   // Collect blocks by type
   const pathBlock = doc.resolvedBlocks.find((b) => b.type === 'omg.path');

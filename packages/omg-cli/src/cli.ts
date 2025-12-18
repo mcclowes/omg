@@ -28,43 +28,45 @@ program
   .option('-o, --output <file>', 'Output file (default: stdout)')
   .option('-f, --format <format>', 'Output format: yaml or json (auto-detected from extension)')
   .option('--bundle', 'Bundle all files into single output')
-  .action(async (input: string, options: { output?: string; format?: string; bundle?: boolean }) => {
-    try {
-      const inputPath = path.resolve(input);
+  .action(
+    async (input: string, options: { output?: string; format?: string; bundle?: boolean }) => {
+      try {
+        const inputPath = path.resolve(input);
 
-      if (!fs.existsSync(inputPath)) {
-        console.error(chalk.red(`Error: File not found: ${inputPath}`));
+        if (!fs.existsSync(inputPath)) {
+          console.error(chalk.red(`Error: File not found: ${inputPath}`));
+          process.exit(1);
+        }
+
+        console.error(chalk.blue(`Parsing ${input}...`));
+
+        // Load and parse the API
+        const api = loadApi(inputPath);
+
+        console.error(chalk.blue(`Found ${api.endpoints.length} endpoints`));
+
+        // Compile to OpenAPI
+        const openapi = compileToOpenApi(api);
+
+        // Determine output format
+        const format = options.format || (options.output ? detectFormat(options.output) : 'yaml');
+
+        // Serialize
+        const output = serialize(openapi, format as 'yaml' | 'json');
+
+        // Write output
+        if (options.output) {
+          fs.writeFileSync(options.output, output);
+          console.error(chalk.green(`✓ Written to ${options.output}`));
+        } else {
+          console.log(output);
+        }
+      } catch (error) {
+        console.error(chalk.red(`Error: ${(error as Error).message}`));
         process.exit(1);
       }
-
-      console.error(chalk.blue(`Parsing ${input}...`));
-
-      // Load and parse the API
-      const api = loadApi(inputPath);
-
-      console.error(chalk.blue(`Found ${api.endpoints.length} endpoints`));
-
-      // Compile to OpenAPI
-      const openapi = compileToOpenApi(api);
-
-      // Determine output format
-      const format = options.format || (options.output ? detectFormat(options.output) : 'yaml');
-
-      // Serialize
-      const output = serialize(openapi, format as 'yaml' | 'json');
-
-      // Write output
-      if (options.output) {
-        fs.writeFileSync(options.output, output);
-        console.error(chalk.green(`✓ Written to ${options.output}`));
-      } else {
-        console.log(output);
-      }
-    } catch (error) {
-      console.error(chalk.red(`Error: ${(error as Error).message}`));
-      process.exit(1);
     }
-  });
+  );
 
 // Parse command (for debugging)
 program
@@ -104,7 +106,9 @@ program
         console.log();
         console.log(chalk.blue('Blocks:'));
         for (const block of resolved.resolvedBlocks) {
-          console.log(`  ${chalk.yellow(block.type)}${block.statusCode ? ` (${block.statusCode})` : ''}`);
+          console.log(
+            `  ${chalk.yellow(block.type)}${block.statusCode ? ` (${block.statusCode})` : ''}`
+          );
           if (block.parsed) {
             console.log(`    Schema: ${block.parsed.kind}`);
           }
@@ -139,139 +143,162 @@ program
   .option('-r, --rules <rules>', 'Comma-separated list of rules to run')
   .option('--json', 'Output results as JSON')
   .option('-q, --quiet', 'Only output on error')
-  .action(async (input: string, options: {
-    config?: string;
-    severity?: string;
-    rules?: string;
-    json?: boolean;
-    quiet?: boolean;
-  }) => {
-    try {
-      const inputPath = path.resolve(input);
-
-      if (!fs.existsSync(inputPath)) {
-        console.error(chalk.red(`Error: File not found: ${inputPath}`));
-        process.exit(1);
+  .action(
+    async (
+      input: string,
+      options: {
+        config?: string;
+        severity?: string;
+        rules?: string;
+        json?: boolean;
+        quiet?: boolean;
       }
+    ) => {
+      try {
+        const inputPath = path.resolve(input);
 
-      // Check if input is a directory or file
-      const stat = fs.statSync(inputPath);
-      const files: string[] = [];
+        if (!fs.existsSync(inputPath)) {
+          console.error(chalk.red(`Error: File not found: ${inputPath}`));
+          process.exit(1);
+        }
 
-      if (stat.isDirectory()) {
-        // Find all .omg.md files recursively
-        const findOmgFiles = (dir: string) => {
-          const entries = fs.readdirSync(dir, { withFileTypes: true });
-          for (const entry of entries) {
-            const fullPath = path.join(dir, entry.name);
-            if (entry.isDirectory() && entry.name !== 'node_modules' && entry.name !== 'partials') {
-              findOmgFiles(fullPath);
-            } else if (entry.name.endsWith('.omg.md')) {
-              files.push(fullPath);
+        // Check if input is a directory or file
+        const stat = fs.statSync(inputPath);
+        const files: string[] = [];
+
+        if (stat.isDirectory()) {
+          // Find all .omg.md files recursively
+          const findOmgFiles = (dir: string) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+              const fullPath = path.join(dir, entry.name);
+              if (
+                entry.isDirectory() &&
+                entry.name !== 'node_modules' &&
+                entry.name !== 'partials'
+              ) {
+                findOmgFiles(fullPath);
+              } else if (entry.name.endsWith('.omg.md')) {
+                files.push(fullPath);
+              }
             }
-          }
-        };
-        findOmgFiles(inputPath);
-      } else {
-        files.push(inputPath);
-      }
-
-      if (files.length === 0) {
-        console.error(chalk.yellow('No .omg.md files found'));
-        process.exit(0);
-      }
-
-      const allResults: Array<{ file: string; results: LintResult[] }> = [];
-      let totalErrors = 0;
-      let totalWarnings = 0;
-      let totalHints = 0;
-
-      for (const file of files) {
-        const content = fs.readFileSync(file, 'utf-8');
-        const doc = parseDocument(content, path.relative(process.cwd(), file));
-        const basePath = path.dirname(file);
-
-        // Try to resolve and parse
-        let resolved;
-        try {
-          resolved = resolveDocument(doc, { basePath });
-        } catch (err) {
-          // If resolution fails, use the unresolved document
-          resolved = { ...doc, resolvedBlocks: doc.blocks };
-        }
-
-        // Run linter
-        const lintResults = lintDocument(
-          { document: resolved },
-          {
-            configPath: options.config,
-            rules: options.rules?.split(','),
-            severity: options.severity as Severity,
-          }
-        );
-
-        const summary = summarizeLintResults(file, lintResults);
-        totalErrors += summary.errors;
-        totalWarnings += summary.warnings;
-        totalHints += summary.hints;
-
-        if (lintResults.length > 0) {
-          allResults.push({ file, results: lintResults });
-        }
-      }
-
-      // Output results
-      if (options.json) {
-        console.log(JSON.stringify({
-          files: files.length,
-          results: allResults,
-          summary: {
-            errors: totalErrors,
-            warnings: totalWarnings,
-            hints: totalHints,
-          },
-        }, null, 2));
-      } else {
-        if (allResults.length === 0) {
-          if (!options.quiet) {
-            console.log(chalk.green(`✓ ${files.length} file(s) validated successfully`));
-          }
+          };
+          findOmgFiles(inputPath);
         } else {
-          for (const { file, results } of allResults) {
-            const relativePath = path.relative(process.cwd(), file);
-            console.log(chalk.underline(relativePath));
+          files.push(inputPath);
+        }
 
-            for (const result of results) {
-              const icon = result.severity === 'error' ? '✖' :
-                          result.severity === 'warn' ? '⚠' : 'ℹ';
-              const color = result.severity === 'error' ? chalk.red :
-                           result.severity === 'warn' ? chalk.yellow : chalk.blue;
-              const pathStr = result.path?.length ? chalk.gray(` (${result.path.join('.')})`) : '';
+        if (files.length === 0) {
+          console.error(chalk.yellow('No .omg.md files found'));
+          process.exit(0);
+        }
 
-              console.log(`  ${color(icon)} ${result.message}${pathStr} ${chalk.gray(`[${result.rule}]`)}`);
-            }
-            console.log();
+        const allResults: Array<{ file: string; results: LintResult[] }> = [];
+        let totalErrors = 0;
+        let totalWarnings = 0;
+        let totalHints = 0;
+
+        for (const file of files) {
+          const content = fs.readFileSync(file, 'utf-8');
+          const doc = parseDocument(content, path.relative(process.cwd(), file));
+          const basePath = path.dirname(file);
+
+          // Try to resolve and parse
+          let resolved;
+          try {
+            resolved = resolveDocument(doc, { basePath });
+          } catch (err) {
+            // If resolution fails, use the unresolved document
+            resolved = { ...doc, resolvedBlocks: doc.blocks };
           }
 
-          // Summary
-          const summaryParts: string[] = [];
-          if (totalErrors > 0) summaryParts.push(chalk.red(`${totalErrors} error(s)`));
-          if (totalWarnings > 0) summaryParts.push(chalk.yellow(`${totalWarnings} warning(s)`));
-          if (totalHints > 0) summaryParts.push(chalk.blue(`${totalHints} hint(s)`));
+          // Run linter
+          const lintResults = lintDocument(
+            { document: resolved },
+            {
+              configPath: options.config,
+              rules: options.rules?.split(','),
+              severity: options.severity as Severity,
+            }
+          );
 
-          console.log(`Found ${summaryParts.join(', ')} in ${files.length} file(s)`);
+          const summary = summarizeLintResults(file, lintResults);
+          totalErrors += summary.errors;
+          totalWarnings += summary.warnings;
+          totalHints += summary.hints;
+
+          if (lintResults.length > 0) {
+            allResults.push({ file, results: lintResults });
+          }
         }
-      }
 
-      // Exit with error code if there are errors
-      if (totalErrors > 0) {
+        // Output results
+        if (options.json) {
+          console.log(
+            JSON.stringify(
+              {
+                files: files.length,
+                results: allResults,
+                summary: {
+                  errors: totalErrors,
+                  warnings: totalWarnings,
+                  hints: totalHints,
+                },
+              },
+              null,
+              2
+            )
+          );
+        } else {
+          if (allResults.length === 0) {
+            if (!options.quiet) {
+              console.log(chalk.green(`✓ ${files.length} file(s) validated successfully`));
+            }
+          } else {
+            for (const { file, results } of allResults) {
+              const relativePath = path.relative(process.cwd(), file);
+              console.log(chalk.underline(relativePath));
+
+              for (const result of results) {
+                const icon =
+                  result.severity === 'error' ? '✖' : result.severity === 'warn' ? '⚠' : 'ℹ';
+                const color =
+                  result.severity === 'error'
+                    ? chalk.red
+                    : result.severity === 'warn'
+                      ? chalk.yellow
+                      : chalk.blue;
+                const pathStr = result.path?.length
+                  ? chalk.gray(` (${result.path.join('.')})`)
+                  : '';
+
+                console.log(
+                  `  ${color(icon)} ${result.message}${pathStr} ${chalk.gray(`[${result.rule}]`)}`
+                );
+              }
+              console.log();
+            }
+
+            // Summary
+            const summaryParts: string[] = [];
+            if (totalErrors > 0) summaryParts.push(chalk.red(`${totalErrors} error(s)`));
+            if (totalWarnings > 0) summaryParts.push(chalk.yellow(`${totalWarnings} warning(s)`));
+            if (totalHints > 0) summaryParts.push(chalk.blue(`${totalHints} hint(s)`));
+
+            console.log(`Found ${summaryParts.join(', ')} in ${files.length} file(s)`);
+          }
+        }
+
+        // Exit with error code if there are errors
+        if (totalErrors > 0) {
+          process.exit(1);
+        }
+      } catch (error) {
+        console.error(chalk.red(`Error: ${(error as Error).message}`));
         process.exit(1);
       }
-    } catch (error) {
-      console.error(chalk.red(`Error: ${(error as Error).message}`));
-      process.exit(1);
     }
-  });
+  );
 
 // Init command
 program

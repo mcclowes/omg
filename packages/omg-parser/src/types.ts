@@ -58,10 +58,10 @@ export type OmgBlockType =
 // Parsed code block
 export interface OmgBlock {
   type: OmgBlockType;
-  statusCode?: number;  // For omg.response.201, etc.
+  statusCode?: number; // For omg.response.201, etc.
   content: string;
-  parsed?: OmgSchema;   // Parsed schema (after OMG parsing)
-  parsedResponses?: ParsedReturnsBlock;  // For omg.returns blocks
+  parsed?: OmgSchema; // Parsed schema (after OMG parsing)
+  parsedResponses?: ParsedReturnsBlock; // For omg.returns blocks
   line: number;
 }
 
@@ -113,7 +113,16 @@ export type OmgType =
 
 export interface OmgPrimitive {
   kind: 'primitive';
-  type: 'string' | 'number' | 'integer' | 'boolean' | 'decimal' | 'date' | 'datetime' | 'uuid' | 'any';
+  type:
+    | 'string'
+    | 'number'
+    | 'integer'
+    | 'boolean'
+    | 'decimal'
+    | 'date'
+    | 'datetime'
+    | 'uuid'
+    | 'any';
   nullable?: boolean;
   optional?: boolean;
   annotations: OmgAnnotation[];

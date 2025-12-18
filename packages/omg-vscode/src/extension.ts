@@ -17,9 +17,7 @@ let client: LanguageClient | undefined;
 
 export function activate(context: ExtensionContext): void {
   // Path to the LSP server (bundled in the extension)
-  const serverModule = context.asAbsolutePath(
-    path.join('server', 'server.js')
-  );
+  const serverModule = context.asAbsolutePath(path.join('server', 'server.js'));
 
   // Server options - run in Node.js
   const serverOptions: ServerOptions = {
