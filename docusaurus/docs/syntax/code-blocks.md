@@ -60,7 +60,7 @@ Request body schema:
 
 ### omg.response
 
-Default success response (200 for GET, 201 for POST):
+A bare `omg.response` block (without a status code suffix) defines the **default success response with status code 200**:
 
 ```omg.response
 {
@@ -70,9 +70,23 @@ Default success response (200 for GET, 201 for POST):
 }
 ```
 
+This is equivalent to writing `omg.response.200`.
+
 ### omg.response.[code]
 
-Specific status code response (replace `[code]` with status code):
+For specific status codes, append the code to the block identifier:
+
+| Block | Status Code | Typical Use |
+|-------|-------------|-------------|
+| `omg.response` | 200 OK | Default success response |
+| `omg.response.200` | 200 OK | Explicit success (same as bare) |
+| `omg.response.201` | 201 Created | Resource created (POST) |
+| `omg.response.202` | 202 Accepted | Async operation started |
+| `omg.response.204` | 204 No Content | Success with no body (DELETE) |
+| `omg.response.400` | 400 Bad Request | Validation error |
+| `omg.response.404` | 404 Not Found | Resource not found |
+
+**Example - Created response:**
 
 ```omg.response.201
 {
@@ -81,9 +95,18 @@ Specific status code response (replace `[code]` with status code):
 }
 ```
 
+**Example - No content response:**
+
 ```omg.response.204
-// Empty response
+// Empty response - no body returned
 ```
+
+:::tip When to use specific codes
+- Use bare `omg.response` for simple GET endpoints returning 200
+- Use `omg.response.201` for POST endpoints that create resources
+- Use `omg.response.204` for DELETE endpoints with no response body
+- Use explicit codes when an endpoint returns multiple success statuses
+:::
 
 ### omg.returns
 

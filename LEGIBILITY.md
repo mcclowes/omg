@@ -179,24 +179,15 @@ use partial "params/company"
 
 Or at minimum, document this prominently with examples showing what gets included.
 
-### 3. Response Status Code Semantics ⚠️
+### 3. Response Status Code Semantics ✅ (Addressed)
 
-**Current:** Status codes are indicated by suffixes:
+**Status:** Documented in `docusaurus/docs/syntax/code-blocks.md`
 
-```markdown
-```omg.response.200
-```omg.response.202
-```omg.response.400
-```
-
-**Potential confusion:**
-- What does a bare `omg.response` (without status) mean? (It implies 200)
-- Are all unlisted codes inherited from defaults?
-
-**Recommendation:** Add clarity in the language guide:
-- `omg.response` = success (200)
+The documentation now clearly explains:
+- `omg.response` = status 200 (default success)
 - `omg.response.XXX` = specific status code
-- Document that error codes come from `use errors` or must be explicit
+- Includes a reference table of common status codes and their uses
+- Provides guidance on when to use bare vs explicit codes
 
 ### 4. Cross-Field Constraint Syntax ⚠️
 
@@ -402,7 +393,7 @@ use errors
 
 1. **Standardize field description syntax** - Pick one style (recommend inline comments)
 2. **Clarify template partial syntax** - Use more explicit `include` or document heavily
-3. **Document response status semantics** - What does bare `omg.response` mean?
+3. ~~**Document response status semantics**~~ ✅ Done - See `docusaurus/docs/syntax/code-blocks.md`
 4. **Add prose alternatives for constraints** - Help non-programmers write validations
 5. **Provide non-generic examples** - Don't force `<T>` syntax for simple cases
 6. **Explain nullable vs optional** - This is confusing; add prominent examples
