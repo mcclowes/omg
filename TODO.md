@@ -1,10 +1,8 @@
 # todo
 
 Quick Wins
-- [ ] Publish to NPM (omg-md-cli remaining)
-- [ ] CI setup
-- [ ] Run validate on the examples in the CI
-- [ ] Add contributing file
+- [X] Publish to NPM
+- [X] Add contributing file
 
 ### Recently Completed
 - [x] Fix repo URLs in all package.json files
@@ -15,6 +13,8 @@ Quick Wins
 - [x] Fix build order for workspace dependencies
 - [x] Update package dependencies from file: to semver references
 - [x] Publish omg-parser, omg-compiler, omg-linter, omg-lsp to npm
+- [x] CI setup (GitHub Actions: format, typecheck, build, test)
+- [x] Run validate on examples in CI
 
 ### Immediate (Language Design Finalization)
 

@@ -257,6 +257,14 @@ Husky is configured for pre-commit hooks in `.husky/`. The pre-commit hook runs:
 
 ## When Making Changes
 
+**IMPORTANT**: After implementing any changes, always update:
+- `TODO.md` - Mark items complete, add new tasks
+- `CLAUDE.md` - Update if architecture/commands/structure changed
+- `docusaurus/docs/` - Update user-facing documentation
+- `examples/` - Ensure examples still work and demonstrate new features
+
+### Code Changes
+
 1. **Parser changes** (`omg-parser`): Update `types.ts` for new AST nodes, then update `document-parser.ts` or `schema-parser.ts`
 
 2. **New output features** (`omg-compiler`): Modify `openapi.ts` to handle new AST structures
