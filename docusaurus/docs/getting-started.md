@@ -9,14 +9,23 @@ Get up and running with OMG in under 5 minutes.
 ## Installation
 
 ```bash
-# Clone the repository
+npm install -g omg-md-cli
+```
+
+Or use directly with npx (no installation required):
+
+```bash
+npx omg-md-cli <command>
+```
+
+### From Source
+
+For development or contributing:
+
+```bash
 git clone https://github.com/mcclowes/omg.git
 cd omg
-
-# Install dependencies
 npm install
-
-# Build all packages
 npm run build
 ```
 
@@ -25,7 +34,7 @@ npm run build
 Create a new OMG API project:
 
 ```bash
-npx omg init my-api
+omg init my-api
 ```
 
 This creates a directory structure:
@@ -44,7 +53,7 @@ my-api/
 Compile your OMG files to OpenAPI 3.1:
 
 ```bash
-npx omg build my-api/api.omg.md -o openapi.yaml
+omg build my-api/api.omg.md -o openapi.yaml
 ```
 
 ## File Structure

@@ -1,6 +1,7 @@
 {
-  "name": "omg",
+  "name": "omg-monorepo",
   "version": "1.0.0",
+  "private": true,
   "description": "OpenAPI Markdown Grammar (OMG) - A human-first domain-specific language for API specification",
   "author": "mcclowes",
   "license": "MIT",
@@ -28,13 +29,14 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w omg-parser && npm run build -w omg-compiler && npm run build -w omg-linter && npm run build -w omg-lsp && npm run build -w omg-cli",
+    "build": "npm run build -w omg-parser && npm run build -w omg-compiler && npm run build -w omg-linter && npm run build -w omg-lsp && npm run build -w omg-md-cli",
     "test": "npm run test --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "prepare": "husky install",
     "docs:dev": "npm run start --prefix docusaurus",
     "docs:build": "npm run build --prefix docusaurus",
-    "docs:serve": "npm run serve --prefix docusaurus"
+    "docs:serve": "npm run serve --prefix docusaurus",
+    "publish:all": "npm publish -w omg-parser && npm publish -w omg-linter && npm publish -w omg-compiler && npm publish -w omg-lsp && npm publish -w omg-md-cli"
   },
   "engines": {
     "node": ">=18.0.0"

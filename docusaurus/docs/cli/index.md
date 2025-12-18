@@ -9,12 +9,13 @@ The OMG CLI (`omg-cli`) provides commands for working with OMG files.
 ## Installation
 
 ```bash
-# From the repository
-npm install
-npm run build
+npm install -g omg-md-cli
+```
 
-# Then use via npx
-npx omg <command>
+Or use directly with npx:
+
+```bash
+npx omg-md-cli <command>
 ```
 
 ## Commands
@@ -30,19 +31,19 @@ npx omg <command>
 
 ```bash
 # Initialize a new project
-npx omg init my-api
+omg init my-api
 
 # Build to OpenAPI YAML
-npx omg build api.omg.md -o openapi.yaml
+omg build api.omg.md -o openapi.yaml
 
 # Build to JSON
-npx omg build api.omg.md -o openapi.json -f json
+omg build api.omg.md -o openapi.json -f json
 
 # Parse and view AST
-npx omg parse endpoint.omg.md
+omg parse endpoint.omg.md
 
 # Lint files
-npx omg lint my-api/
+omg lint my-api/
 ```
 
 ## Global Options

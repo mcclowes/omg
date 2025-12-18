@@ -44,23 +44,26 @@ npm i -g openskills
 openskills install mcclowes/omg
 ```
 
+## Installation
+
+```bash
+npm install -g omg-md-cli
+```
+
+Or use directly with npx:
+
+```bash
+npx omg-md-cli init my-api
+```
+
 ## Getting Started
 
 ```bash
-# Install dependencies
-npm install
-
-# Build all packages
-npm run build
-
-# Run tests
-npm test
-
 # Initialize a new OMG project
-npx omg init my-api
+omg init my-api
 
 # Compile OMG to OpenAPI
-npx omg build api.omg.md -o openapi.yaml
+omg build api.omg.md -o openapi.yaml
 ```
 
 ## Example

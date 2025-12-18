@@ -32,7 +32,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "omg-parser": "file:../omg-parser",
+    "omg-parser": "^0.1.0",
     "yaml": "^2.3.0"
   },
   "devDependencies": {
