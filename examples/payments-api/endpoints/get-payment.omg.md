@@ -4,6 +4,7 @@ path: /payments/{paymentId}
 operationId: get-payment
 tags: [Payments]
 summary: Retrieve a payment
+follows: [create-payment]
 webhooks:
   listen: [payment.succeeded, payment.failed]
 ---
