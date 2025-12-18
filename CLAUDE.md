@@ -22,6 +22,12 @@ npm test
 
 # Type check
 npm run typecheck
+
+# Format code
+npm run format
+
+# Check formatting
+npm run format:check
 ```
 
 ## Codebase Structure
@@ -44,10 +50,19 @@ omg/
 │   │   │   └── output.ts            # Serialization (YAML/JSON)
 │   │   └── dist/
 │   │
-│   ├── omg-cli/                # omg-cli - Command-line interface
+│   ├── omg-linter/             # omg-linter - Linting for OMG files
 │   │   ├── src/
-│   │   │   ├── cli.ts               # Main CLI entry point
-│   │   │   └── linter.ts            # Spectral-style linting rules
+│   │   │   └── index.ts             # Linting rules and utilities
+│   │   └── dist/
+│   │
+│   ├── omg-lsp/                # omg-lsp - Language Server Protocol server
+│   │   ├── src/
+│   │   │   └── server.ts            # LSP server implementation
+│   │   └── dist/
+│   │
+│   ├── omg-md-cli/             # omg-md-cli - Command-line interface (npm: omg-md-cli)
+│   │   ├── src/
+│   │   │   └── cli.ts               # Main CLI entry point
 │   │   └── dist/
 │   │
 │   └── omg-vscode/             # VS Code extension for syntax highlighting
@@ -55,14 +70,16 @@ omg/
 │       └── package.json           # Extension manifest
 │
 ├── .claude/                    # Claude Code configuration
-│   └── skills/openapi/         # OpenAPI expert skill
+│   └── skills/                 # Claude Code skills
+│
+├── docusaurus/                 # Documentation site
 │
 └── Documentation files:
     ├── BEHAVIORS.md            # Behavioral extensions (state machines, events)
     ├── CHANGELOG.md            # Release history
     ├── LEGIBILITY.md           # Readability design decisions
     ├── TODO.md                 # Project roadmap
-    └── readme.md               # Project overview
+    └── README.md               # Project overview
 ```
 
 ## Key Concepts
@@ -156,16 +173,16 @@ npm run typecheck
 
 ```bash
 # Initialize a new OMG project (creates example files)
-node packages/omg-cli/dist/cli.js init my-api/
+node packages/omg-md-cli/dist/cli.js init my-api/
 
 # Build OMG to OpenAPI
-node packages/omg-cli/dist/cli.js build my-api/api.omg.md -o output.yaml
+node packages/omg-md-cli/dist/cli.js build my-api/api.omg.md -o output.yaml
 
 # Parse and inspect AST
-node packages/omg-cli/dist/cli.js parse my-api/endpoints/health.omg.md
+node packages/omg-md-cli/dist/cli.js parse my-api/endpoints/health.omg.md
 
 # Lint OMG files
-node packages/omg-cli/dist/cli.js lint my-api/
+node packages/omg-md-cli/dist/cli.js lint my-api/
 ```
 
 ## Code Conventions
@@ -181,12 +198,17 @@ node packages/omg-cli/dist/cli.js lint my-api/
 ### Package Dependencies
 
 ```
-omg-cli
-  └── omg-compiler
-        └── omg-parser
+omg-md-cli
+  ├── omg-compiler
+  │     └── omg-parser
+  └── omg-linter
+
+omg-lsp
+  ├── omg-parser
+  └── omg-linter
 ```
 
-Packages use `file:` references for local dependencies during development.
+Packages use semver references (e.g., `^0.1.0`) for npm dependencies.
 
 ### Schema Type System
 
@@ -216,7 +238,10 @@ Schema fields support annotations:
 
 ### Pre-commit Hooks
 
-Husky is configured for pre-commit hooks in `.husky/`.
+Husky is configured for pre-commit hooks in `.husky/`. The pre-commit hook runs:
+1. `npm run format:check` - Verify code is formatted
+2. `npm run typecheck` - TypeScript type checking
+3. `npm run test` - Run all tests
 
 ## Important Files
 
@@ -225,6 +250,8 @@ Husky is configured for pre-commit hooks in `.husky/`.
 | `package.json` | Root workspace config |
 | `packages/*/package.json` | Package-specific configs |
 | `packages/*/tsconfig.json` | TypeScript configuration |
+| `.prettierrc` | Prettier configuration |
+| `.prettierignore` | Files to ignore for formatting |
 | `.spectral-omg.yaml` | Linting rules configuration |
 | `.husky/pre-commit` | Pre-commit hook |
 
@@ -234,11 +261,11 @@ Husky is configured for pre-commit hooks in `.husky/`.
 
 2. **New output features** (`omg-compiler`): Modify `openapi.ts` to handle new AST structures
 
-3. **New CLI commands** (`omg-cli`): Add command in `cli.ts` using Commander.js
+3. **New CLI commands** (`omg-md-cli`): Add command in `cli.ts` using Commander.js
 
 4. **New syntax features**: Implement in parser/compiler, update documentation as needed
 
-5. **New linting rules**: Add to `linter.ts` following the existing pattern
+5. **New linting rules**: Add to `omg-linter/src/index.ts` following the existing pattern
 
 ## Testing Changes
 
@@ -249,10 +276,10 @@ Always verify changes work end-to-end:
 npm run build
 
 # Test parsing (use omg init to create test files if needed)
-node packages/omg-cli/dist/cli.js parse <path-to-omg-file>
+node packages/omg-md-cli/dist/cli.js parse <path-to-omg-file>
 
 # Test full compilation
-node packages/omg-cli/dist/cli.js build <path-to-api.omg.md> -o /tmp/test.yaml
+node packages/omg-md-cli/dist/cli.js build <path-to-api.omg.md> -o /tmp/test.yaml
 
 # Validate output is valid OpenAPI
 npx @apidevtools/swagger-cli validate /tmp/test.yaml
@@ -281,7 +308,7 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 
 ### Add a new CLI command
 
-1. Add command definition in `packages/omg-cli/src/cli.ts`
+1. Add command definition in `packages/omg-md-cli/src/cli.ts`
 2. Use Commander.js `.command()` API
 
 ## Skills

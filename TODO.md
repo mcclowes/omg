@@ -1,13 +1,20 @@
 # todo
 
 Quick Wins
-- [ ] Publish to NPM
-- [x] Fix repo URLs in all package.json files
-- [x] Uncomment .husky/pre-commit and add linting
-- [x] Add engines field to root package.json
+- [ ] Publish to NPM (omg-md-cli remaining)
 - [ ] CI setup
 - [ ] Run validate on the examples in the CI
 - [ ] Add contributing file
+
+### Recently Completed
+- [x] Fix repo URLs in all package.json files
+- [x] Uncomment .husky/pre-commit and add linting
+- [x] Add engines field to root package.json
+- [x] Set up Prettier with format/format:check scripts
+- [x] Add format:check to pre-commit hook
+- [x] Fix build order for workspace dependencies
+- [x] Update package dependencies from file: to semver references
+- [x] Publish omg-parser, omg-compiler, omg-linter, omg-lsp to npm
 
 ### Immediate (Language Design Finalization)
 
@@ -122,5 +129,5 @@ This is an early-stage project. To contribute:
 - [x] **Implement lexer** - Tokenize OMG syntax (`omg-parser`)
 - [x] **Implement parser** - Build AST from tokens (`document-parser.ts`, `schema-parser.ts`)
 - [x] **Implement OpenAPI compiler** - Transform AST to OpenAPI 3.1 (`omg-compiler`)
-- [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`omg-cli`)
+- [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`omg-md-cli`)
 - [x] **VS Code syntax highlighting** - TextMate grammar (`packages/omg-vscode/`)
