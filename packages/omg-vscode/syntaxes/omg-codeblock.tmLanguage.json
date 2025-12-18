@@ -5,6 +5,7 @@
   "injectionSelector": "L:text.html.markdown",
   "patterns": [
     { "include": "#omg-response-block" },
+    { "include": "#omg-returns-block" },
     { "include": "#omg-body-block" },
     { "include": "#omg-path-block" },
     { "include": "#omg-query-block" },
@@ -12,6 +13,7 @@
     { "include": "#omg-example-block" },
     { "include": "#omg-type-block" },
     { "include": "#omg-errors-block" },
+    { "include": "#omg-config-block" },
     { "include": "#omg-generic-block" },
     { "include": "#http-block" }
   ],
@@ -19,6 +21,23 @@
     "omg-response-block": {
       "name": "meta.embedded.block.omg.response",
       "begin": "(```)(omg\\.response(?:\\.\\d{3})?)(\\s*)$",
+      "end": "(```)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.markdown.begin" },
+        "2": { "name": "fenced_code.block.language.omg" },
+        "3": { "name": "punctuation.definition.markdown.begin" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.markdown.end" }
+      },
+      "contentName": "meta.embedded.block.omg",
+      "patterns": [
+        { "include": "source.omg" }
+      ]
+    },
+    "omg-returns-block": {
+      "name": "meta.embedded.block.omg.returns",
+      "begin": "(```)(omg\\.returns)(\\s*)$",
       "end": "(```)",
       "beginCaptures": {
         "1": { "name": "punctuation.definition.markdown.begin" },
@@ -138,6 +157,23 @@
     "omg-errors-block": {
       "name": "meta.embedded.block.omg.errors",
       "begin": "(```)(omg\\.errors)(\\s*)$",
+      "end": "(```)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.markdown.begin" },
+        "2": { "name": "fenced_code.block.language.omg" },
+        "3": { "name": "punctuation.definition.markdown.begin" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.markdown.end" }
+      },
+      "contentName": "meta.embedded.block.omg",
+      "patterns": [
+        { "include": "source.omg" }
+      ]
+    },
+    "omg-config-block": {
+      "name": "meta.embedded.block.omg.config",
+      "begin": "(```)(omg\\.config)(\\s*)$",
       "end": "(```)",
       "beginCaptures": {
         "1": { "name": "punctuation.definition.markdown.begin" },

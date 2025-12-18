@@ -1,0 +1,42 @@
+{
+  "name": "@omg/lsp",
+  "version": "0.1.0",
+  "description": "Language Server Protocol server for OMG (OpenAPI Markdown Grammar)",
+  "author": "mcclowes",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcclowes/omg.git",
+    "directory": "packages/omg-lsp"
+  },
+  "keywords": [
+    "openapi",
+    "omg",
+    "lsp",
+    "language-server",
+    "vscode"
+  ],
+  "main": "dist/server.js",
+  "bin": {
+    "omg-lsp": "dist/server.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@omg/parser": "file:../omg-parser",
+    "@omg/linter": "file:../omg-linter",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

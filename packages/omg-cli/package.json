@@ -36,9 +36,9 @@
   "dependencies": {
     "@omg/parser": "file:../omg-parser",
     "@omg/compiler": "file:../omg-compiler",
+    "@omg/linter": "file:../omg-linter",
     "commander": "^11.0.0",
-    "chalk": "^5.3.0",
-    "js-yaml": "^4.1.0"
+    "chalk": "^5.3.0"
   },
   "devDependencies": {
     "typescript": "^5.3.0",

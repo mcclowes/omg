@@ -48,7 +48,7 @@ const path = __importStar(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
 const parser_1 = require("@omg/parser");
 const compiler_1 = require("@omg/compiler");
-const linter_js_1 = require("./linter.js");
+const linter_1 = require("@omg/linter");
 const program = new commander_1.Command();
 program
     .name('omg')
@@ -213,12 +213,12 @@ program
                 resolved = { ...doc, resolvedBlocks: doc.blocks };
             }
             // Run linter
-            const lintResults = (0, linter_js_1.lintDocument)({ document: resolved }, {
+            const lintResults = (0, linter_1.lintDocument)({ document: resolved }, {
                 configPath: options.config,
                 rules: options.rules?.split(','),
                 severity: options.severity,
             });
-            const summary = (0, linter_js_1.summarizeLintResults)(file, lintResults);
+            const summary = (0, linter_1.summarizeLintResults)(file, lintResults);
             totalErrors += summary.errors;
             totalWarnings += summary.warnings;
             totalHints += summary.hints;

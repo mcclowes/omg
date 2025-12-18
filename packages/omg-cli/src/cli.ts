@@ -12,7 +12,7 @@ import * as path from 'path';
 import chalk from 'chalk';
 import { loadApi, parseDocument, resolveDocument, buildEndpoint } from '@omg/parser';
 import { compileToOpenApi, serialize, detectFormat } from '@omg/compiler';
-import { lintDocument, summarizeLintResults, type Severity, type LintResult } from './linter.js';
+import { lintDocument, summarizeLintResults, type Severity, type LintResult } from '@omg/linter';
 
 const program = new Command();
 

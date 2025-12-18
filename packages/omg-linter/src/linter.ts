@@ -498,9 +498,6 @@ export function evaluateOalPropertyCasing(
   return true;
 }
 
-// Internal alias for backward compatibility with omg- prefixed rules
-const evaluateOmgPropertyCasing = evaluateOalPropertyCasing;
-
 /**
  * Recursively find properties with invalid casing in a schema
  */
@@ -688,7 +685,7 @@ function findConfigFile(): string | null {
 /**
  * Get built-in rules (used when no config file found)
  */
-function getBuiltInRules(): Record<string, RuleDefinition> {
+export function getBuiltInRules(): Record<string, RuleDefinition> {
   return {
     'omg-frontmatter-method-required': {
       description: 'Front matter must include HTTP method',

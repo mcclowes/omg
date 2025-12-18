@@ -1,22 +1,14 @@
-# OMG (OpenAPI Language) - Project Roadmap
+# todo
 
-> Create a syntax and structure for documenting incredibly complex APIs with rich examples, in a way that's accessible to tech writers, and integrates nicely with codebases to support document-driven development.
-
----
-
-## Project Status
-
-**Phase:** MVP Implementation
-
-**Documents Created:**
-- [x] `DESIGN.md` - Language philosophy, goals, and overview
-- [x] `SYNTAX.md` - Formal syntax specification with BNF grammar
-- [x] `COMPARISON.md` - Side-by-side comparison with OpenAPI
-- [x] `TOOLCHAIN.md` - Required tools and development roadmap
-
----
-
-## Next Steps
+Quick Wins
+- [ ] Publish to NPM
+- [ ] Fix repo URLs in all package.json files
+- [ ] Uncomment .husky/pre-commit and add linting
+- [ ] Add engines field to root package.json
+- [ ] CI setup
+- [ ] Run validate on the examples in the CI
+- [ ] Add contributing file
+- [ ] Husky stuff
 
 ### Immediate (Language Design Finalization)
 
@@ -24,15 +16,6 @@
 - [ ] **Refine Vague integration** - Define exact syntax for probabilistic examples
 - [ ] **Document edge cases** - Webhooks, callbacks, streaming, file upload/download
 - [ ] **Formalize grammar** - Complete BNF/PEG specification
-
-### Short-term (MVP Implementation)
-
-- [x] **Set up TypeScript project** - Monorepo with packages for parser, compiler, CLI (`packages/`)
-- [x] **Implement lexer** - Tokenize OMG syntax (`@omg/parser`)
-- [x] **Implement parser** - Build AST from tokens (`document-parser.ts`, `schema-parser.ts`)
-- [x] **Implement OpenAPI compiler** - Transform AST to OpenAPI 3.1 (`@omg/compiler`)
-- [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`@omg/cli`)
-- [x] **VS Code syntax highlighting** - TextMate grammar (`packages/omg-vscode/`)
 
 ### Medium-term (Developer Experience)
 
@@ -134,8 +117,11 @@ This is an early-stage project. To contribute:
 3. Submit PRs for documentation improvements
 4. Help with syntax design decisions
 
----
+### Short-term (MVP Implementation)
 
-## Contact
-
-Questions? Ideas? Reach out to the team.
+- [x] **Set up TypeScript project** - Monorepo with packages for parser, compiler, CLI (`packages/`)
+- [x] **Implement lexer** - Tokenize OMG syntax (`@omg/parser`)
+- [x] **Implement parser** - Build AST from tokens (`document-parser.ts`, `schema-parser.ts`)
+- [x] **Implement OpenAPI compiler** - Transform AST to OpenAPI 3.1 (`@omg/compiler`)
+- [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`@omg/cli`)
+- [x] **VS Code syntax highlighting** - TextMate grammar (`packages/omg-vscode/`)

@@ -1,36 +1,62 @@
 {
   "name": "omg-vscode",
   "displayName": "OMG - OpenAPI Markdown Grammar",
-  "description": "Syntax highlighting for OMG (OpenAPI Markdown Grammar) files",
+  "description": "Language support for OMG (OpenAPI Markdown Grammar) files - syntax highlighting, validation, and completions",
   "version": "0.1.0",
-  "publisher": "omg",
+  "publisher": "mcclowes",
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Linters"
   ],
+  "activationEvents": [
+    "workspaceContains:**/*.omg.md"
+  ],
+  "main": "./dist/extension.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mcclowes/omg"
   },
   "scripts": {
-    "build": "echo 'No build step required'",
+    "build": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
     "test": "echo 'No tests'",
-    "typecheck": "echo 'No TypeScript'"
+    "typecheck": "tsc --noEmit",
+    "bundle-server": "esbuild ../omg-lsp/src/server.ts --bundle --platform=node --target=node18 --outfile=server/server.js --external:vscode",
+    "vscode:prepublish": "npm run build && npm run bundle-server"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "esbuild": "^0.27.2",
+    "typescript": "^5.3.0"
   },
   "contributes": {
     "languages": [
       {
         "id": "omg",
-        "aliases": ["OMG", "OpenAPI Markdown Grammar"],
-        "extensions": [".omg"],
+        "aliases": [
+          "OMG",
+          "OpenAPI Markdown Grammar"
+        ],
+        "extensions": [
+          ".omg"
+        ],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "omg-md",
-        "aliases": ["OMG Markdown"],
-        "extensions": [".omg.md"],
+        "aliases": [
+          "OMG Markdown"
+        ],
+        "extensions": [
+          ".omg.md"
+        ],
         "configuration": "./language-configuration-md.json"
       }
     ],
@@ -48,7 +74,10 @@
       {
         "scopeName": "source.omg.codeblock",
         "path": "./syntaxes/omg-codeblock.tmLanguage.json",
-        "injectTo": ["text.html.markdown", "text.html.markdown.omg"],
+        "injectTo": [
+          "text.html.markdown",
+          "text.html.markdown.omg"
+        ],
         "embeddedLanguages": {
           "meta.embedded.block.omg": "omg"
         }
