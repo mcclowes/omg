@@ -11,7 +11,7 @@
 
 - [x] **Language Server Protocol** - Autocomplete, hover, go-to-definition
 - [x] **VS Code extension** - Full editor integration (published to marketplace)
-- [ ] **Watch mode** - Incremental compilation
+- [x] **Watch mode** - Incremental compilation with `--watch` flag
 - [x] **Error messages** - Helpful, actionable diagnostics
 - [x] **Formatter** - `omg fmt` for consistent style
 

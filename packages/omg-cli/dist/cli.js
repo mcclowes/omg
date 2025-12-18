@@ -46,6 +46,7 @@ const commander_1 = require("commander");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
+const chokidar_1 = __importDefault(require("chokidar"));
 const omg_parser_1 = require("omg-parser");
 const omg_compiler_1 = require("omg-compiler");
 const omg_linter_1 = require("omg-linter");
@@ -54,21 +55,10 @@ program
     .name('omg')
     .description('OpenAPI Markdown Grammar - A human-first DSL for API specification')
     .version('0.1.0');
-// Build command
-program
-    .command('build <input>')
-    .description('Compile OAL to OpenAPI')
-    .option('-o, --output <file>', 'Output file (default: stdout)')
-    .option('-f, --format <format>', 'Output format: yaml or json (auto-detected from extension)')
-    .option('--bundle', 'Bundle all files into single output')
-    .action(async (input, options) => {
+// Build function (reusable for watch mode)
+async function runBuild(inputPath, options) {
     try {
-        const inputPath = path.resolve(input);
-        if (!fs.existsSync(inputPath)) {
-            console.error(chalk_1.default.red(`Error: File not found: ${inputPath}`));
-            process.exit(1);
-        }
-        console.error(chalk_1.default.blue(`Parsing ${input}...`));
+        console.error(chalk_1.default.blue(`Parsing ${inputPath}...`));
         // Load and parse the API
         const api = (0, omg_parser_1.loadApi)(inputPath);
         console.error(chalk_1.default.blue(`Found ${api.endpoints.length} endpoints`));
@@ -86,14 +76,69 @@ program
         else {
             console.log(output);
         }
+        return true;
     }
     catch (error) {
         console.error(chalk_1.default.red(`Error: ${error.message}`));
         if (error.stack) {
             console.error(chalk_1.default.gray(error.stack));
         }
+        return false;
+    }
+}
+// Build command
+program
+    .command('build <input>')
+    .description('Compile OAL to OpenAPI')
+    .option('-o, --output <file>', 'Output file (default: stdout)')
+    .option('-f, --format <format>', 'Output format: yaml or json (auto-detected from extension)')
+    .option('--bundle', 'Bundle all files into single output')
+    .option('-w, --watch', 'Watch for changes and rebuild automatically')
+    .action(async (input, options) => {
+    const inputPath = path.resolve(input);
+    if (!fs.existsSync(inputPath)) {
+        console.error(chalk_1.default.red(`Error: File not found: ${inputPath}`));
         process.exit(1);
     }
+    // Run initial build
+    const success = await runBuild(inputPath, options);
+    // If not in watch mode, exit based on build result
+    if (!options.watch) {
+        if (!success) {
+            process.exit(1);
+        }
+        return;
+    }
+    // Watch mode
+    if (!options.output) {
+        console.error(chalk_1.default.yellow('Warning: Watch mode without --output will print to stdout on each change'));
+    }
+    console.error(chalk_1.default.blue('\nWatching for changes... (press Ctrl+C to stop)'));
+    // Determine directories to watch
+    const inputDir = path.dirname(inputPath);
+    const watchPatterns = [
+        path.join(inputDir, '**/*.omg.md'),
+        path.join(inputDir, 'partials/**/*.omg.md'),
+    ];
+    // Debounce rebuilds to avoid multiple rapid rebuilds
+    let rebuildTimeout = null;
+    const debounceMs = 100;
+    const watcher = chokidar_1.default.watch(watchPatterns, {
+        ignored: /(^|[\/\\])\../, // ignore dotfiles
+        persistent: true,
+        ignoreInitial: true,
+    });
+    const triggerRebuild = (changedPath) => {
+        if (rebuildTimeout) {
+            clearTimeout(rebuildTimeout);
+        }
+        rebuildTimeout = setTimeout(async () => {
+            console.error(chalk_1.default.yellow(`\nFile changed: ${path.relative(process.cwd(), changedPath)}`));
+            await runBuild(inputPath, options);
+            console.error(chalk_1.default.blue('Watching for changes...'));
+        }, debounceMs);
+    };
+    watcher.on('change', triggerRebuild).on('add', triggerRebuild).on('unlink', triggerRebuild);
 });
 // Parse command (for debugging)
 program
