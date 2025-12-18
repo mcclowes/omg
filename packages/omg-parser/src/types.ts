@@ -26,6 +26,12 @@ export interface EndpointFrontMatter {
   follows?: string[];
   /** Webhook metadata for this endpoint */
   webhooks?: EndpointWebhooks;
+  /**
+   * Expand this endpoint into multiple variants based on @when conditions.
+   * The value is the field name used in @when(field = "value") conditions.
+   * Each variant generates a separate path with #value suffix.
+   */
+  expandVariants?: string;
 }
 
 // Front matter for API root
@@ -55,6 +61,15 @@ export type OmgBlockType =
   | 'omg.errors'
   | 'omg.config';
 
+/**
+ * Parsed @when condition for variant expansion
+ * e.g., @when(petType = "cat") becomes { field: "petType", value: "cat" }
+ */
+export interface WhenCondition {
+  field: string;
+  value: string;
+}
+
 // Parsed code block
 export interface OmgBlock {
   type: OmgBlockType;
@@ -63,6 +78,8 @@ export interface OmgBlock {
   parsed?: OmgSchema; // Parsed schema (after OMG parsing)
   parsedResponses?: ParsedReturnsBlock; // For omg.returns blocks
   line: number;
+  /** @when condition for variant expansion */
+  whenCondition?: WhenCondition;
 }
 
 /**

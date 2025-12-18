@@ -83,3 +83,46 @@ webhooks:
 
 - `webhooks.resulting` — Webhooks triggered by this endpoint
 - `webhooks.listen` — Webhooks to subscribe to for updates
+
+## Variant Expansion
+
+### expandVariants
+
+Expands a single endpoint definition into multiple operations based on `@when` conditions. This is useful for polymorphic endpoints where different request bodies are needed for different types.
+
+```yaml
+---
+method: POST
+path: /pets
+operationId: create-pet
+expandVariants: petType
+tags: [Pets]
+---
+```
+
+When `expandVariants` is set, the compiler looks for `@when` annotations on code blocks and generates separate endpoints for each variant:
+
+````markdown
+```omg.body @when(petType = "cat")
+{
+  name: string,
+  meowVolume: integer
+}
+```
+
+```omg.body @when(petType = "dog")
+{
+  name: string,
+  barkVolume: integer
+}
+```
+````
+
+This compiles to two separate OpenAPI operations:
+
+- `POST /pets#cat` with operationId `create-pet-cat`
+- `POST /pets#dog` with operationId `create-pet-dog`
+
+Each endpoint gets only its variant-specific schema, eliminating the need for complex discriminator-based polymorphism. Blocks without `@when` conditions (like shared responses) are included in all variants.
+
+See [Code Blocks - Variant Conditions](./code-blocks#variant-conditions) for more details on the `@when` annotation.

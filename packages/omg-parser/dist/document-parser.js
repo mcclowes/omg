@@ -20,7 +20,10 @@ const unified_1 = require("unified");
 const remark_parse_1 = __importDefault(require("remark-parse"));
 const unist_util_visit_1 = require("unist-util-visit");
 // Block type patterns
+// Matches: omg.body, omg.response.201
 const OMG_BLOCK_PATTERN = /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+))?$/;
+// Matches: @when(fieldName = "value") in code block meta
+const WHEN_PATTERN = /@when\((\w+)\s*=\s*"([^"]+)"\)/;
 const PARTIAL_PATTERN = /\{\{>\s*([^}\s]+)\s*\}\}/g;
 /**
  * Parse a .omg.md file into an OmgDocument
@@ -125,11 +128,24 @@ function extractCodeBlocks(tree) {
         if (match) {
             const blockType = `omg.${match[1]}`;
             const statusCode = match[3] ? parseInt(match[3], 10) : undefined;
+            // Parse @when condition from meta if present
+            // remark-parse puts everything after the language tag in node.meta
+            let whenCondition;
+            if (node.meta) {
+                const whenMatch = node.meta.match(WHEN_PATTERN);
+                if (whenMatch) {
+                    whenCondition = {
+                        field: whenMatch[1],
+                        value: whenMatch[2],
+                    };
+                }
+            }
             blocks.push({
                 type: blockType,
                 statusCode,
                 content: node.value,
                 line,
+                whenCondition,
             });
         }
     });

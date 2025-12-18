@@ -20,6 +20,12 @@ export interface EndpointFrontMatter {
     follows?: string[];
     /** Webhook metadata for this endpoint */
     webhooks?: EndpointWebhooks;
+    /**
+     * Expand this endpoint into multiple variants based on @when conditions.
+     * The value is the field name used in @when(field = "value") conditions.
+     * Each variant generates a separate path with #value suffix.
+     */
+    expandVariants?: string;
 }
 export interface ApiFrontMatter {
     name: string;
@@ -33,6 +39,14 @@ export interface ApiFrontMatter {
     };
 }
 export type OmgBlockType = 'http' | 'omg.path' | 'omg.query' | 'omg.headers' | 'omg.body' | 'omg.response' | 'omg.returns' | 'omg.example' | 'omg.type' | 'omg.errors' | 'omg.config';
+/**
+ * Parsed @when condition for variant expansion
+ * e.g., @when(petType = "cat") becomes { field: "petType", value: "cat" }
+ */
+export interface WhenCondition {
+    field: string;
+    value: string;
+}
 export interface OmgBlock {
     type: OmgBlockType;
     statusCode?: number;
@@ -40,6 +54,8 @@ export interface OmgBlock {
     parsed?: OmgSchema;
     parsedResponses?: ParsedReturnsBlock;
     line: number;
+    /** @when condition for variant expansion */
+    whenCondition?: WhenCondition;
 }
 /**
  * Single response entry in a returns block
