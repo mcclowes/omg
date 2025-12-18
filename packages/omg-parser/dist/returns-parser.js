@@ -27,14 +27,32 @@ const schema_parser_js_1 = require("./schema-parser.js");
 /**
  * Parse an OMG returns block with conditional responses.
  * Uses a line-based approach for reliability with complex conditions.
+ *
+ * @returns ParseReturnsResult containing the parsed block and any warnings
  */
 function parseReturnsBlock(input) {
     const responses = [];
+    const warnings = [];
     const lines = input.split('\n');
     let currentEntry = null;
     let typeBuffer = '';
     let conditionBuffer = '';
     let inCondition = false;
+    let currentStatusLine = 0;
+    const saveEntry = () => {
+        if (currentEntry && currentEntry.statusCode !== undefined) {
+            const result = parseTypeString(typeBuffer.trim());
+            currentEntry.schema = result.schema;
+            if (result.warning) {
+                result.warning.line = currentStatusLine;
+                warnings.push(result.warning);
+            }
+            if (conditionBuffer) {
+                currentEntry.condition = conditionBuffer.trim();
+            }
+            responses.push(currentEntry);
+        }
+    };
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmed = line.trim();
@@ -46,13 +64,7 @@ function parseReturnsBlock(input) {
         const statusMatch = trimmed.match(/^(\d+)\s*:\s*(.*)$/);
         if (statusMatch) {
             // Save previous entry if exists
-            if (currentEntry && currentEntry.statusCode !== undefined) {
-                currentEntry.schema = parseTypeString(typeBuffer.trim());
-                if (conditionBuffer) {
-                    currentEntry.condition = conditionBuffer.trim();
-                }
-                responses.push(currentEntry);
-            }
+            saveEntry();
             // Start new entry
             currentEntry = {
                 statusCode: parseInt(statusMatch[1], 10),
@@ -60,6 +72,7 @@ function parseReturnsBlock(input) {
             typeBuffer = statusMatch[2];
             conditionBuffer = '';
             inCondition = false;
+            currentStatusLine = i + 1; // 1-based line number
             continue;
         }
         // Check for 'when' condition
@@ -85,31 +98,32 @@ function parseReturnsBlock(input) {
         }
     }
     // Save last entry
-    if (currentEntry && currentEntry.statusCode !== undefined) {
-        currentEntry.schema = parseTypeString(typeBuffer.trim());
-        if (conditionBuffer) {
-            currentEntry.condition = conditionBuffer.trim();
-        }
-        responses.push(currentEntry);
-    }
-    return { responses };
+    saveEntry();
+    return { block: { responses }, warnings };
 }
 /**
  * Parse a type string into an OmgSchema
  */
 function parseTypeString(typeStr) {
     if (!typeStr || typeStr === 'void') {
-        return null;
+        return { schema: null };
     }
     try {
-        return (0, schema_parser_js_1.parseSchema)(typeStr);
+        return { schema: (0, schema_parser_js_1.parseSchema)(typeStr) };
     }
-    catch {
-        // If parsing fails, treat as a reference
+    catch (error) {
+        // If parsing fails, treat as a reference but warn
+        const name = typeStr.split(/\s/)[0];
         return {
-            kind: 'reference',
-            name: typeStr.split(/\s/)[0], // Take first word as type name
-            annotations: [],
+            schema: {
+                kind: 'reference',
+                name, // Take first word as type name
+                annotations: [],
+            },
+            warning: {
+                message: `Failed to parse type '${typeStr}', treating as reference '${name}'. Error: ${error.message}`,
+                context: typeStr,
+            },
         };
     }
 }

@@ -15,6 +15,9 @@ Quick Wins
 - [x] Publish omg-parser, omg-compiler, omg-linter, omg-lsp to npm
 - [x] CI setup (GitHub Actions: format, typecheck, build, test)
 - [x] Run validate on examples in CI
+- [x] Improved error messages with line numbers and context
+- [x] Added parse warnings system for non-fatal issues
+- [x] Stack traces in CLI error output
 
 ### Immediate (Language Design Finalization)
 
@@ -28,7 +31,7 @@ Quick Wins
 - [x] **Language Server Protocol** - Autocomplete, hover, go-to-definition
 - [x] **VS Code extension** - Full editor integration (published to marketplace)
 - [ ] **Watch mode** - Incremental compilation
-- [ ] **Error messages** - Helpful, actionable diagnostics
+- [x] **Error messages** - Helpful, actionable diagnostics
 - [ ] **Formatter** - `omg fmt` for consistent style
 
 ### Long-term (Ecosystem)

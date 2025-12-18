@@ -20,10 +20,19 @@
  * }
  * ```
  */
-import type { ParsedReturnsBlock } from './types.js';
+import type { ParsedReturnsBlock, ParseWarning } from './types.js';
+/**
+ * Result of parsing a returns block, including any warnings
+ */
+export interface ParseReturnsResult {
+    block: ParsedReturnsBlock;
+    warnings: ParseWarning[];
+}
 /**
  * Parse an OMG returns block with conditional responses.
  * Uses a line-based approach for reliability with complex conditions.
+ *
+ * @returns ParseReturnsResult containing the parsed block and any warnings
  */
-export declare function parseReturnsBlock(input: string): ParsedReturnsBlock;
+export declare function parseReturnsBlock(input: string): ParseReturnsResult;
 //# sourceMappingURL=returns-parser.d.ts.map

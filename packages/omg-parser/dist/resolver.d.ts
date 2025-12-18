@@ -3,12 +3,13 @@
  *
  * Resolves partials and builds the complete API from multiple .omg.md files.
  */
-import type { OmgDocument, OmgBlock, ParsedEndpoint, ParsedApi } from './types.js';
+import type { OmgDocument, OmgBlock, ParsedEndpoint, ParsedApi, ParseWarning } from './types.js';
 interface ResolverOptions {
     basePath: string;
 }
 export interface ResolvedDocument extends OmgDocument {
     resolvedBlocks: OmgBlock[];
+    warnings: ParseWarning[];
 }
 /**
  * Resolve a single document, loading and inlining partials

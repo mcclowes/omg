@@ -191,6 +191,20 @@ export interface OmgAnnotation {
 export type OmgSchema = OmgType;
 
 // ============================================
+// Parse Warnings
+// ============================================
+
+/**
+ * Warning generated during parsing (non-fatal issues)
+ */
+export interface ParseWarning {
+  message: string;
+  line?: number;
+  column?: number;
+  context?: string;
+}
+
+// ============================================
 // Parsed API (fully resolved)
 // ============================================
 

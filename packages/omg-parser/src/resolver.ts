@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseDocument, parseHttpBlock } from './document-parser.js';
-import { parseSchema } from './schema-parser.js';
+import { parseSchema, inferSchemaFromJson } from './schema-parser.js';
 import { parseReturnsBlock } from './returns-parser.js';
 import type {
   OmgDocument,
@@ -19,6 +19,7 @@ import type {
   HttpMethod,
   EndpointFrontMatter,
   ApiFrontMatter,
+  ParseWarning,
 } from './types.js';
 
 interface ResolverOptions {
@@ -27,6 +28,7 @@ interface ResolverOptions {
 
 export interface ResolvedDocument extends OmgDocument {
   resolvedBlocks: OmgBlock[];
+  warnings: ParseWarning[];
 }
 
 /**
@@ -38,6 +40,7 @@ export function resolveDocument(
   visited: Set<string> = new Set()
 ): ResolvedDocument {
   const docPath = path.resolve(options.basePath, doc.filePath);
+  const warnings: ParseWarning[] = [];
 
   // Prevent circular references
   if (visited.has(docPath)) {
@@ -61,8 +64,9 @@ export function resolveDocument(
     // Recursively resolve the partial
     const resolvedPartial = resolveDocument(partialDoc, options, visited);
 
-    // Add the partial's blocks
+    // Add the partial's blocks and warnings
     resolvedBlocks.push(...resolvedPartial.resolvedBlocks);
+    warnings.push(...resolvedPartial.warnings);
   }
 
   // Parse schemas in blocks
@@ -74,9 +78,19 @@ export function resolveDocument(
     // Handle omg.returns blocks specially
     if (block.type === 'omg.returns') {
       try {
-        block.parsedResponses = parseReturnsBlock(block.content);
+        const result = parseReturnsBlock(block.content);
+        block.parsedResponses = result.block;
+        // Add warnings with block context
+        for (const warning of result.warnings) {
+          warnings.push({
+            ...warning,
+            message: `[${block.type} at line ${block.line}] ${warning.message}`,
+          });
+        }
       } catch (error) {
-        throw new Error(`Failed to parse returns block: ${error}`);
+        throw new Error(
+          `Failed to parse returns block at line ${block.line}: ${(error as Error).message}`
+        );
       }
       continue;
     }
@@ -91,8 +105,10 @@ export function resolveDocument(
           const json = JSON.parse(block.content);
           block.parsed = inferSchemaFromJson(json);
         } catch {
-          // Re-throw original error
-          throw error;
+          // Re-throw original error with context
+          throw new Error(
+            `Failed to parse ${block.type} block at line ${block.line}: ${(error as Error).message}`
+          );
         }
       }
     }
@@ -101,6 +117,7 @@ export function resolveDocument(
   return {
     ...doc,
     resolvedBlocks,
+    warnings,
   };
 }
 
@@ -137,15 +154,6 @@ function resolvePartialPath(partialPath: string, basePath: string): string {
 
   // Fallback to original path for error message
   return path.join(basePath, 'partials', `${partialPath}.omg.md`);
-}
-
-/**
- * Infer schema from JSON (imported from schema-parser)
- */
-function inferSchemaFromJson(json: unknown): OmgSchema {
-  // Import dynamically to avoid circular dependency
-  const { inferSchemaFromJson: infer } = require('./schema-parser.js');
-  return infer(json);
 }
 
 /**

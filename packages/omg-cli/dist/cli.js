@@ -89,6 +89,9 @@ program
     }
     catch (error) {
         console.error(chalk_1.default.red(`Error: ${error.message}`));
+        if (error.stack) {
+            console.error(chalk_1.default.gray(error.stack));
+        }
         process.exit(1);
     }
 });
@@ -143,12 +146,23 @@ program
                 console.log(`  ${endpoint.method} ${endpoint.path}`);
                 console.log(`  Operation ID: ${endpoint.operationId}`);
             }
+            // Display warnings if any
+            if (resolved.warnings && resolved.warnings.length > 0) {
+                console.log();
+                console.log(chalk_1.default.yellow(`Warnings (${resolved.warnings.length}):`));
+                for (const warning of resolved.warnings) {
+                    console.log(chalk_1.default.yellow(`  ⚠ ${warning.message}`));
+                    if (warning.context) {
+                        console.log(chalk_1.default.gray(`    Context: ${warning.context}`));
+                    }
+                }
+            }
         }
     }
     catch (error) {
         console.error(chalk_1.default.red(`Error: ${error.message}`));
         if (error.stack) {
-            console.error(error.stack);
+            console.error(chalk_1.default.gray(error.stack));
         }
         process.exit(1);
     }
@@ -207,12 +221,18 @@ program
             const basePath = path.dirname(file);
             // Try to resolve and parse
             let resolved;
+            let resolutionWarning = null;
             try {
                 resolved = (0, omg_parser_1.resolveDocument)(doc, { basePath });
             }
             catch (err) {
-                // If resolution fails, use the unresolved document
-                resolved = { ...doc, resolvedBlocks: doc.blocks };
+                // If resolution fails, use the unresolved document but warn
+                resolutionWarning = err.message;
+                resolved = { ...doc, resolvedBlocks: doc.blocks, warnings: [] };
+            }
+            // Show resolution warning if any
+            if (resolutionWarning && !options.quiet) {
+                console.error(chalk_1.default.yellow(`  ⚠ Resolution failed for ${path.relative(process.cwd(), file)}: ${resolutionWarning}`));
             }
             // Run linter
             const lintResults = (0, omg_linter_1.lintDocument)({ document: resolved }, {
@@ -282,6 +302,9 @@ program
     }
     catch (error) {
         console.error(chalk_1.default.red(`Error: ${error.message}`));
+        if (error.stack) {
+            console.error(chalk_1.default.gray(error.stack));
+        }
         process.exit(1);
     }
 });

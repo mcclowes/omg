@@ -9,22 +9,22 @@ const returns_parser_js_1 = require("./returns-parser.js");
       404: NotFoundError
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(2);
-        (0, vitest_1.expect)(result.responses[0].statusCode).toBe(200);
-        (0, vitest_1.expect)(result.responses[0].schema?.kind).toBe('reference');
-        (0, vitest_1.expect)(result.responses[0].schema.name).toBe('Invoice');
-        (0, vitest_1.expect)(result.responses[1].statusCode).toBe(404);
-        (0, vitest_1.expect)(result.responses[1].schema?.kind).toBe('reference');
-        (0, vitest_1.expect)(result.responses[1].schema.name).toBe('NotFoundError');
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(2);
+        (0, vitest_1.expect)(result.block.responses[0].statusCode).toBe(200);
+        (0, vitest_1.expect)(result.block.responses[0].schema?.kind).toBe('reference');
+        (0, vitest_1.expect)(result.block.responses[0].schema.name).toBe('Invoice');
+        (0, vitest_1.expect)(result.block.responses[1].statusCode).toBe(404);
+        (0, vitest_1.expect)(result.block.responses[1].schema?.kind).toBe('reference');
+        (0, vitest_1.expect)(result.block.responses[1].schema.name).toBe('NotFoundError');
     });
     (0, vitest_1.it)('should parse void responses', () => {
         const input = `{
       204: void
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(1);
-        (0, vitest_1.expect)(result.responses[0].statusCode).toBe(204);
-        (0, vitest_1.expect)(result.responses[0].schema).toBeNull();
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(1);
+        (0, vitest_1.expect)(result.block.responses[0].statusCode).toBe(204);
+        (0, vitest_1.expect)(result.block.responses[0].schema).toBeNull();
     });
     (0, vitest_1.it)('should parse responses with when conditions', () => {
         const input = `{
@@ -35,11 +35,11 @@ const returns_parser_js_1 = require("./returns-parser.js");
         when !exists(invoiceId)
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(2);
-        (0, vitest_1.expect)(result.responses[0].statusCode).toBe(204);
-        (0, vitest_1.expect)(result.responses[0].condition).toBe('exists(invoiceId) && status in [Draft, Void]');
-        (0, vitest_1.expect)(result.responses[1].statusCode).toBe(404);
-        (0, vitest_1.expect)(result.responses[1].condition).toBe('!exists(invoiceId)');
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(2);
+        (0, vitest_1.expect)(result.block.responses[0].statusCode).toBe(204);
+        (0, vitest_1.expect)(result.block.responses[0].condition).toBe('exists(invoiceId) && status in [Draft, Void]');
+        (0, vitest_1.expect)(result.block.responses[1].statusCode).toBe(404);
+        (0, vitest_1.expect)(result.block.responses[1].condition).toBe('!exists(invoiceId)');
     });
     (0, vitest_1.it)('should parse responses with descriptions', () => {
         const input = `{
@@ -50,9 +50,9 @@ const returns_parser_js_1 = require("./returns-parser.js");
         "Invoice does not exist"
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(2);
-        (0, vitest_1.expect)(result.responses[0].description).toBe('Invoice successfully deleted');
-        (0, vitest_1.expect)(result.responses[1].description).toBe('Invoice does not exist');
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(2);
+        (0, vitest_1.expect)(result.block.responses[0].description).toBe('Invoice successfully deleted');
+        (0, vitest_1.expect)(result.block.responses[1].description).toBe('Invoice does not exist');
     });
     (0, vitest_1.it)('should parse responses with both conditions and descriptions', () => {
         const input = `{
@@ -69,17 +69,17 @@ const returns_parser_js_1 = require("./returns-parser.js");
         "Cannot delete invoice in current status"
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(3);
-        (0, vitest_1.expect)(result.responses[0].statusCode).toBe(204);
-        (0, vitest_1.expect)(result.responses[0].schema).toBeNull();
-        (0, vitest_1.expect)(result.responses[0].condition).toBe('exists(invoiceId) && status in [Draft, Void]');
-        (0, vitest_1.expect)(result.responses[0].description).toBe('Invoice successfully deleted');
-        (0, vitest_1.expect)(result.responses[1].statusCode).toBe(404);
-        (0, vitest_1.expect)(result.responses[1].condition).toBe('!exists(invoiceId)');
-        (0, vitest_1.expect)(result.responses[1].description).toBe('Invoice does not exist');
-        (0, vitest_1.expect)(result.responses[2].statusCode).toBe(409);
-        (0, vitest_1.expect)(result.responses[2].condition).toBe('exists(invoiceId) && status in [Sent, Paid]');
-        (0, vitest_1.expect)(result.responses[2].description).toBe('Cannot delete invoice in current status');
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(3);
+        (0, vitest_1.expect)(result.block.responses[0].statusCode).toBe(204);
+        (0, vitest_1.expect)(result.block.responses[0].schema).toBeNull();
+        (0, vitest_1.expect)(result.block.responses[0].condition).toBe('exists(invoiceId) && status in [Draft, Void]');
+        (0, vitest_1.expect)(result.block.responses[0].description).toBe('Invoice successfully deleted');
+        (0, vitest_1.expect)(result.block.responses[1].statusCode).toBe(404);
+        (0, vitest_1.expect)(result.block.responses[1].condition).toBe('!exists(invoiceId)');
+        (0, vitest_1.expect)(result.block.responses[1].description).toBe('Invoice does not exist');
+        (0, vitest_1.expect)(result.block.responses[2].statusCode).toBe(409);
+        (0, vitest_1.expect)(result.block.responses[2].condition).toBe('exists(invoiceId) && status in [Sent, Paid]');
+        (0, vitest_1.expect)(result.block.responses[2].description).toBe('Cannot delete invoice in current status');
     });
     (0, vitest_1.it)('should parse inline object types', () => {
         const input = `{
@@ -87,10 +87,10 @@ const returns_parser_js_1 = require("./returns-parser.js");
         when valid(body)
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(1);
-        (0, vitest_1.expect)(result.responses[0].statusCode).toBe(200);
-        (0, vitest_1.expect)(result.responses[0].schema?.kind).toBe('object');
-        (0, vitest_1.expect)(result.responses[0].condition).toBe('valid(body)');
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(1);
+        (0, vitest_1.expect)(result.block.responses[0].statusCode).toBe(200);
+        (0, vitest_1.expect)(result.block.responses[0].schema?.kind).toBe('object');
+        (0, vitest_1.expect)(result.block.responses[0].condition).toBe('valid(body)');
     });
     (0, vitest_1.it)('should parse complex conditions with nested parentheses', () => {
         const input = `{
@@ -105,11 +105,11 @@ const returns_parser_js_1 = require("./returns-parser.js");
         when balance < amount
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(3);
-        (0, vitest_1.expect)(result.responses[0].condition).toBe('balance >= amount && toAccount.exists && toAccount.active');
-        (0, vitest_1.expect)(result.responses[1].condition).toBe('amount <= 0');
-        (0, vitest_1.expect)(result.responses[1].description).toBe('Amount must be positive');
-        (0, vitest_1.expect)(result.responses[2].condition).toBe('balance < amount');
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(3);
+        (0, vitest_1.expect)(result.block.responses[0].condition).toBe('balance >= amount && toAccount.exists && toAccount.active');
+        (0, vitest_1.expect)(result.block.responses[1].condition).toBe('amount <= 0');
+        (0, vitest_1.expect)(result.block.responses[1].description).toBe('Amount must be positive');
+        (0, vitest_1.expect)(result.block.responses[2].condition).toBe('balance < amount');
     });
     (0, vitest_1.it)('should handle conditions with function calls', () => {
         const input = `{
@@ -122,9 +122,9 @@ const returns_parser_js_1 = require("./returns-parser.js");
         "Customer not found"
     }`;
         const result = (0, returns_parser_js_1.parseReturnsBlock)(input);
-        (0, vitest_1.expect)(result.responses).toHaveLength(2);
-        (0, vitest_1.expect)(result.responses[0].condition).toBe('valid(body)');
-        (0, vitest_1.expect)(result.responses[1].condition).toBe('!exists(Customer, customerId)');
+        (0, vitest_1.expect)(result.block.responses).toHaveLength(2);
+        (0, vitest_1.expect)(result.block.responses[0].condition).toBe('valid(body)');
+        (0, vitest_1.expect)(result.block.responses[1].condition).toBe('!exists(Customer, customerId)');
     });
 });
 //# sourceMappingURL=returns-parser.test.js.map

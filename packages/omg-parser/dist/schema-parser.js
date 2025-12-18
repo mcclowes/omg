@@ -256,7 +256,7 @@ class Parser {
                         args.push(this.advance().value);
                     }
                     else {
-                        throw new Error(`Unexpected token in annotation args: ${this.currentToken.type}`);
+                        throw new Error(`Unexpected token in annotation args: ${this.currentToken.type} at line ${this.currentToken.line}, column ${this.currentToken.column}. Expected string, number, boolean, or identifier.`);
                     }
                     if (this.check('COMMA')) {
                         this.advance();
@@ -479,7 +479,7 @@ class Parser {
                 key = this.advance().value;
             }
             else {
-                throw new Error(`Expected property key at line ${this.currentToken.line}`);
+                throw new Error(`Expected property key (string or identifier) at line ${this.currentToken.line}, column ${this.currentToken.column}, but found '${this.currentToken.type}'`);
             }
             // Check for optional marker before colon
             let optional = false;

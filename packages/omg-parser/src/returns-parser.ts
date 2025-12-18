@@ -21,21 +21,48 @@
  * ```
  */
 
-import type { OmgSchema, ParsedReturnsBlock, ParsedReturnEntry } from './types.js';
+import type { OmgSchema, ParsedReturnsBlock, ParsedReturnEntry, ParseWarning } from './types.js';
 import { parseSchema } from './schema-parser.js';
+
+/**
+ * Result of parsing a returns block, including any warnings
+ */
+export interface ParseReturnsResult {
+  block: ParsedReturnsBlock;
+  warnings: ParseWarning[];
+}
 
 /**
  * Parse an OMG returns block with conditional responses.
  * Uses a line-based approach for reliability with complex conditions.
+ *
+ * @returns ParseReturnsResult containing the parsed block and any warnings
  */
-export function parseReturnsBlock(input: string): ParsedReturnsBlock {
+export function parseReturnsBlock(input: string): ParseReturnsResult {
   const responses: ParsedReturnEntry[] = [];
+  const warnings: ParseWarning[] = [];
   const lines = input.split('\n');
 
   let currentEntry: Partial<ParsedReturnEntry> | null = null;
   let typeBuffer = '';
   let conditionBuffer = '';
   let inCondition = false;
+  let currentStatusLine = 0;
+
+  const saveEntry = () => {
+    if (currentEntry && currentEntry.statusCode !== undefined) {
+      const result = parseTypeString(typeBuffer.trim());
+      currentEntry.schema = result.schema;
+      if (result.warning) {
+        result.warning.line = currentStatusLine;
+        warnings.push(result.warning);
+      }
+      if (conditionBuffer) {
+        currentEntry.condition = conditionBuffer.trim();
+      }
+      responses.push(currentEntry as ParsedReturnEntry);
+    }
+  };
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -50,13 +77,7 @@ export function parseReturnsBlock(input: string): ParsedReturnsBlock {
     const statusMatch = trimmed.match(/^(\d+)\s*:\s*(.*)$/);
     if (statusMatch) {
       // Save previous entry if exists
-      if (currentEntry && currentEntry.statusCode !== undefined) {
-        currentEntry.schema = parseTypeString(typeBuffer.trim());
-        if (conditionBuffer) {
-          currentEntry.condition = conditionBuffer.trim();
-        }
-        responses.push(currentEntry as ParsedReturnEntry);
-      }
+      saveEntry();
 
       // Start new entry
       currentEntry = {
@@ -65,6 +86,7 @@ export function parseReturnsBlock(input: string): ParsedReturnsBlock {
       typeBuffer = statusMatch[2];
       conditionBuffer = '';
       inCondition = false;
+      currentStatusLine = i + 1; // 1-based line number
       continue;
     }
 
@@ -93,33 +115,42 @@ export function parseReturnsBlock(input: string): ParsedReturnsBlock {
   }
 
   // Save last entry
-  if (currentEntry && currentEntry.statusCode !== undefined) {
-    currentEntry.schema = parseTypeString(typeBuffer.trim());
-    if (conditionBuffer) {
-      currentEntry.condition = conditionBuffer.trim();
-    }
-    responses.push(currentEntry as ParsedReturnEntry);
-  }
+  saveEntry();
 
-  return { responses };
+  return { block: { responses }, warnings };
+}
+
+/**
+ * Parse result for type strings, including any warnings
+ */
+interface TypeParseResult {
+  schema: OmgSchema | null;
+  warning?: ParseWarning;
 }
 
 /**
  * Parse a type string into an OmgSchema
  */
-function parseTypeString(typeStr: string): OmgSchema | null {
+function parseTypeString(typeStr: string): TypeParseResult {
   if (!typeStr || typeStr === 'void') {
-    return null;
+    return { schema: null };
   }
 
   try {
-    return parseSchema(typeStr);
-  } catch {
-    // If parsing fails, treat as a reference
+    return { schema: parseSchema(typeStr) };
+  } catch (error) {
+    // If parsing fails, treat as a reference but warn
+    const name = typeStr.split(/\s/)[0];
     return {
-      kind: 'reference',
-      name: typeStr.split(/\s/)[0], // Take first word as type name
-      annotations: [],
+      schema: {
+        kind: 'reference',
+        name, // Take first word as type name
+        annotations: [],
+      },
+      warning: {
+        message: `Failed to parse type '${typeStr}', treating as reference '${name}'. Error: ${(error as Error).message}`,
+        context: typeStr,
+      },
     };
   }
 }

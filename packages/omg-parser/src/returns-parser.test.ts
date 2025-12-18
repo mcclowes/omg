@@ -10,13 +10,13 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(2);
-    expect(result.responses[0].statusCode).toBe(200);
-    expect(result.responses[0].schema?.kind).toBe('reference');
-    expect((result.responses[0].schema as any).name).toBe('Invoice');
-    expect(result.responses[1].statusCode).toBe(404);
-    expect(result.responses[1].schema?.kind).toBe('reference');
-    expect((result.responses[1].schema as any).name).toBe('NotFoundError');
+    expect(result.block.responses).toHaveLength(2);
+    expect(result.block.responses[0].statusCode).toBe(200);
+    expect(result.block.responses[0].schema?.kind).toBe('reference');
+    expect((result.block.responses[0].schema as any).name).toBe('Invoice');
+    expect(result.block.responses[1].statusCode).toBe(404);
+    expect(result.block.responses[1].schema?.kind).toBe('reference');
+    expect((result.block.responses[1].schema as any).name).toBe('NotFoundError');
   });
 
   it('should parse void responses', () => {
@@ -26,9 +26,9 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(1);
-    expect(result.responses[0].statusCode).toBe(204);
-    expect(result.responses[0].schema).toBeNull();
+    expect(result.block.responses).toHaveLength(1);
+    expect(result.block.responses[0].statusCode).toBe(204);
+    expect(result.block.responses[0].schema).toBeNull();
   });
 
   it('should parse responses with when conditions', () => {
@@ -42,11 +42,13 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(2);
-    expect(result.responses[0].statusCode).toBe(204);
-    expect(result.responses[0].condition).toBe('exists(invoiceId) && status in [Draft, Void]');
-    expect(result.responses[1].statusCode).toBe(404);
-    expect(result.responses[1].condition).toBe('!exists(invoiceId)');
+    expect(result.block.responses).toHaveLength(2);
+    expect(result.block.responses[0].statusCode).toBe(204);
+    expect(result.block.responses[0].condition).toBe(
+      'exists(invoiceId) && status in [Draft, Void]'
+    );
+    expect(result.block.responses[1].statusCode).toBe(404);
+    expect(result.block.responses[1].condition).toBe('!exists(invoiceId)');
   });
 
   it('should parse responses with descriptions', () => {
@@ -60,9 +62,9 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(2);
-    expect(result.responses[0].description).toBe('Invoice successfully deleted');
-    expect(result.responses[1].description).toBe('Invoice does not exist');
+    expect(result.block.responses).toHaveLength(2);
+    expect(result.block.responses[0].description).toBe('Invoice successfully deleted');
+    expect(result.block.responses[1].description).toBe('Invoice does not exist');
   });
 
   it('should parse responses with both conditions and descriptions', () => {
@@ -82,20 +84,22 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(3);
+    expect(result.block.responses).toHaveLength(3);
 
-    expect(result.responses[0].statusCode).toBe(204);
-    expect(result.responses[0].schema).toBeNull();
-    expect(result.responses[0].condition).toBe('exists(invoiceId) && status in [Draft, Void]');
-    expect(result.responses[0].description).toBe('Invoice successfully deleted');
+    expect(result.block.responses[0].statusCode).toBe(204);
+    expect(result.block.responses[0].schema).toBeNull();
+    expect(result.block.responses[0].condition).toBe(
+      'exists(invoiceId) && status in [Draft, Void]'
+    );
+    expect(result.block.responses[0].description).toBe('Invoice successfully deleted');
 
-    expect(result.responses[1].statusCode).toBe(404);
-    expect(result.responses[1].condition).toBe('!exists(invoiceId)');
-    expect(result.responses[1].description).toBe('Invoice does not exist');
+    expect(result.block.responses[1].statusCode).toBe(404);
+    expect(result.block.responses[1].condition).toBe('!exists(invoiceId)');
+    expect(result.block.responses[1].description).toBe('Invoice does not exist');
 
-    expect(result.responses[2].statusCode).toBe(409);
-    expect(result.responses[2].condition).toBe('exists(invoiceId) && status in [Sent, Paid]');
-    expect(result.responses[2].description).toBe('Cannot delete invoice in current status');
+    expect(result.block.responses[2].statusCode).toBe(409);
+    expect(result.block.responses[2].condition).toBe('exists(invoiceId) && status in [Sent, Paid]');
+    expect(result.block.responses[2].description).toBe('Cannot delete invoice in current status');
   });
 
   it('should parse inline object types', () => {
@@ -106,10 +110,10 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(1);
-    expect(result.responses[0].statusCode).toBe(200);
-    expect(result.responses[0].schema?.kind).toBe('object');
-    expect(result.responses[0].condition).toBe('valid(body)');
+    expect(result.block.responses).toHaveLength(1);
+    expect(result.block.responses[0].statusCode).toBe(200);
+    expect(result.block.responses[0].schema?.kind).toBe('object');
+    expect(result.block.responses[0].condition).toBe('valid(body)');
   });
 
   it('should parse complex conditions with nested parentheses', () => {
@@ -127,13 +131,13 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(3);
-    expect(result.responses[0].condition).toBe(
+    expect(result.block.responses).toHaveLength(3);
+    expect(result.block.responses[0].condition).toBe(
       'balance >= amount && toAccount.exists && toAccount.active'
     );
-    expect(result.responses[1].condition).toBe('amount <= 0');
-    expect(result.responses[1].description).toBe('Amount must be positive');
-    expect(result.responses[2].condition).toBe('balance < amount');
+    expect(result.block.responses[1].condition).toBe('amount <= 0');
+    expect(result.block.responses[1].description).toBe('Amount must be positive');
+    expect(result.block.responses[2].condition).toBe('balance < amount');
   });
 
   it('should handle conditions with function calls', () => {
@@ -149,8 +153,8 @@ describe('parseReturnsBlock', () => {
 
     const result = parseReturnsBlock(input);
 
-    expect(result.responses).toHaveLength(2);
-    expect(result.responses[0].condition).toBe('valid(body)');
-    expect(result.responses[1].condition).toBe('!exists(Customer, customerId)');
+    expect(result.block.responses).toHaveLength(2);
+    expect(result.block.responses[0].condition).toBe('valid(body)');
+    expect(result.block.responses[1].condition).toBe('!exists(Customer, customerId)');
   });
 });

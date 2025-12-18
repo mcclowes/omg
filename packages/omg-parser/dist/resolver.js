@@ -52,6 +52,7 @@ const returns_parser_js_1 = require("./returns-parser.js");
  */
 function resolveDocument(doc, options, visited = new Set()) {
     const docPath = path.resolve(options.basePath, doc.filePath);
+    const warnings = [];
     // Prevent circular references
     if (visited.has(docPath)) {
         throw new Error(`Circular partial reference detected: ${docPath}`);
@@ -68,8 +69,9 @@ function resolveDocument(doc, options, visited = new Set()) {
         const partialDoc = (0, document_parser_js_1.parseDocument)(partialContent, partial.path);
         // Recursively resolve the partial
         const resolvedPartial = resolveDocument(partialDoc, options, visited);
-        // Add the partial's blocks
+        // Add the partial's blocks and warnings
         resolvedBlocks.push(...resolvedPartial.resolvedBlocks);
+        warnings.push(...resolvedPartial.warnings);
     }
     // Parse schemas in blocks
     for (const block of resolvedBlocks) {
@@ -79,10 +81,18 @@ function resolveDocument(doc, options, visited = new Set()) {
         // Handle omg.returns blocks specially
         if (block.type === 'omg.returns') {
             try {
-                block.parsedResponses = (0, returns_parser_js_1.parseReturnsBlock)(block.content);
+                const result = (0, returns_parser_js_1.parseReturnsBlock)(block.content);
+                block.parsedResponses = result.block;
+                // Add warnings with block context
+                for (const warning of result.warnings) {
+                    warnings.push({
+                        ...warning,
+                        message: `[${block.type} at line ${block.line}] ${warning.message}`,
+                    });
+                }
             }
             catch (error) {
-                throw new Error(`Failed to parse returns block: ${error}`);
+                throw new Error(`Failed to parse returns block at line ${block.line}: ${error.message}`);
             }
             continue;
         }
@@ -95,11 +105,11 @@ function resolveDocument(doc, options, visited = new Set()) {
                 // If schema parsing fails, might be pure JSON - try to parse as JSON
                 try {
                     const json = JSON.parse(block.content);
-                    block.parsed = inferSchemaFromJson(json);
+                    block.parsed = (0, schema_parser_js_1.inferSchemaFromJson)(json);
                 }
                 catch {
-                    // Re-throw original error
-                    throw error;
+                    // Re-throw original error with context
+                    throw new Error(`Failed to parse ${block.type} block at line ${block.line}: ${error.message}`);
                 }
             }
         }
@@ -107,6 +117,7 @@ function resolveDocument(doc, options, visited = new Set()) {
     return {
         ...doc,
         resolvedBlocks,
+        warnings,
     };
 }
 /**
@@ -137,14 +148,6 @@ function resolvePartialPath(partialPath, basePath) {
     }
     // Fallback to original path for error message
     return path.join(basePath, 'partials', `${partialPath}.omg.md`);
-}
-/**
- * Infer schema from JSON (imported from schema-parser)
- */
-function inferSchemaFromJson(json) {
-    // Import dynamically to avoid circular dependency
-    const { inferSchemaFromJson: infer } = require('./schema-parser.js');
-    return infer(json);
 }
 /**
  * Extract type name from omg.type block content

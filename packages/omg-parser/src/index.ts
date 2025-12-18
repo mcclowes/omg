@@ -28,6 +28,7 @@ export type {
   ParsedResponse,
   ParsedReturnEntry,
   ParsedReturnsBlock,
+  ParseWarning,
 } from './types.js';
 
 // Document parsing
@@ -38,6 +39,7 @@ export { parseSchema, inferSchemaFromJson } from './schema-parser.js';
 
 // Returns block parsing
 export { parseReturnsBlock } from './returns-parser.js';
+export type { ParseReturnsResult } from './returns-parser.js';
 
 // Resolution
 export { resolveDocument, buildEndpoint, loadApi } from './resolver.js';

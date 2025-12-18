@@ -131,6 +131,15 @@ export interface OmgAnnotation {
 }
 export type OmgSchema = OmgType;
 /**
+ * Warning generated during parsing (non-fatal issues)
+ */
+export interface ParseWarning {
+    message: string;
+    line?: number;
+    column?: number;
+    context?: string;
+}
+/**
  * Parsed response with optional condition and description
  */
 export interface ParsedResponse {
