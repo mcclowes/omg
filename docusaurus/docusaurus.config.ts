@@ -47,10 +47,12 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'OMG',
+      title: '',
       logo: {
         alt: 'OMG Logo',
-        src: 'img/logo.svg',
+        src: 'img/omg.svg',
+        srcDark: 'img/omg-light.svg',
+        width: 80,
       },
       items: [
         {
@@ -58,6 +60,25 @@ const config: Config = {
           sidebarId: 'docsSidebar',
           position: 'left',
           label: 'Docs',
+        },
+        {
+          type: 'dropdown',
+          label: 'Examples',
+          position: 'left',
+          items: [
+            {
+              label: 'PokéAPI',
+              href: 'https://github.com/mcclowes/omg/tree/main/examples/pokeapi',
+            },
+            {
+              label: 'Payments API',
+              href: 'https://github.com/mcclowes/omg/tree/main/examples/payments-api',
+            },
+            {
+              label: 'Todo API',
+              href: 'https://github.com/mcclowes/omg/tree/main/examples/todo-api',
+            },
+          ],
         },
         {
           href: 'https://github.com/mcclowes/omg',
@@ -80,6 +101,27 @@ const config: Config = {
               label: 'Syntax Reference',
               to: '/docs/syntax',
             },
+            {
+              label: 'CLI Reference',
+              to: '/docs/cli',
+            },
+          ],
+        },
+        {
+          title: 'Examples',
+          items: [
+            {
+              label: 'PokéAPI',
+              href: 'https://github.com/mcclowes/omg/tree/main/examples/pokeapi',
+            },
+            {
+              label: 'Payments API',
+              href: 'https://github.com/mcclowes/omg/tree/main/examples/payments-api',
+            },
+            {
+              label: 'Todo API',
+              href: 'https://github.com/mcclowes/omg/tree/main/examples/todo-api',
+            },
           ],
         },
         {
@@ -91,7 +133,11 @@ const config: Config = {
             },
             {
               label: 'npm',
-              href: 'https://www.npmjs.com/package/omg-cli',
+              href: 'https://www.npmjs.com/package/omg-md-cli',
+            },
+            {
+              label: 'VS Code Extension',
+              href: 'https://marketplace.visualstudio.com/items?itemName=mcclowes.omg-vscode',
             },
           ],
         },

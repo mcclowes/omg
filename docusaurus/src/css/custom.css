@@ -64,8 +64,11 @@
   --ifm-navbar-background-color: #121212;
   --ifm-navbar-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.1);
 
-  /* Footer */
-  --ifm-footer-background-color: #0a0a0a;
+  /* Footer - white bg with dark text in dark mode */
+  --ifm-footer-background-color: #ffffff;
+  --ifm-footer-color: #1a1a1a;
+  --ifm-footer-link-color: #666666;
+  --ifm-footer-link-hover-color: #1a1a1a;
 
   /* Code blocks */
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);

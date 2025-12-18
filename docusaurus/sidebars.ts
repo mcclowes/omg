@@ -19,7 +19,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'CLI',
-      items: ['cli/index', 'cli/build', 'cli/parse', 'cli/lint', 'cli/init'],
+      items: ['cli/index', 'cli/build', 'cli/parse', 'cli/lint', 'cli/fmt', 'cli/init'],
     },
     'examples',
   ],

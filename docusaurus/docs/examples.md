@@ -6,6 +6,18 @@ sidebar_position: 10
 
 Real-world examples of OMG API definitions.
 
+## Complete Examples on GitHub
+
+These fully working examples are available in our repository:
+
+| Example | Description | Link |
+|---------|-------------|------|
+| **PokéAPI** | A comprehensive read-only API showing nested types, arrays, and annotations | [View on GitHub](https://github.com/mcclowes/omg/tree/main/examples/pokeapi) |
+| **Payments API** | Stripe-like API demonstrating webhooks, idempotency, and async operations | [View on GitHub](https://github.com/mcclowes/omg/tree/main/examples/payments-api) |
+| **Todo API** | Simple CRUD API with partials for error responses | [View on GitHub](https://github.com/mcclowes/omg/tree/main/examples/todo-api) |
+
+---
+
 ## Basic CRUD API
 
 ### List Resources
