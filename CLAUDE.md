@@ -155,17 +155,17 @@ npm run typecheck
 ### CLI Commands
 
 ```bash
+# Initialize a new OMG project (creates example files)
+node packages/omg-cli/dist/cli.js init my-api/
+
 # Build OMG to OpenAPI
-node packages/omg-cli/dist/cli.js build examples/omg-test/api.omg.md -o output.yaml
+node packages/omg-cli/dist/cli.js build my-api/api.omg.md -o output.yaml
 
 # Parse and inspect AST
-node packages/omg-cli/dist/cli.js parse examples/omg-test/endpoints/accounts-list.omg.md
+node packages/omg-cli/dist/cli.js parse my-api/endpoints/health.omg.md
 
 # Lint OMG files
-node packages/omg-cli/dist/cli.js lint examples/omg-test/
-
-# Initialize new project
-node packages/omg-cli/dist/cli.js init my-api/
+node packages/omg-cli/dist/cli.js lint my-api/
 ```
 
 ## Code Conventions
@@ -283,7 +283,6 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 
 1. Add command definition in `packages/omg-cli/src/cli.ts`
 2. Use Commander.js `.command()` API
-3. Add integration test in `.github/workflows/ci.yml`
 
 ## Skills
 

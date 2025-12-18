@@ -1,3 +1,7 @@
+![OMG Logo](./omg.png)
+
+<br/>
+
 # OpenAPI Markdown Grammar (OMG)
 
 > A human-first domain-specific language for API specification
@@ -8,7 +12,7 @@ OMG is a Markdown-native language for describing APIs that compiles to standard 
 
 ## Project Status
 
-This project is in the **Design & Specification** phase.
+This project is in the **MVP Implementation** phase. The core toolchain (parser, compiler, CLI) is functional.
 
 ## Documentation
 
@@ -28,8 +32,6 @@ This project is in the **Design & Specification** phase.
 │   ├── omg-compiler/   # OMG to OpenAPI compiler
 │   ├── omg-cli/        # Command-line interface
 │   └── omg-vscode/     # VS Code extension
-├── examples/
-│   └── omg-test/       # Example OMG specifications
 └── *.md                # Design documentation
 ```
 

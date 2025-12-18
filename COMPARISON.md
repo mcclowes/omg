@@ -495,15 +495,14 @@ type AccountType = enum {
 OMG compiles to OpenAPI 3.1, so existing tooling continues to work:
 
 ```bash
-# Convert existing OpenAPI to OMG
-oal import ./reference/xero-Accounting.yaml --output ./accounting-oal/
+# Compile OMG to OpenAPI
+omg build ./my-api/api.omg.md --output openapi.yaml
 
-# Compile OMG back to OpenAPI
-oal build ./accounting-oal/api.omg --output openapi.yaml
-
-# Validate the roundtrip
-diff openapi.yaml ./reference/xero-Accounting.yaml
+# Validate the output
+npx @apidevtools/swagger-cli validate openapi.yaml
 ```
 
 You can adopt OMG incrementally—one resource at a time—while maintaining
 compatibility with your existing OpenAPI toolchain.
+
+> **Note:** An OpenAPI-to-OMG importer is planned for a future release.

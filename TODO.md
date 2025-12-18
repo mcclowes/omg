@@ -13,7 +13,6 @@
 - [x] `SYNTAX.md` - Formal syntax specification with BNF grammar
 - [x] `COMPARISON.md` - Side-by-side comparison with OpenAPI
 - [x] `TOOLCHAIN.md` - Required tools and development roadmap
-- [x] `examples/accounting-oal/` - Full example of Accounting API in OMG
 
 ---
 
@@ -32,7 +31,7 @@
 - [x] **Implement lexer** - Tokenize OMG syntax (`@omg/parser`)
 - [x] **Implement parser** - Build AST from tokens (`document-parser.ts`, `schema-parser.ts`)
 - [x] **Implement OpenAPI compiler** - Transform AST to OpenAPI 3.1 (`@omg/compiler`)
-- [x] **Basic CLI** - `oal build`, `oal lint`, `oal parse`, `oal init` commands (`@omg/cli`)
+- [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`@omg/cli`)
 - [x] **VS Code syntax highlighting** - TextMate grammar (`packages/omg-vscode/`)
 
 ### Medium-term (Developer Experience)
@@ -41,7 +40,7 @@
 - [ ] **VS Code extension** - Full editor integration
 - [ ] **Watch mode** - Incremental compilation
 - [ ] **Error messages** - Helpful, actionable diagnostics
-- [ ] **Formatter** - `oal fmt` for consistent style
+- [ ] **Formatter** - `omg fmt` for consistent style
 
 ### Long-term (Ecosystem)
 
