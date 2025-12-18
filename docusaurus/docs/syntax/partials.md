@@ -1,0 +1,121 @@
+---
+sidebar_position: 6
+---
+
+# Partials
+
+Partials allow you to reuse content across multiple OMG files using Handlebars-style includes.
+
+## Basic Usage
+
+Include a partial with the `\{\{> path \}\}` syntax:
+
+```markdown
+# Get User
+
+Returns a user by ID.
+
+```omg.response
+{
+  id: uuid,
+  name: string
+}
+```
+
+\{\{> partials/errors \}\}
+```
+
+## Partial Files
+
+Partials are OMG files stored in a `partials/` directory:
+
+```
+my-api/
+├── api.omg.md
+├── endpoints/
+│   ├── get-user.omg.md
+│   └── list-users.omg.md
+└── partials/
+    ├── errors.omg.md
+    └── pagination.omg.md
+```
+
+### partials/errors.omg.md
+
+```markdown
+```omg.errors
+400: {
+  type: string,
+  title: string,
+  detail: string
+}
+
+401: {
+  message: string
+}
+
+404: {
+  message: string,
+  resourceType: string
+}
+
+500: {
+  message: string,
+  requestId: string
+}
+```
+```
+
+### partials/pagination.omg.md
+
+```markdown
+```omg.query
+{
+  page: integer? @min(1) = 1,
+  pageSize: integer? @min(1) @max(100) = 20
+}
+```
+```
+
+## Nested Partials
+
+Partials can include other partials:
+
+```markdown
+\{\{> partials/common-errors \}\}
+\{\{> partials/rate-limit-errors \}\}
+```
+
+## Path Resolution
+
+Partial paths are resolved relative to the including document:
+
+- `\{\{> errors \}\}` — Same directory
+- `\{\{> partials/errors \}\}` — `partials/` subdirectory
+- `\{\{> ../shared/errors \}\}` — Parent directory
+
+## Common Patterns
+
+### Shared Error Responses
+
+Define standard error schemas once, include everywhere:
+
+```markdown
+\{\{> responses/errors \}\}
+```
+
+### Pagination
+
+Include pagination query parameters:
+
+```markdown
+\{\{> params/pagination \}\}
+```
+
+### Authentication Headers
+
+Include auth headers:
+
+```markdown
+\{\{> headers/auth \}\}
+```

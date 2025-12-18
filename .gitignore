@@ -24,3 +24,8 @@ __pycache__/*
 
 # Ignore node version manager
 .nvmrc
+
+# Docusaurus
+docusaurus/build
+docusaurus/.docusaurus
+docusaurus/node_modules

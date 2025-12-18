@@ -31,7 +31,10 @@
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
     "typecheck": "npm run typecheck --workspaces",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "docs:dev": "npm run start --prefix docusaurus",
+    "docs:build": "npm run build --prefix docusaurus",
+    "docs:serve": "npm run serve --prefix docusaurus"
   },
   "devDependencies": {
     "husky": "^8.0.3"
