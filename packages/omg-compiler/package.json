@@ -1,0 +1,43 @@
+{
+  "name": "@omg/compiler",
+  "version": "0.1.0",
+  "description": "Compiles OMG to OpenAPI 3.1",
+  "author": "mcclowes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcclowes/oal.git",
+    "directory": "packages/omg-compiler"
+  },
+  "bugs": {
+    "url": "https://github.com/mcclowes/oal/issues"
+  },
+  "homepage": "https://github.com/mcclowes/oal/tree/main/packages/omg-compiler#readme",
+  "keywords": [
+    "openapi",
+    "omg",
+    "compiler",
+    "openapi3",
+    "api",
+    "specification",
+    "codegen"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@omg/parser": "file:../omg-parser",
+    "yaml": "^2.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

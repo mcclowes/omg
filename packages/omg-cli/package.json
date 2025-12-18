@@ -1,0 +1,49 @@
+{
+  "name": "@omg/cli",
+  "version": "0.1.0",
+  "description": "CLI for OMG (OpenAPI Markdown Grammar)",
+  "author": "mcclowes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcclowes/oal.git",
+    "directory": "packages/omg-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/mcclowes/oal/issues"
+  },
+  "homepage": "https://github.com/mcclowes/oal/tree/main/packages/omg-cli#readme",
+  "keywords": [
+    "openapi",
+    "omg",
+    "cli",
+    "command-line",
+    "api",
+    "specification",
+    "compiler"
+  ],
+  "main": "dist/index.js",
+  "bin": {
+    "omg": "dist/cli.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@omg/parser": "file:../omg-parser",
+    "@omg/compiler": "file:../omg-compiler",
+    "commander": "^11.0.0",
+    "chalk": "^5.3.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "@types/js-yaml": "^4.0.9"
+  }
+}

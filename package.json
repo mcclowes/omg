@@ -1,0 +1,39 @@
+{
+  "name": "omg",
+  "version": "0.1.0",
+  "description": "OpenAPI Markdown Grammar (OMG) - A human-first domain-specific language for API specification",
+  "author": "mcclowes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcclowes/oal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mcclowes/oal/issues"
+  },
+  "homepage": "https://github.com/mcclowes/oal#readme",
+  "keywords": [
+    "openapi",
+    "api",
+    "specification",
+    "dsl",
+    "markdown",
+    "api-design",
+    "api-documentation",
+    "openapi3",
+    "swagger",
+    "rest-api"
+  ],
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3"
+  }
+}

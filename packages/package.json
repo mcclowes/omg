@@ -1,0 +1,17 @@
+{
+  "name": "oal-monorepo",
+  "private": true,
+  "workspaces": [
+    "oal-parser",
+    "oal-compiler",
+    "oal-cli"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "dev": "npm run dev --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}

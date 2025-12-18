@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "OMG Markdown",
+  "scopeName": "text.html.markdown.omg",
+  "patterns": [
+    { "include": "#frontmatter" },
+    { "include": "#partial-include" },
+    { "include": "text.html.markdown" }
+  ],
+  "repository": {
+    "frontmatter": {
+      "name": "meta.embedded.block.frontmatter.omg",
+      "begin": "\\A(-{3})\\s*$",
+      "end": "^(-{3})\\s*$",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.frontmatter.begin.omg" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.frontmatter.end.omg" }
+      },
+      "contentName": "meta.embedded.block.yaml",
+      "patterns": [
+        { "include": "source.yaml" }
+      ]
+    },
+    "partial-include": {
+      "name": "meta.partial-include.omg",
+      "match": "(\\{\\{>)\\s*([^}]+)\\s*(\\}\\})",
+      "captures": {
+        "1": { "name": "punctuation.definition.partial.begin.omg" },
+        "2": { "name": "entity.name.tag.partial.omg" },
+        "3": { "name": "punctuation.definition.partial.end.omg" }
+      }
+    }
+  }
+}
