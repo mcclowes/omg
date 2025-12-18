@@ -1,4 +1,4 @@
-![OMG Logo](./omg.png)
+![OMG Logo](./banner.png)
 
 <br/>
 
@@ -33,6 +33,15 @@ This project is in the **MVP Implementation** phase. The core toolchain (parser,
 │   ├── omg-cli/        # Command-line interface
 │   └── omg-vscode/     # VS Code extension
 └── *.md                # Design documentation
+```
+
+## Installation via OpenSkills
+
+Install the OpenAPI skill for Claude Code using [OpenSkills](https://github.com/anthropics/openskills):
+
+```bash
+npm i -g openskills
+openskills install mcclowes/omg
 ```
 
 ## Getting Started
