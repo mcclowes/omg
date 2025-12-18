@@ -170,9 +170,7 @@ function formatBody(body, indent) {
  * Check if a code block type is an OMG schema block
  */
 function isOmgSchemaBlock(type) {
-    return (type.startsWith('omg.') &&
-        type !== 'omg.example' &&
-        type !== 'omg.config');
+    return type.startsWith('omg.') && type !== 'omg.example' && type !== 'omg.config';
 }
 /**
  * Format an OMG schema block
@@ -261,7 +259,11 @@ function formatSchemaContent(content, indentSize) {
                     i++;
                     // For annotations, collect the whole annotation
                     if (next === '@') {
-                        while (i < chars.length && chars[i] !== ',' && chars[i] !== '\n' && chars[i] !== '}' && chars[i] !== ']') {
+                        while (i < chars.length &&
+                            chars[i] !== ',' &&
+                            chars[i] !== '\n' &&
+                            chars[i] !== '}' &&
+                            chars[i] !== ']') {
                             currentLine += chars[i];
                             i++;
                         }

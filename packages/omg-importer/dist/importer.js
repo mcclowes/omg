@@ -245,7 +245,9 @@ function generateEndpoint(method, pathUrl, operation, pathLevelParams, endpoints
             const resolvedResponse = resolveResponse(response, spec);
             const responseSchema = getResponseSchema(resolvedResponse);
             // Determine block type
-            const blockType = statusCode === '200' || statusCode === 'default' ? 'omg.response' : `omg.response.${statusCode}`;
+            const blockType = statusCode === '200' || statusCode === 'default'
+                ? 'omg.response'
+                : `omg.response.${statusCode}`;
             if (responseSchema) {
                 lines.push(`\`\`\`${blockType}`);
                 lines.push((0, schema_converter_js_1.schemaToOmg)(responseSchema, {
