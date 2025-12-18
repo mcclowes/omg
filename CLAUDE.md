@@ -4,7 +4,7 @@
 
 **OMG (OpenAPI Markdown Grammar)** is a human-first domain-specific language for API specification. It compiles Markdown-based API definitions to OpenAPI 3.1, making API documentation accessible to technical writers while remaining useful for developers.
 
-**Repository**: https://github.com/mcclowes/oal
+**Repository**: https://github.com/mcclowes/omg
 **License**: MIT
 **Status**: MVP Implementation phase
 
@@ -27,12 +27,13 @@ npm run typecheck
 ## Codebase Structure
 
 ```
-oal/
+omg/
 ├── packages/                    # Monorepo packages (npm workspaces)
 │   ├── omg-parser/             # @omg/parser - Parses .omg.md files to AST
 │   │   ├── src/
 │   │   │   ├── document-parser.ts   # Main document parsing
 │   │   │   ├── schema-parser.ts     # Schema/type parsing
+│   │   │   ├── returns-parser.ts    # Returns block parsing
 │   │   │   ├── resolver.ts          # Partial resolution, API loading
 │   │   │   └── types.ts             # TypeScript type definitions
 │   │   └── dist/                    # Compiled output
@@ -43,33 +44,25 @@ oal/
 │   │   │   └── output.ts            # Serialization (YAML/JSON)
 │   │   └── dist/
 │   │
-│   └── omg-cli/                # @omg/cli - Command-line interface
-│       ├── src/
-│       │   ├── cli.ts               # Main CLI entry point
-│       │   └── linter.ts            # Spectral-style linting rules
-│       └── dist/
-│
-├── examples/                   # Example OMG projects
-│   └── omg-test/              # Test API example
-│       ├── api.omg.md             # API root definition
-│       ├── endpoints/             # Endpoint definitions
-│       └── partials/              # Reusable partials (params, responses)
+│   ├── omg-cli/                # @omg/cli - Command-line interface
+│   │   ├── src/
+│   │   │   ├── cli.ts               # Main CLI entry point
+│   │   │   └── linter.ts            # Spectral-style linting rules
+│   │   └── dist/
+│   │
+│   └── omg-vscode/             # VS Code extension for syntax highlighting
+│       ├── syntaxes/              # TextMate grammar files
+│       └── package.json           # Extension manifest
 │
 ├── .claude/                    # Claude Code configuration
 │   └── skills/openapi/         # OpenAPI expert skill
 │
-├── .github/workflows/          # CI/CD
-│   ├── ci.yml                     # Build, test, typecheck
-│   └── release.yml                # Release automation
-│
 └── Documentation files:
-    ├── DESIGN.md               # Language philosophy and goals
-    ├── SYNTAX.md               # Formal syntax specification
     ├── BEHAVIORS.md            # Behavioral extensions (state machines, events)
+    ├── CHANGELOG.md            # Release history
+    ├── LEGIBILITY.md           # Readability design decisions
     ├── TODO.md                 # Project roadmap
-    ├── COMPARISON.md           # Comparison with OpenAPI
-    ├── TOOLCHAIN.md            # Tooling roadmap
-    └── LEGIBILITY.md           # Readability design decisions
+    └── readme.md               # Project overview
 ```
 
 ## Key Concepts
@@ -113,10 +106,16 @@ Returns details of a specific account.
 |------------|---------|
 | `omg.path` | Path parameters |
 | `omg.query` | Query parameters |
+| `omg.headers` | Header parameters |
 | `omg.body` | Request body schema |
 | `omg.response` | Default (200) response |
 | `omg.response.{code}` | Specific status code response |
+| `omg.returns` | Conditional responses with status codes |
 | `omg.example` | Example data |
+| `omg.type` | Reusable type definitions |
+| `omg.errors` | Error response definitions |
+| `omg.config` | Configuration block |
+| `http` | Raw HTTP example |
 
 ### Partials System
 
@@ -195,12 +194,13 @@ The parser represents types using discriminated unions:
 
 ```typescript
 type OmgType =
-  | OmgPrimitive   // string, integer, decimal, boolean, datetime, etc.
-  | OmgObject      // { field: type }
-  | OmgArray       // type[]
-  | OmgEnum        // "a" | "b" | "c"
-  | OmgUnion       // Type1 | Type2
-  | OmgReference;  // Referenced type name
+  | OmgPrimitive     // string, integer, number, decimal, boolean, date, datetime, uuid, any
+  | OmgObject        // { field: type }
+  | OmgArray         // type[]
+  | OmgEnum          // "a" | "b" | "c"
+  | OmgUnion         // Type1 | Type2
+  | OmgIntersection  // Type1 & Type2
+  | OmgReference;    // Referenced type name
 ```
 
 ### Annotations
@@ -213,16 +213,6 @@ Schema fields support annotations:
 - `?` suffix - Optional field
 
 ## CI/CD
-
-### GitHub Actions
-
-Tests run on Node 18, 20, and 22. The CI pipeline:
-1. Installs dependencies (`npm ci`)
-2. Builds all packages (`npm run build`)
-3. Runs tests (`npm test`)
-4. Type checks (`npm run typecheck`)
-5. Integration tests (CLI commands on example files)
-6. Validates generated OpenAPI with swagger-cli
 
 ### Pre-commit Hooks
 
@@ -246,7 +236,7 @@ Husky is configured for pre-commit hooks in `.husky/`.
 
 3. **New CLI commands** (`@omg/cli`): Add command in `cli.ts` using Commander.js
 
-4. **New syntax features**: Update `SYNTAX.md` documentation, then implement in parser/compiler
+4. **New syntax features**: Implement in parser/compiler, update documentation as needed
 
 5. **New linting rules**: Add to `linter.ts` following the existing pattern
 
@@ -258,11 +248,11 @@ Always verify changes work end-to-end:
 # Build first
 npm run build
 
-# Test parsing
-node packages/omg-cli/dist/cli.js parse examples/omg-test/endpoints/accounts-list.omg.md
+# Test parsing (use omg init to create test files if needed)
+node packages/omg-cli/dist/cli.js parse <path-to-omg-file>
 
 # Test full compilation
-node packages/omg-cli/dist/cli.js build examples/omg-test/api.omg.md -o /tmp/test.yaml
+node packages/omg-cli/dist/cli.js build <path-to-api.omg.md> -o /tmp/test.yaml
 
 # Validate output is valid OpenAPI
 npx @apidevtools/swagger-cli validate /tmp/test.yaml
@@ -270,11 +260,10 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 
 ## Documentation Reference
 
-- **DESIGN.md**: Language philosophy, why OMG exists, design principles
-- **SYNTAX.md**: Complete syntax specification with BNF grammar
 - **BEHAVIORS.md**: Advanced features (state machines, webhooks, invariants)
+- **LEGIBILITY.md**: Readability design decisions
 - **TODO.md**: Project roadmap and open questions
-- **COMPARISON.md**: Side-by-side comparison with raw OpenAPI
+- **CHANGELOG.md**: Release history
 
 ## Common Tasks
 

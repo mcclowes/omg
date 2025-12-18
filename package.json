@@ -6,12 +6,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mcclowes/oal.git"
+    "url": "https://github.com/mcclowes/omg.git"
   },
   "bugs": {
-    "url": "https://github.com/mcclowes/oal/issues"
+    "url": "https://github.com/mcclowes/omg/issues"
   },
-  "homepage": "https://github.com/mcclowes/oal#readme",
+  "homepage": "https://github.com/mcclowes/omg#readme",
   "keywords": [
     "openapi",
     "api",
