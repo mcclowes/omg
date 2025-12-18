@@ -1,0 +1,14 @@
+{
+  "name": "todo-api-omg-example",
+  "version": "1.0.0",
+  "description": "Simple Todo API documented using OMG (OpenAPI Markdown Grammar)",
+  "private": true,
+  "scripts": {
+    "build": "omg build api.omg.md -o openapi.yaml",
+    "build:json": "omg build api.omg.md -o openapi.json",
+    "validate": "npx @apidevtools/swagger-cli validate openapi.yaml"
+  },
+  "devDependencies": {
+    "@omg/cli": "file:../../packages/omg-cli"
+  }
+}
