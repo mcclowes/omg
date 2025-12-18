@@ -19,7 +19,7 @@
 
 - [ ] **Contract testing engine** - Validate live APIs against spec
 - [ ] **Mock server** - Generate mock responses from spec
-- [ ] **OpenAPI importer** - Convert existing specs to OMG
+- [x] **OpenAPI importer** - Convert existing specs to OMG (`omg import`)
 - [ ] **Documentation generator** - Beautiful API docs from OMG
 - [ ] **GitHub Actions** - CI/CD integration
 

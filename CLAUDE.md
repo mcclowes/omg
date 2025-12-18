@@ -173,22 +173,28 @@ npm run typecheck
 
 ```bash
 # Initialize a new OMG project (creates example files)
-node packages/omg-md-cli/dist/cli.js init my-api/
+node packages/omg-cli/dist/cli.js init my-api/
 
 # Build OMG to OpenAPI
-node packages/omg-md-cli/dist/cli.js build my-api/api.omg.md -o output.yaml
+node packages/omg-cli/dist/cli.js build my-api/api.omg.md -o output.yaml
 
 # Parse and inspect AST
-node packages/omg-md-cli/dist/cli.js parse my-api/endpoints/health.omg.md
+node packages/omg-cli/dist/cli.js parse my-api/endpoints/health.omg.md
 
 # Lint OMG files
-node packages/omg-md-cli/dist/cli.js lint my-api/
+node packages/omg-cli/dist/cli.js lint my-api/
 
 # Format OMG files
-node packages/omg-md-cli/dist/cli.js fmt my-api/ --write
+node packages/omg-cli/dist/cli.js fmt my-api/ --write
 
 # Check formatting
-node packages/omg-md-cli/dist/cli.js fmt my-api/ --check
+node packages/omg-cli/dist/cli.js fmt my-api/ --check
+
+# Import an existing OpenAPI spec to OMG format
+node packages/omg-cli/dist/cli.js import openapi.yaml -o my-api/
+
+# Import with options
+node packages/omg-cli/dist/cli.js import openapi.yaml -o my-api/ --partials --examples
 ```
 
 ## Code Conventions
@@ -207,7 +213,8 @@ node packages/omg-md-cli/dist/cli.js fmt my-api/ --check
 omg-md-cli
   ├── omg-compiler
   │     └── omg-parser
-  └── omg-linter
+  ├── omg-linter
+  └── omg-importer
 
 omg-lsp
   ├── omg-parser
@@ -290,13 +297,16 @@ Always verify changes work end-to-end:
 npm run build
 
 # Test parsing (use omg init to create test files if needed)
-node packages/omg-md-cli/dist/cli.js parse <path-to-omg-file>
+node packages/omg-cli/dist/cli.js parse <path-to-omg-file>
 
 # Test full compilation
-node packages/omg-md-cli/dist/cli.js build <path-to-api.omg.md> -o /tmp/test.yaml
+node packages/omg-cli/dist/cli.js build <path-to-api.omg.md> -o /tmp/test.yaml
 
 # Validate output is valid OpenAPI
 npx @apidevtools/swagger-cli validate /tmp/test.yaml
+
+# Test importing an OpenAPI spec
+node packages/omg-cli/dist/cli.js import <openapi-spec> -o /tmp/imported-api/
 ```
 
 ## Documentation Reference

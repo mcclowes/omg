@@ -13,6 +13,7 @@ import chalk from 'chalk';
 import { loadApi, parseDocument, resolveDocument, buildEndpoint, formatDocument } from 'omg-parser';
 import { compileToOpenApi, serialize, detectFormat } from 'omg-compiler';
 import { lintDocument, summarizeLintResults, type Severity, type LintResult } from 'omg-linter';
+import { importOpenApi } from 'omg-importer';
 
 const program = new Command();
 
@@ -422,10 +423,86 @@ program
     }
   });
 
+// Import command
+program
+  .command('import <openapi-spec>')
+  .description('Import an OpenAPI 3.x spec and convert to OMG format')
+  .option('-o, --output <directory>', 'Output directory for generated files', '.')
+  .option('--partials', 'Generate partials for reusable schemas')
+  .option('--examples', 'Include examples from OpenAPI spec')
+  .option('--inline-refs', 'Inline $ref schemas instead of keeping references')
+  .action(
+    async (
+      input: string,
+      options: {
+        output?: string;
+        partials?: boolean;
+        examples?: boolean;
+        inlineRefs?: boolean;
+      }
+    ) => {
+      try {
+        const inputPath = path.resolve(input);
+
+        if (!fs.existsSync(inputPath)) {
+          console.error(chalk.red(`Error: File not found: ${inputPath}`));
+          process.exit(1);
+        }
+
+        const outputDir = path.resolve(options.output || '.');
+
+        console.error(chalk.blue(`Importing ${input}...`));
+
+        const result = importOpenApi(inputPath, {
+          outputDir,
+          generatePartials: options.partials,
+          includeExamples: options.examples,
+          inlineRefs: options.inlineRefs,
+        });
+
+        console.log(chalk.green(`✓ Import complete!`));
+        console.log();
+        console.log('Generated files:');
+        console.log(`  ${chalk.blue('API root:')} ${path.relative(process.cwd(), result.apiFile)}`);
+        console.log(`  ${chalk.blue('Endpoints:')} ${result.endpointFiles.length} file(s)`);
+
+        for (const file of result.endpointFiles) {
+          console.log(`    - ${path.relative(process.cwd(), file)}`);
+        }
+
+        if (result.partialFiles.length > 0) {
+          console.log(`  ${chalk.blue('Partials:')} ${result.partialFiles.length} file(s)`);
+          for (const file of result.partialFiles) {
+            console.log(`    - ${path.relative(process.cwd(), file)}`);
+          }
+        }
+
+        if (result.warnings.length > 0) {
+          console.log();
+          console.log(chalk.yellow('Warnings:'));
+          for (const warning of result.warnings) {
+            console.log(`  ⚠ ${warning}`);
+          }
+        }
+
+        console.log();
+        console.log('Next steps:');
+        console.log(`  1. Review generated files in ${chalk.blue(outputDir)}`);
+        console.log(`  2. Run ${chalk.blue('omg lint ' + outputDir)} to check for issues`);
+        console.log(
+          `  3. Run ${chalk.blue('omg build ' + path.join(outputDir, 'api.omg.md') + ' -o openapi.yaml')} to compile back`
+        );
+      } catch (error) {
+        console.error(chalk.red(`Error: ${(error as Error).message}`));
+        process.exit(1);
+      }
+    }
+  );
+
 // Init command
 program
   .command('init [directory]')
-  .description('Initialize a new OAL project')
+  .description('Initialize a new OMG project')
   .action(async (directory: string = '.') => {
     const dir = path.resolve(directory);
 

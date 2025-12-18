@@ -27,6 +27,7 @@ npx omg-md-cli <command>
 | [`parse`](/docs/cli/parse) | Parse and inspect AST |
 | [`lint`](/docs/cli/lint) | Lint OMG files |
 | [`fmt`](/docs/cli/fmt) | Format OMG files |
+| [`import`](/docs/cli/import) | Import an OpenAPI spec to OMG format |
 
 ## Quick Reference
 
@@ -48,6 +49,12 @@ omg lint my-api/
 
 # Format files
 omg fmt my-api/ --write
+
+# Import an existing OpenAPI spec
+omg import openapi.yaml -o my-api/
+
+# Import with schema partials and examples
+omg import openapi.yaml -o my-api/ --partials --examples
 ```
 
 ## Global Options
