@@ -1,5 +1,5 @@
 {
-  "name": "@omg/lsp",
+  "name": "omg-lsp",
   "version": "0.1.0",
   "description": "Language Server Protocol server for OMG (OpenAPI Markdown Grammar)",
   "author": "mcclowes",
@@ -29,8 +29,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@omg/parser": "file:../omg-parser",
-    "@omg/linter": "file:../omg-linter",
+    "omg-parser": "file:../omg-parser",
+    "omg-linter": "file:../omg-linter",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11"
   },

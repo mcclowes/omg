@@ -23,7 +23,7 @@ import type {
   OmgIntersection,
   OmgReference,
   OmgAnnotation,
-} from '@omg/parser';
+} from 'omg-parser';
 
 // OpenAPI 3.1 Types (simplified)
 export interface OpenApiSpec {
@@ -344,7 +344,7 @@ function compileEndpointWithContext(
   }
 
   // Compile responses
-  for (const [statusCode, response] of Object.entries(endpoint.responses)) {
+  for (const [statusCode, response] of Object.entries(endpoint.responses) as [string, ParsedResponse][]) {
     const ctx = { ...parentCtx, path: [baseName, `Response${statusCode}`], depth: 0 };
     const description = response.description || getStatusDescription(parseInt(statusCode));
 
@@ -389,7 +389,7 @@ function compileParametersWithContext(
 
   const parameters: ParameterObject[] = [];
 
-  for (const [name, propType] of Object.entries(schema.properties)) {
+  for (const [name, propType] of Object.entries(schema.properties) as [string, OmgType][]) {
     const isOptional = 'optional' in propType && propType.optional;
     const required = location === 'path' ? true : !isOptional;
     const propCtx = { ...ctx, path: [...ctx.path, name], depth: ctx.depth + 1 };
@@ -548,7 +548,7 @@ function compileObjectWithContext(
 
   const required: string[] = [];
 
-  for (const [name, propType] of Object.entries(type.properties)) {
+  for (const [name, propType] of Object.entries(type.properties) as [string, OmgType][]) {
     // Create child context with updated path and depth
     const childCtx: CompilerContext = {
       ...ctx,
@@ -614,7 +614,7 @@ function compileUnionWithContext(
   schema: SchemaObject,
   ctx: CompilerContext
 ): SchemaObject {
-  schema.oneOf = type.types.map((unionType, index) => {
+  schema.oneOf = type.types.map((unionType: OmgType, index: number) => {
     const childCtx: CompilerContext = {
       ...ctx,
       path: [...ctx.path, `Variant${index + 1}`],
@@ -630,7 +630,7 @@ function compileIntersectionWithContext(
   schema: SchemaObject,
   ctx: CompilerContext
 ): SchemaObject {
-  schema.allOf = type.types.map((intersectionType, index) => {
+  schema.allOf = type.types.map((intersectionType: OmgType, index: number) => {
     const childCtx: CompilerContext = {
       ...ctx,
       path: [...ctx.path, `Part${index + 1}`],

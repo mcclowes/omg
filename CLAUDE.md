@@ -29,7 +29,7 @@ npm run typecheck
 ```
 omg/
 ├── packages/                    # Monorepo packages (npm workspaces)
-│   ├── omg-parser/             # @omg/parser - Parses .omg.md files to AST
+│   ├── omg-parser/             # omg-parser - Parses .omg.md files to AST
 │   │   ├── src/
 │   │   │   ├── document-parser.ts   # Main document parsing
 │   │   │   ├── schema-parser.ts     # Schema/type parsing
@@ -38,13 +38,13 @@ omg/
 │   │   │   └── types.ts             # TypeScript type definitions
 │   │   └── dist/                    # Compiled output
 │   │
-│   ├── omg-compiler/           # @omg/compiler - Compiles AST to OpenAPI 3.1
+│   ├── omg-compiler/           # omg-compiler - Compiles AST to OpenAPI 3.1
 │   │   ├── src/
 │   │   │   ├── openapi.ts           # AST to OpenAPI transformation
 │   │   │   └── output.ts            # Serialization (YAML/JSON)
 │   │   └── dist/
 │   │
-│   ├── omg-cli/                # @omg/cli - Command-line interface
+│   ├── omg-cli/                # omg-cli - Command-line interface
 │   │   ├── src/
 │   │   │   ├── cli.ts               # Main CLI entry point
 │   │   │   └── linter.ts            # Spectral-style linting rules
@@ -133,10 +133,10 @@ Partials allow reuse via Handlebars-style includes:
 npm run build
 
 # Build specific package
-npm run build --workspace=@omg/parser
+npm run build --workspace=omg-parser
 
 # Watch mode for development
-npm run dev --workspace=@omg/parser
+npm run dev --workspace=omg-parser
 ```
 
 ### Testing
@@ -146,7 +146,7 @@ npm run dev --workspace=@omg/parser
 npm test
 
 # Run tests for specific package
-npm test --workspace=@omg/parser
+npm test --workspace=omg-parser
 
 # Type checking
 npm run typecheck
@@ -181,9 +181,9 @@ node packages/omg-cli/dist/cli.js lint my-api/
 ### Package Dependencies
 
 ```
-@omg/cli
-  └── @omg/compiler
-        └── @omg/parser
+omg-cli
+  └── omg-compiler
+        └── omg-parser
 ```
 
 Packages use `file:` references for local dependencies during development.
@@ -230,11 +230,11 @@ Husky is configured for pre-commit hooks in `.husky/`.
 
 ## When Making Changes
 
-1. **Parser changes** (`@omg/parser`): Update `types.ts` for new AST nodes, then update `document-parser.ts` or `schema-parser.ts`
+1. **Parser changes** (`omg-parser`): Update `types.ts` for new AST nodes, then update `document-parser.ts` or `schema-parser.ts`
 
-2. **New output features** (`@omg/compiler`): Modify `openapi.ts` to handle new AST structures
+2. **New output features** (`omg-compiler`): Modify `openapi.ts` to handle new AST structures
 
-3. **New CLI commands** (`@omg/cli`): Add command in `cli.ts` using Commander.js
+3. **New CLI commands** (`omg-cli`): Add command in `cli.ts` using Commander.js
 
 4. **New syntax features**: Implement in parser/compiler, update documentation as needed
 

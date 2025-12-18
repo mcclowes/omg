@@ -91,7 +91,7 @@ const config: Config = {
             },
             {
               label: 'npm',
-              href: 'https://www.npmjs.com/package/@omg/cli',
+              href: 'https://www.npmjs.com/package/omg-cli',
             },
           ],
         },

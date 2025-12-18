@@ -300,7 +300,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install OMG
-        run: npm install -g @omg/cli
+        run: npm install -g omg-cli
 
       - name: Lint OMG
         run: oal lint api.omg
@@ -322,7 +322,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install OMG
-        run: npm install -g @omg/cli
+        run: npm install -g omg-cli
 
       - name: Run Contract Tests
         run: oal test api.omg --against ${{ secrets.API_URL }} --auth "Bearer ${{ secrets.API_KEY }}" --report junit --output results.xml
@@ -353,14 +353,14 @@ repos:
 
 | Package | Description |
 |---------|-------------|
-| `@omg/cli` | Command-line interface |
-| `@omg/parser` | Parser and AST library |
-| `@omg/compiler` | OpenAPI compiler |
-| `@omg/lsp` | Language server |
-| `@omg/vscode` | VS Code extension |
-| `@omg/test` | Contract testing library |
-| `@omg/mock` | Mock server |
-| `@omg/docs` | Documentation generator |
+| `omg-cli` | Command-line interface |
+| `omg-parser` | Parser and AST library |
+| `omg-compiler` | OpenAPI compiler |
+| `omg-lsp` | Language server |
+| `omg-vscode` | VS Code extension |
+| `omg-test` | Contract testing library |
+| `omg-mock` | Mock server |
+| `omg-docs` | Documentation generator |
 
 ---
 

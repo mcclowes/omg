@@ -1,5 +1,5 @@
 /**
- * @omg/parser
+ * omg-parser
  *
  * Parser for OMG (OpenAPI Markdown Grammar) files.
  */

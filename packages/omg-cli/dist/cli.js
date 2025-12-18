@@ -46,9 +46,9 @@ const commander_1 = require("commander");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
-const parser_1 = require("@omg/parser");
-const compiler_1 = require("@omg/compiler");
-const linter_1 = require("@omg/linter");
+const omg_parser_1 = require("omg-parser");
+const omg_compiler_1 = require("omg-compiler");
+const omg_linter_1 = require("omg-linter");
 const program = new commander_1.Command();
 program
     .name('omg')
@@ -70,14 +70,14 @@ program
         }
         console.error(chalk_1.default.blue(`Parsing ${input}...`));
         // Load and parse the API
-        const api = (0, parser_1.loadApi)(inputPath);
+        const api = (0, omg_parser_1.loadApi)(inputPath);
         console.error(chalk_1.default.blue(`Found ${api.endpoints.length} endpoints`));
         // Compile to OpenAPI
-        const openapi = (0, compiler_1.compileToOpenApi)(api);
+        const openapi = (0, omg_compiler_1.compileToOpenApi)(api);
         // Determine output format
-        const format = options.format || (options.output ? (0, compiler_1.detectFormat)(options.output) : 'yaml');
+        const format = options.format || (options.output ? (0, omg_compiler_1.detectFormat)(options.output) : 'yaml');
         // Serialize
-        const output = (0, compiler_1.serialize)(openapi, format);
+        const output = (0, omg_compiler_1.serialize)(openapi, format);
         // Write output
         if (options.output) {
             fs.writeFileSync(options.output, output);
@@ -105,10 +105,10 @@ program
             process.exit(1);
         }
         const content = fs.readFileSync(inputPath, 'utf-8');
-        const doc = (0, parser_1.parseDocument)(content, input);
+        const doc = (0, omg_parser_1.parseDocument)(content, input);
         const basePath = path.dirname(inputPath);
-        const resolved = (0, parser_1.resolveDocument)(doc, { basePath });
-        const endpoint = (0, parser_1.buildEndpoint)(resolved);
+        const resolved = (0, omg_parser_1.resolveDocument)(doc, { basePath });
+        const endpoint = (0, omg_parser_1.buildEndpoint)(resolved);
         const result = {
             document: resolved,
             endpoint,
@@ -201,24 +201,24 @@ program
         let totalHints = 0;
         for (const file of files) {
             const content = fs.readFileSync(file, 'utf-8');
-            const doc = (0, parser_1.parseDocument)(content, path.relative(process.cwd(), file));
+            const doc = (0, omg_parser_1.parseDocument)(content, path.relative(process.cwd(), file));
             const basePath = path.dirname(file);
             // Try to resolve and parse
             let resolved;
             try {
-                resolved = (0, parser_1.resolveDocument)(doc, { basePath });
+                resolved = (0, omg_parser_1.resolveDocument)(doc, { basePath });
             }
             catch (err) {
                 // If resolution fails, use the unresolved document
                 resolved = { ...doc, resolvedBlocks: doc.blocks };
             }
             // Run linter
-            const lintResults = (0, linter_1.lintDocument)({ document: resolved }, {
+            const lintResults = (0, omg_linter_1.lintDocument)({ document: resolved }, {
                 configPath: options.config,
                 rules: options.rules?.split(','),
                 severity: options.severity,
             });
-            const summary = (0, linter_1.summarizeLintResults)(file, lintResults);
+            const summary = (0, omg_linter_1.summarizeLintResults)(file, lintResults);
             totalErrors += summary.errors;
             totalWarnings += summary.warnings;
             totalHints += summary.hints;

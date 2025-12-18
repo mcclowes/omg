@@ -1,5 +1,5 @@
 {
-  "name": "@omg/linter",
+  "name": "omg-linter",
   "version": "0.1.0",
   "description": "Linter for OMG (OpenAPI Markdown Grammar) files",
   "author": "mcclowes",

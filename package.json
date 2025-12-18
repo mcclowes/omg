@@ -28,13 +28,16 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w omg-parser && npm run build -w omg-compiler && npm run build -w omg-linter && npm run build -w omg-lsp && npm run build -w omg-cli",
     "test": "npm run test --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "prepare": "husky install",
     "docs:dev": "npm run start --prefix docusaurus",
     "docs:build": "npm run build --prefix docusaurus",
     "docs:serve": "npm run serve --prefix docusaurus"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "husky": "^8.0.3"

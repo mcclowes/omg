@@ -1,8 +1,8 @@
 /**
- * @omg/cli
+ * omg-cli
  *
  * Re-exports for programmatic usage
  */
 
-export * from '@omg/parser';
-export * from '@omg/compiler';
+export * from 'omg-parser';
+export * from 'omg-compiler';

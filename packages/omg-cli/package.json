@@ -1,18 +1,18 @@
 {
-  "name": "@omg/cli",
+  "name": "omg-cli",
   "version": "0.1.0",
   "description": "CLI for OMG (OpenAPI Markdown Grammar)",
   "author": "mcclowes",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mcclowes/oal.git",
+    "url": "https://github.com/mcclowes/omg.git",
     "directory": "packages/omg-cli"
   },
   "bugs": {
-    "url": "https://github.com/mcclowes/oal/issues"
+    "url": "https://github.com/mcclowes/omg/issues"
   },
-  "homepage": "https://github.com/mcclowes/oal/tree/main/packages/omg-cli#readme",
+  "homepage": "https://github.com/mcclowes/omg/tree/main/packages/omg-cli#readme",
   "keywords": [
     "openapi",
     "omg",
@@ -34,9 +34,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@omg/parser": "file:../omg-parser",
-    "@omg/compiler": "file:../omg-compiler",
-    "@omg/linter": "file:../omg-linter",
+    "omg-parser": "file:../omg-parser",
+    "omg-compiler": "file:../omg-compiler",
+    "omg-linter": "file:../omg-linter",
     "commander": "^11.0.0",
     "chalk": "^5.3.0"
   },

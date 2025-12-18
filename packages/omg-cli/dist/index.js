@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @omg/cli
+ * omg-cli
  *
  * Re-exports for programmatic usage
  */
@@ -19,6 +19,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("@omg/parser"), exports);
-__exportStar(require("@omg/compiler"), exports);
+__exportStar(require("omg-parser"), exports);
+__exportStar(require("omg-compiler"), exports);
 //# sourceMappingURL=index.js.map

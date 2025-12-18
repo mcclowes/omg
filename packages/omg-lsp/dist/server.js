@@ -9,8 +9,8 @@
  */
 import { createConnection, TextDocuments, ProposedFeatures, TextDocumentSyncKind, DiagnosticSeverity, CompletionItemKind, MarkupKind, } from 'vscode-languageserver/node.js';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parseDocument, resolveDocument } from '@omg/parser';
-import { lintDocument } from '@omg/linter';
+import { parseDocument, resolveDocument } from 'omg-parser';
+import { lintDocument } from 'omg-linter';
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
 // Document manager

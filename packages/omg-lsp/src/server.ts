@@ -27,8 +27,8 @@ import {
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-import { parseDocument, resolveDocument } from '@omg/parser';
-import { lintDocument, type Severity } from '@omg/linter';
+import { parseDocument, resolveDocument } from 'omg-parser';
+import { lintDocument, type Severity } from 'omg-linter';
 
 // Create connection
 const connection = createConnection(ProposedFeatures.all);

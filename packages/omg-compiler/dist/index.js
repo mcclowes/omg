@@ -1,6 +1,6 @@
 "use strict";
 /**
- * @omg/compiler
+ * omg-compiler
  *
  * Compiles OMG to OpenAPI 3.1
  */

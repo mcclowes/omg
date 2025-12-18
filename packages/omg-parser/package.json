@@ -1,18 +1,18 @@
 {
-  "name": "@omg/parser",
+  "name": "omg-parser",
   "version": "0.1.0",
   "description": "Parser for OMG (OpenAPI Markdown Grammar) files",
   "author": "mcclowes",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mcclowes/oal.git",
+    "url": "https://github.com/mcclowes/omg.git",
     "directory": "packages/omg-parser"
   },
   "bugs": {
-    "url": "https://github.com/mcclowes/oal/issues"
+    "url": "https://github.com/mcclowes/omg/issues"
   },
-  "homepage": "https://github.com/mcclowes/oal/tree/main/packages/omg-parser#readme",
+  "homepage": "https://github.com/mcclowes/omg/tree/main/packages/omg-parser#readme",
   "keywords": [
     "openapi",
     "omg",

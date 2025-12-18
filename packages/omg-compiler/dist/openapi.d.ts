@@ -8,7 +8,7 @@
  * - Supports recursive/self-referencing types
  * - Generates meaningful schema names from context
  */
-import type { ParsedApi } from '@omg/parser';
+import type { ParsedApi } from 'omg-parser';
 export interface OpenApiSpec {
     openapi: '3.1.0';
     info: {

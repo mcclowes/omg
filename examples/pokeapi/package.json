@@ -9,6 +9,6 @@
     "build:json": "omg build api.omg.md -o openapi.json"
   },
   "devDependencies": {
-    "@omg/cli": "file:../../packages/omg-cli"
+    "omg-cli": "file:../../packages/omg-cli"
   }
 }

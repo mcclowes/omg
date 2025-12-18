@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { compileToOpenApi } from './openapi.js';
-import type { ParsedApi, OmgIntersection, OmgReference, OmgObject } from '@omg/parser';
+import type { ParsedApi, OmgIntersection, OmgReference, OmgObject } from 'omg-parser';
 
 function createMinimalApi(types: ParsedApi['types'] = {}): ParsedApi {
   return {

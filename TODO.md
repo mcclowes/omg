@@ -2,13 +2,12 @@
 
 Quick Wins
 - [ ] Publish to NPM
-- [ ] Fix repo URLs in all package.json files
-- [ ] Uncomment .husky/pre-commit and add linting
-- [ ] Add engines field to root package.json
+- [x] Fix repo URLs in all package.json files
+- [x] Uncomment .husky/pre-commit and add linting
+- [x] Add engines field to root package.json
 - [ ] CI setup
 - [ ] Run validate on the examples in the CI
 - [ ] Add contributing file
-- [ ] Husky stuff
 
 ### Immediate (Language Design Finalization)
 
@@ -19,8 +18,8 @@ Quick Wins
 
 ### Medium-term (Developer Experience)
 
-- [ ] **Language Server Protocol** - Autocomplete, hover, go-to-definition
-- [ ] **VS Code extension** - Full editor integration
+- [x] **Language Server Protocol** - Autocomplete, hover, go-to-definition
+- [x] **VS Code extension** - Full editor integration (published to marketplace)
 - [ ] **Watch mode** - Incremental compilation
 - [ ] **Error messages** - Helpful, actionable diagnostics
 - [ ] **Formatter** - `omg fmt` for consistent style
@@ -120,8 +119,8 @@ This is an early-stage project. To contribute:
 ### Short-term (MVP Implementation)
 
 - [x] **Set up TypeScript project** - Monorepo with packages for parser, compiler, CLI (`packages/`)
-- [x] **Implement lexer** - Tokenize OMG syntax (`@omg/parser`)
+- [x] **Implement lexer** - Tokenize OMG syntax (`omg-parser`)
 - [x] **Implement parser** - Build AST from tokens (`document-parser.ts`, `schema-parser.ts`)
-- [x] **Implement OpenAPI compiler** - Transform AST to OpenAPI 3.1 (`@omg/compiler`)
-- [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`@omg/cli`)
+- [x] **Implement OpenAPI compiler** - Transform AST to OpenAPI 3.1 (`omg-compiler`)
+- [x] **Basic CLI** - `omg build`, `omg lint`, `omg parse`, `omg init` commands (`omg-cli`)
 - [x] **VS Code syntax highlighting** - TextMate grammar (`packages/omg-vscode/`)

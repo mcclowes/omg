@@ -2,7 +2,7 @@
   "name": "omg-vscode",
   "displayName": "OMG - OpenAPI Markdown Grammar",
   "description": "Language support for OMG (OpenAPI Markdown Grammar) files - syntax highlighting, validation, and completions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "mcclowes",
   "engines": {
     "vscode": "^1.80.0"
@@ -24,7 +24,7 @@
     "watch": "tsc -watch -p ./",
     "test": "echo 'No tests'",
     "typecheck": "tsc --noEmit",
-    "bundle-server": "esbuild ../omg-lsp/src/server.ts --bundle --platform=node --target=node18 --outfile=server/server.js --external:vscode",
+    "bundle-server": "esbuild ../omg-lsp/src/server.ts --bundle --platform=node --target=node18 --outfile=server/server.js --external:vscode --minify --tree-shaking=true",
     "vscode:prepublish": "npm run build && npm run bundle-server"
   },
   "dependencies": {
