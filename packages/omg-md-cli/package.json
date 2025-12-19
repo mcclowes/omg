@@ -7,12 +7,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/mcclowes/omg.git",
-    "directory": "packages/omg-cli"
+    "directory": "packages/omg-md-cli"
   },
   "bugs": {
     "url": "https://github.com/mcclowes/omg/issues"
   },
-  "homepage": "https://github.com/mcclowes/omg/tree/main/packages/omg-cli#readme",
+  "homepage": "https://github.com/mcclowes/omg/tree/main/packages/omg-md-cli#readme",
   "keywords": [
     "openapi",
     "omg",
