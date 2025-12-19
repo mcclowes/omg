@@ -27,6 +27,9 @@ npx omg-md-cli <command>
 | [`parse`](/docs/cli/parse) | Parse and inspect AST |
 | [`lint`](/docs/cli/lint) | Lint OMG files |
 | [`fmt`](/docs/cli/fmt) | Format OMG files |
+| [`diff`](/docs/cli/change-management#diff) | Compare two API specifications |
+| [`breaking`](/docs/cli/change-management#breaking) | Detect breaking changes |
+| [`changelog`](/docs/cli/change-management#changelog) | Generate API changelog |
 
 ## Quick Reference
 
@@ -48,6 +51,15 @@ omg lint my-api/
 
 # Format files
 omg fmt my-api/ --write
+
+# Compare API versions (requires oasdiff)
+omg diff v1/api.omg.md v2/api.omg.md
+
+# Detect breaking changes
+omg breaking old.omg.md new.omg.md --fail-on-diff
+
+# Generate changelog
+omg changelog v1/api.omg.md v2/api.omg.md
 ```
 
 ## Global Options
