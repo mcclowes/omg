@@ -56,7 +56,7 @@ Returns a paginated list of invoices for a company.
   totalResults: integer
 }
 ```
-
+```
 
 This compiles to a complete OpenAPI 3.1 specification with proper schemas, error responses, and all the boilerplate handled automatically.
 
