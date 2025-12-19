@@ -5,6 +5,100 @@
 // HTTP Methods
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
+// ============================================
+// OpenAPI Preservation Types
+// ============================================
+
+/** Server definition with variables */
+export interface OmgServer {
+  url: string;
+  description?: string;
+  variables?: Record<string, OmgServerVariable>;
+}
+
+export interface OmgServerVariable {
+  default: string;
+  enum?: string[];
+  description?: string;
+}
+
+/** Security scheme definition */
+export interface OmgSecurityScheme {
+  type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect';
+  description?: string;
+  name?: string;
+  in?: 'query' | 'header' | 'cookie';
+  scheme?: string;
+  bearerFormat?: string;
+  flows?: OmgOAuthFlows;
+  openIdConnectUrl?: string;
+}
+
+export interface OmgOAuthFlows {
+  implicit?: OmgOAuthFlow;
+  password?: OmgOAuthFlow;
+  clientCredentials?: OmgOAuthFlow;
+  authorizationCode?: OmgOAuthFlow;
+}
+
+export interface OmgOAuthFlow {
+  authorizationUrl?: string;
+  tokenUrl?: string;
+  refreshUrl?: string;
+  scopes: Record<string, string>;
+}
+
+/** Security requirement (map of scheme name to scopes) */
+export type OmgSecurityRequirement = Record<string, string[]>;
+
+/** External documentation link */
+export interface OmgExternalDocs {
+  url: string;
+  description?: string;
+}
+
+/** Example object */
+export interface OmgExample {
+  summary?: string;
+  description?: string;
+  value?: unknown;
+  externalValue?: string;
+}
+
+/** Header definition */
+export interface OmgHeader {
+  description?: string;
+  required?: boolean;
+  deprecated?: boolean;
+  schema?: OmgSchema;
+  example?: unknown;
+  examples?: Record<string, OmgExample>;
+}
+
+/** Tag with description */
+export interface OmgTag {
+  name: string;
+  description?: string;
+  externalDocs?: OmgExternalDocs;
+}
+
+/** License information */
+export interface OmgLicense {
+  name: string;
+  url?: string;
+  identifier?: string;
+}
+
+/** Link object for response linking */
+export interface OmgLink {
+  operationRef?: string;
+  operationId?: string;
+  parameters?: Record<string, unknown>;
+  requestBody?: unknown;
+  description?: string;
+  server?: OmgServer;
+}
+
 // Webhook metadata for endpoints
 export interface EndpointWebhooks {
   /** Webhooks that may be fired in response to this endpoint */
@@ -32,6 +126,14 @@ export interface EndpointFrontMatter {
    * Each variant generates a separate path with #value suffix.
    */
   expandVariants?: string;
+  /** Operation-level security requirements */
+  security?: OmgSecurityRequirement[];
+  /** External documentation */
+  externalDocs?: OmgExternalDocs;
+  /** Operation-level server overrides */
+  servers?: OmgServer[];
+  /** Vendor extensions (x-*) passthrough */
+  extensions?: Record<string, unknown>;
 }
 
 // Front matter for API root
@@ -45,6 +147,22 @@ export interface ApiFrontMatter {
     email?: string;
     url?: string;
   };
+  /** All server definitions */
+  servers?: OmgServer[];
+  /** Global security requirements */
+  security?: OmgSecurityRequirement[];
+  /** Security scheme definitions */
+  securitySchemes?: Record<string, OmgSecurityScheme>;
+  /** License information */
+  license?: OmgLicense;
+  /** Terms of service URL */
+  termsOfService?: string;
+  /** External documentation */
+  externalDocs?: OmgExternalDocs;
+  /** Tag definitions with descriptions */
+  tags?: OmgTag[];
+  /** Vendor extensions (x-*) passthrough */
+  extensions?: Record<string, unknown>;
 }
 
 // Code block types
@@ -77,6 +195,8 @@ export interface OmgBlock {
   content: string;
   parsed?: OmgSchema; // Parsed schema (after OMG parsing)
   parsedResponses?: ParsedReturnsBlock; // For omg.returns blocks
+  /** Full response metadata for omg.response blocks */
+  parsedResponse?: ParsedResponse;
   line: number;
   /** @when condition for variant expansion */
   whenCondition?: WhenCondition;
@@ -128,7 +248,29 @@ export type OmgType =
   | OmgIntersection
   | OmgReference;
 
-export interface OmgPrimitive {
+/** Common metadata fields for all OmgType variants */
+export interface OmgTypeMetadata {
+  nullable?: boolean;
+  optional?: boolean;
+  annotations: OmgAnnotation[];
+  description?: string;
+  /** Example value */
+  example?: unknown;
+  /** Named examples */
+  examples?: Record<string, OmgExample>;
+  /** Read-only field */
+  readOnly?: boolean;
+  /** Write-only field */
+  writeOnly?: boolean;
+  /** Deprecated field */
+  deprecated?: boolean;
+  /** Schema title */
+  title?: string;
+  /** Vendor extensions (x-*) passthrough */
+  extensions?: Record<string, unknown>;
+}
+
+export interface OmgPrimitive extends OmgTypeMetadata {
   kind: 'primitive';
   type:
     | 'string'
@@ -140,64 +282,36 @@ export interface OmgPrimitive {
     | 'datetime'
     | 'uuid'
     | 'any';
-  nullable?: boolean;
-  optional?: boolean;
-  annotations: OmgAnnotation[];
-  description?: string;
 }
 
-export interface OmgObject {
+export interface OmgObject extends OmgTypeMetadata {
   kind: 'object';
   properties: Record<string, OmgType>;
-  nullable?: boolean;
-  optional?: boolean;
-  annotations: OmgAnnotation[];
-  description?: string;
 }
 
-export interface OmgArray {
+export interface OmgArray extends OmgTypeMetadata {
   kind: 'array';
   items: OmgType;
-  nullable?: boolean;
-  optional?: boolean;
-  annotations: OmgAnnotation[];
-  description?: string;
 }
 
-export interface OmgEnum {
+export interface OmgEnum extends OmgTypeMetadata {
   kind: 'enum';
   values: (string | number | boolean)[];
-  nullable?: boolean;
-  optional?: boolean;
-  annotations: OmgAnnotation[];
-  description?: string;
 }
 
-export interface OmgUnion {
+export interface OmgUnion extends OmgTypeMetadata {
   kind: 'union';
   types: OmgType[];
-  nullable?: boolean;
-  optional?: boolean;
-  annotations: OmgAnnotation[];
-  description?: string;
 }
 
-export interface OmgIntersection {
+export interface OmgIntersection extends OmgTypeMetadata {
   kind: 'intersection';
   types: OmgType[];
-  nullable?: boolean;
-  optional?: boolean;
-  annotations: OmgAnnotation[];
-  description?: string;
 }
 
-export interface OmgReference {
+export interface OmgReference extends OmgTypeMetadata {
   kind: 'reference';
   name: string;
-  nullable?: boolean;
-  optional?: boolean;
-  annotations: OmgAnnotation[];
-  description?: string;
 }
 
 export interface OmgAnnotation {
@@ -232,6 +346,16 @@ export interface ParsedResponse {
   schema: OmgSchema | null;
   condition?: string;
   description?: string;
+  /** Response headers */
+  headers?: Record<string, OmgHeader>;
+  /** Response links */
+  links?: Record<string, OmgLink>;
+  /** Example value */
+  example?: unknown;
+  /** Named examples */
+  examples?: Record<string, OmgExample>;
+  /** Vendor extensions (x-*) passthrough */
+  extensions?: Record<string, unknown>;
 }
 
 export interface ParsedEndpoint {
@@ -253,6 +377,14 @@ export interface ParsedEndpoint {
   };
   requestBody: OmgSchema | null;
   responses: Record<number, ParsedResponse>;
+  /** Operation-level security requirements */
+  security?: OmgSecurityRequirement[];
+  /** External documentation */
+  externalDocs?: OmgExternalDocs;
+  /** Operation-level server overrides */
+  servers?: OmgServer[];
+  /** Vendor extensions (x-*) passthrough */
+  extensions?: Record<string, unknown>;
 }
 
 export interface ParsedApi {
@@ -262,4 +394,26 @@ export interface ParsedApi {
   description: string;
   endpoints: ParsedEndpoint[];
   types: Record<string, OmgSchema>;
+  /** All server definitions */
+  servers?: OmgServer[];
+  /** Global security requirements */
+  security?: OmgSecurityRequirement[];
+  /** Security scheme definitions */
+  securitySchemes?: Record<string, OmgSecurityScheme>;
+  /** License information */
+  license?: OmgLicense;
+  /** Terms of service URL */
+  termsOfService?: string;
+  /** External documentation */
+  externalDocs?: OmgExternalDocs;
+  /** Tag definitions with descriptions */
+  tags?: OmgTag[];
+  /** Contact information */
+  contact?: {
+    name?: string;
+    email?: string;
+    url?: string;
+  };
+  /** Vendor extensions (x-*) passthrough */
+  extensions?: Record<string, unknown>;
 }

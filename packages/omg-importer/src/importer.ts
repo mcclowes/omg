@@ -12,6 +12,15 @@ import type {
   OmgBlockType,
   OmgSchema,
   HttpMethod,
+  OmgServer,
+  OmgSecurityScheme,
+  OmgSecurityRequirement,
+  OmgExternalDocs,
+  OmgTag,
+  OmgHeader,
+  OmgExample,
+  OmgLink,
+  ParsedResponse,
 } from 'omg-parser';
 import type {
   OpenApiSpec,
@@ -22,6 +31,10 @@ import type {
   ResponseObject,
   SchemaObject,
   ReferenceObject,
+  SecuritySchemeObject,
+  HeaderObject,
+  ExampleObject,
+  LinkObject,
 } from './types.js';
 import { isReferenceObject } from './types.js';
 import {
@@ -100,9 +113,15 @@ function createApiDocument(spec: OpenApiSpec, options: ImportOptions): OmgDocume
     version: spec.info.version,
   };
 
-  // Add base URL from servers
+  // Add base URL from first server (for backward compatibility)
   if (spec.servers && spec.servers.length > 0) {
     frontMatter.baseUrl = spec.servers[0].url;
+  }
+
+  // Add all servers
+  const servers = convertServers(spec.servers);
+  if (servers) {
+    frontMatter.servers = servers;
   }
 
   // Add contact info
@@ -112,6 +131,50 @@ function createApiDocument(spec: OpenApiSpec, options: ImportOptions): OmgDocume
       email: spec.info.contact.email,
       url: spec.info.contact.url,
     };
+  }
+
+  // Add license
+  if (spec.info.license) {
+    frontMatter.license = {
+      name: spec.info.license.name,
+      url: spec.info.license.url,
+    };
+  }
+
+  // Add terms of service
+  if (spec.info.termsOfService) {
+    frontMatter.termsOfService = spec.info.termsOfService;
+  }
+
+  // Add security schemes
+  const securitySchemes = convertSecuritySchemes(spec.components?.securitySchemes, spec);
+  if (securitySchemes) {
+    frontMatter.securitySchemes = securitySchemes;
+  }
+
+  // Add global security requirements
+  if (spec.security && spec.security.length > 0) {
+    frontMatter.security = spec.security as OmgSecurityRequirement[];
+  }
+
+  // Add external docs
+  if (spec.externalDocs) {
+    frontMatter.externalDocs = {
+      url: spec.externalDocs.url,
+      description: spec.externalDocs.description,
+    };
+  }
+
+  // Add tags with descriptions
+  const tags = convertTags(spec.tags);
+  if (tags) {
+    frontMatter.tags = tags;
+  }
+
+  // Passthrough vendor extensions
+  const extensions = extractExtensions(spec as unknown as Record<string, unknown>);
+  if (extensions) {
+    frontMatter.extensions = extensions;
   }
 
   const baseDir = options.baseDir || '.';
@@ -269,6 +332,31 @@ function convertOperation(
     }
   }
 
+  // Add security requirements
+  if (operation.security && operation.security.length > 0) {
+    frontMatter.security = operation.security as OmgSecurityRequirement[];
+  }
+
+  // Add external docs
+  if (operation.externalDocs) {
+    frontMatter.externalDocs = {
+      url: operation.externalDocs.url,
+      description: operation.externalDocs.description,
+    };
+  }
+
+  // Add server overrides
+  const servers = convertServers(operation.servers);
+  if (servers) {
+    frontMatter.servers = servers;
+  }
+
+  // Passthrough vendor extensions
+  const extensions = extractExtensions(operation as unknown as Record<string, unknown>);
+  if (extensions) {
+    frontMatter.extensions = extensions;
+  }
+
   // Collect blocks
   const blocks: OmgBlock[] = [];
 
@@ -332,7 +420,7 @@ function convertOperation(
   // Convert responses
   if (operation.responses) {
     for (const [statusCode, response] of Object.entries(operation.responses)) {
-      const responseSchema = convertResponse(response, spec, ctx, warnings);
+      const parsedResponse = convertResponseFull(response, spec, ctx, warnings);
       const code = parseInt(statusCode, 10);
 
       if (!isNaN(code)) {
@@ -341,7 +429,8 @@ function convertOperation(
           type: blockType,
           statusCode: code === 200 ? undefined : code,
           content: '',
-          parsed: responseSchema || undefined,
+          parsed: parsedResponse.schema || undefined,
+          parsedResponse, // Store full response metadata
           line: 0,
         });
       }
@@ -391,6 +480,28 @@ function parametersToSchema(params: ParameterObject[], ctx: ConversionContext): 
     // Add description
     if (param.description) {
       paramSchema.description = param.description;
+    }
+
+    // Add deprecated flag
+    if (param.deprecated) {
+      paramSchema.deprecated = true;
+    }
+
+    // Add example
+    if (param.example !== undefined) {
+      paramSchema.example = param.example;
+    }
+
+    // Add examples
+    const examples = convertExamples(param.examples);
+    if (examples) {
+      paramSchema.examples = examples;
+    }
+
+    // Add vendor extensions
+    const extensions = extractExtensions(param as unknown as Record<string, unknown>);
+    if (extensions) {
+      paramSchema.extensions = extensions;
     }
 
     properties[param.name] = paramSchema;
@@ -455,14 +566,14 @@ function resolveRequestBodyRef(ref: string, spec: OpenApiSpec): RequestBodyObjec
 }
 
 /**
- * Convert response to schema
+ * Convert response to full ParsedResponse with metadata
  */
-function convertResponse(
+function convertResponseFull(
   response: ResponseObject | ReferenceObject,
   spec: OpenApiSpec,
   ctx: ConversionContext,
   warnings: ImportWarning[]
-): OmgSchema | null {
+): ParsedResponse {
   // Resolve reference if needed
   if (isReferenceObject(response)) {
     const resolved = resolveResponseRef(response.$ref, spec);
@@ -470,28 +581,71 @@ function convertResponse(
       warnings.push({
         message: `Could not resolve response reference: ${response.$ref}`,
       });
-      return null;
+      return { schema: null };
     }
     response = resolved;
   }
 
+  const result: ParsedResponse = {
+    schema: null,
+    description: response.description,
+  };
+
+  // Import response headers
+  const headers = convertHeaders(response.headers, ctx);
+  if (headers) {
+    result.headers = headers;
+  }
+
+  // Import links
+  const links = convertLinks(response.links);
+  if (links) {
+    result.links = links;
+  }
+
   // No content (e.g., 204 No Content)
   if (!response.content) {
-    return null;
+    return result;
   }
 
-  // Get JSON content schema
+  // Get JSON content and extract schema + examples
   const jsonContent = response.content['application/json'];
-  if (!jsonContent?.schema) {
+  if (jsonContent?.schema) {
+    result.schema = convertSchema(jsonContent.schema, ctx);
+
+    // Import example
+    if (jsonContent.example !== undefined) {
+      result.example = jsonContent.example;
+    }
+
+    // Import examples
+    const examples = convertExamples(jsonContent.examples);
+    if (examples) {
+      result.examples = examples;
+    }
+  } else {
     // Try other content types
     const anyContent = Object.values(response.content)[0];
-    if (!anyContent?.schema) {
-      return null;
+    if (anyContent?.schema) {
+      result.schema = convertSchema(anyContent.schema, ctx);
+
+      if (anyContent.example !== undefined) {
+        result.example = anyContent.example;
+      }
+      const examples = convertExamples(anyContent.examples);
+      if (examples) {
+        result.examples = examples;
+      }
     }
-    return convertSchema(anyContent.schema, ctx);
   }
 
-  return convertSchema(jsonContent.schema, ctx);
+  // Import vendor extensions
+  const extensions = extractExtensions(response as unknown as Record<string, unknown>);
+  if (extensions) {
+    result.extensions = extensions;
+  }
+
+  return result;
 }
 
 /**
@@ -709,4 +863,144 @@ function toKebabCase(str: string): string {
     .replace(/([a-z])([A-Z])/g, '$1-$2')
     .replace(/[\s_]+/g, '-')
     .toLowerCase();
+}
+
+// ============================================
+// Extension and Metadata Extraction Helpers
+// ============================================
+
+/** Known OMG-specific extensions that are handled separately */
+const KNOWN_EXTENSIONS = ['x-follows', 'x-webhooks-resulting', 'x-webhooks-listen'];
+
+/**
+ * Extract vendor extensions (x-*) from an object, excluding known ones
+ */
+function extractExtensions(obj: Record<string, unknown>): Record<string, unknown> | undefined {
+  const extensions: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (key.startsWith('x-') && !KNOWN_EXTENSIONS.includes(key)) {
+      extensions[key] = value;
+    }
+  }
+  return Object.keys(extensions).length > 0 ? extensions : undefined;
+}
+
+/**
+ * Convert OpenAPI servers to OmgServer format
+ */
+function convertServers(servers: OpenApiSpec['servers']): OmgServer[] | undefined {
+  if (!servers || servers.length === 0) return undefined;
+  return servers.map((s) => ({
+    url: s.url,
+    description: s.description,
+    variables: s.variables,
+  }));
+}
+
+/**
+ * Convert OpenAPI security schemes to OMG format
+ */
+function convertSecuritySchemes(
+  schemes: Record<string, SecuritySchemeObject | ReferenceObject> | undefined,
+  spec: OpenApiSpec
+): Record<string, OmgSecurityScheme> | undefined {
+  if (!schemes) return undefined;
+
+  const result: Record<string, OmgSecurityScheme> = {};
+  for (const [name, schemeOrRef] of Object.entries(schemes)) {
+    if (isReferenceObject(schemeOrRef)) continue;
+    const scheme = schemeOrRef;
+    result[name] = {
+      type: scheme.type,
+      description: scheme.description,
+      name: scheme.name,
+      in: scheme.in,
+      scheme: scheme.scheme,
+      bearerFormat: scheme.bearerFormat,
+      flows: scheme.flows,
+      openIdConnectUrl: scheme.openIdConnectUrl,
+    };
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
+ * Convert OpenAPI tags to OmgTag format
+ */
+function convertTags(tags: OpenApiSpec['tags']): OmgTag[] | undefined {
+  if (!tags || tags.length === 0) return undefined;
+  return tags.map((t) => ({
+    name: t.name,
+    description: t.description,
+    externalDocs: t.externalDocs,
+  }));
+}
+
+/**
+ * Convert OpenAPI headers to OmgHeader format
+ */
+function convertHeaders(
+  headers: Record<string, HeaderObject | ReferenceObject> | undefined,
+  ctx: ConversionContext
+): Record<string, OmgHeader> | undefined {
+  if (!headers) return undefined;
+
+  const result: Record<string, OmgHeader> = {};
+  for (const [name, headerOrRef] of Object.entries(headers)) {
+    if (isReferenceObject(headerOrRef)) continue;
+    const header = headerOrRef;
+    result[name] = {
+      description: header.description,
+      required: header.required,
+      deprecated: header.deprecated,
+      schema: header.schema ? convertSchema(header.schema, ctx) : undefined,
+    };
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
+ * Convert OpenAPI examples to OmgExample format
+ */
+function convertExamples(
+  examples: Record<string, ExampleObject | ReferenceObject> | undefined
+): Record<string, OmgExample> | undefined {
+  if (!examples) return undefined;
+
+  const result: Record<string, OmgExample> = {};
+  for (const [name, exampleOrRef] of Object.entries(examples)) {
+    if (isReferenceObject(exampleOrRef)) continue;
+    const example = exampleOrRef;
+    result[name] = {
+      summary: example.summary,
+      description: example.description,
+      value: example.value,
+      externalValue: example.externalValue,
+    };
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
+ * Convert OpenAPI links to OmgLink format
+ */
+function convertLinks(
+  links: Record<string, LinkObject | ReferenceObject> | undefined
+): Record<string, OmgLink> | undefined {
+  if (!links) return undefined;
+
+  const result: Record<string, OmgLink> = {};
+  for (const [name, linkOrRef] of Object.entries(links)) {
+    if (isReferenceObject(linkOrRef)) continue;
+    const link = linkOrRef;
+    result[name] = {
+      operationRef: link.operationRef,
+      operationId: link.operationId,
+      parameters: link.parameters,
+      requestBody: link.requestBody,
+      description: link.description,
+      server: link.server,
+    };
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }

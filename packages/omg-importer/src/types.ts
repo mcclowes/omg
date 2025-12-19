@@ -11,6 +11,10 @@ export interface OpenApiSpec {
   paths?: Record<string, PathItemObject>;
   components?: ComponentsObject;
   tags?: TagObject[];
+  security?: SecurityRequirementObject[];
+  externalDocs?: ExternalDocObject;
+  // Allow vendor extensions
+  [key: `x-${string}`]: unknown;
 }
 
 export interface InfoObject {
@@ -83,9 +87,12 @@ export interface OperationObject {
   responses?: Record<string, ResponseObject | ReferenceObject>;
   security?: SecurityRequirementObject[];
   servers?: ServerObject[];
+  externalDocs?: ExternalDocObject;
   'x-follows'?: string[];
   'x-webhooks-resulting'?: string[];
   'x-webhooks-listen'?: string[];
+  // Allow vendor extensions
+  [key: `x-${string}`]: unknown;
 }
 
 export interface ParameterObject {
@@ -100,6 +107,8 @@ export interface ParameterObject {
   explode?: boolean;
   example?: unknown;
   examples?: Record<string, ExampleObject | ReferenceObject>;
+  // Allow vendor extensions
+  [key: `x-${string}`]: unknown;
 }
 
 export interface RequestBodyObject {
@@ -113,6 +122,8 @@ export interface ResponseObject {
   headers?: Record<string, HeaderObject | ReferenceObject>;
   content?: Record<string, MediaTypeObject>;
   links?: Record<string, LinkObject | ReferenceObject>;
+  // Allow vendor extensions
+  [key: `x-${string}`]: unknown;
 }
 
 export interface MediaTypeObject {

@@ -418,6 +418,11 @@ function buildSingleEndpoint(
     },
     requestBody: bodyBlock?.parsed || null,
     responses,
+    // Pass through endpoint-level OAS fields
+    security: frontMatter?.security,
+    servers: frontMatter?.servers,
+    externalDocs: frontMatter?.externalDocs,
+    extensions: frontMatter?.extensions,
   };
 }
 
@@ -464,6 +469,16 @@ export function loadApi(rootPath: string): ParsedApi {
     description: rootDoc.description,
     endpoints,
     types,
+    // Pass through all API-level OAS fields
+    contact: rootFrontMatter?.contact,
+    servers: rootFrontMatter?.servers,
+    security: rootFrontMatter?.security,
+    securitySchemes: rootFrontMatter?.securitySchemes,
+    license: rootFrontMatter?.license,
+    termsOfService: rootFrontMatter?.termsOfService,
+    externalDocs: rootFrontMatter?.externalDocs,
+    tags: rootFrontMatter?.tags,
+    extensions: rootFrontMatter?.extensions,
   };
 }
 

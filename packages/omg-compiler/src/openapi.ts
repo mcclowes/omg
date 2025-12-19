@@ -23,28 +23,49 @@ import type {
   OmgIntersection,
   OmgReference,
   OmgAnnotation,
+  OmgServer,
+  OmgSecurityScheme,
+  OmgSecurityRequirement,
+  OmgExternalDocs,
+  OmgTag,
+  OmgHeader,
+  OmgExample,
+  OmgLink,
+  OmgLicense,
 } from 'omg-parser';
 
-// OpenAPI 3.1 Types (simplified)
+// OpenAPI 3.1 Types (extended for full preservation)
 export interface OpenApiSpec {
   openapi: '3.1.0';
   info: {
     title: string;
     version: string;
     description?: string;
+    termsOfService?: string;
     contact?: {
       name?: string;
       email?: string;
       url?: string;
     };
+    license?: {
+      name: string;
+      url?: string;
+      identifier?: string;
+    };
   };
-  servers?: Array<{ url: string; description?: string }>;
+  servers?: OmgServer[];
   paths: Record<string, PathItem>;
+  security?: OmgSecurityRequirement[];
+  tags?: OmgTag[];
+  externalDocs?: OmgExternalDocs;
   components?: {
     schemas?: Record<string, SchemaObject>;
     parameters?: Record<string, ParameterObject>;
     responses?: Record<string, ResponseObject>;
+    securitySchemes?: Record<string, OmgSecurityScheme>;
   };
+  // Allow vendor extensions passthrough
+  [key: string]: unknown;
 }
 
 interface PathItem {
@@ -66,12 +87,17 @@ interface OperationObject {
   parameters?: ParameterObject[];
   requestBody?: RequestBodyObject;
   responses: Record<string, ResponseObject>;
+  security?: OmgSecurityRequirement[];
+  servers?: OmgServer[];
+  externalDocs?: OmgExternalDocs;
   /** List of operationIds that should be called before this endpoint */
   'x-follows'?: string[];
   /** Webhooks that may be fired in response to this endpoint */
   'x-webhooks-resulting'?: string[];
   /** Webhooks to listen to for updates from this endpoint's operation */
   'x-webhooks-listen'?: string[];
+  // Allow vendor extensions passthrough
+  [key: string]: unknown;
 }
 
 interface ParameterObject {
@@ -90,16 +116,46 @@ interface RequestBodyObject {
 interface ResponseObject {
   description: string;
   content?: Record<string, MediaTypeObject>;
+  headers?: Record<string, HeaderObject>;
+  links?: Record<string, LinkObject>;
+  // Allow vendor extensions passthrough
+  [key: string]: unknown;
+}
+
+interface HeaderObject {
+  description?: string;
+  required?: boolean;
+  deprecated?: boolean;
+  schema?: SchemaObject;
+}
+
+interface LinkObject {
+  operationRef?: string;
+  operationId?: string;
+  parameters?: Record<string, unknown>;
+  requestBody?: unknown;
+  description?: string;
+  server?: OmgServer;
 }
 
 interface MediaTypeObject {
   schema: SchemaObject;
+  example?: unknown;
+  examples?: Record<string, ExampleObject>;
+}
+
+interface ExampleObject {
+  summary?: string;
+  description?: string;
+  value?: unknown;
+  externalValue?: string;
 }
 
 interface SchemaObject {
   type?: string;
   format?: string;
   description?: string;
+  title?: string;
   properties?: Record<string, SchemaObject>;
   items?: SchemaObject;
   required?: string[];
@@ -116,6 +172,13 @@ interface SchemaObject {
   pattern?: string;
   default?: unknown;
   $ref?: string;
+  // Metadata for round-trip preservation
+  example?: unknown;
+  readOnly?: boolean;
+  writeOnly?: boolean;
+  deprecated?: boolean;
+  // Allow vendor extensions passthrough
+  [key: string]: unknown;
 }
 
 /**
@@ -237,8 +300,53 @@ export function compileToOpenApi(
     },
   };
 
-  if (api.baseUrl) {
+  // Add contact info
+  if (api.contact) {
+    spec.info.contact = api.contact;
+  }
+
+  // Add license
+  if (api.license) {
+    spec.info.license = api.license;
+  }
+
+  // Add terms of service
+  if (api.termsOfService) {
+    spec.info.termsOfService = api.termsOfService;
+  }
+
+  // Add servers (full list if available, otherwise just baseUrl)
+  if (api.servers && api.servers.length > 0) {
+    spec.servers = api.servers;
+  } else if (api.baseUrl) {
     spec.servers = [{ url: api.baseUrl }];
+  }
+
+  // Add security schemes to components
+  if (api.securitySchemes) {
+    spec.components!.securitySchemes = api.securitySchemes;
+  }
+
+  // Add global security requirements
+  if (api.security && api.security.length > 0) {
+    spec.security = api.security;
+  }
+
+  // Add external docs
+  if (api.externalDocs) {
+    spec.externalDocs = api.externalDocs;
+  }
+
+  // Add tags with descriptions
+  if (api.tags && api.tags.length > 0) {
+    spec.tags = api.tags;
+  }
+
+  // Passthrough vendor extensions
+  if (api.extensions) {
+    for (const [key, value] of Object.entries(api.extensions)) {
+      spec[key] = value;
+    }
   }
 
   // Compile shared types first (they may be referenced)
@@ -308,6 +416,28 @@ function compileEndpointWithContext(
     operation['x-webhooks-listen'] = endpoint.webhooks.listen;
   }
 
+  // Add security requirements
+  if (endpoint.security && endpoint.security.length > 0) {
+    operation.security = endpoint.security;
+  }
+
+  // Add external docs
+  if (endpoint.externalDocs) {
+    operation.externalDocs = endpoint.externalDocs;
+  }
+
+  // Add server overrides
+  if (endpoint.servers && endpoint.servers.length > 0) {
+    operation.servers = endpoint.servers;
+  }
+
+  // Passthrough vendor extensions
+  if (endpoint.extensions) {
+    for (const [key, value] of Object.entries(endpoint.extensions)) {
+      operation[key] = value;
+    }
+  }
+
   // Compile parameters
   const parameters: ParameterObject[] = [];
 
@@ -351,21 +481,44 @@ function compileEndpointWithContext(
     const ctx = { ...parentCtx, path: [baseName, `Response${statusCode}`], depth: 0 };
     const description = response.description || getStatusDescription(parseInt(statusCode));
 
+    const oasResponse: ResponseObject = { description };
+
     if (response.schema) {
-      operation.responses[statusCode] = {
-        description,
-        content: {
-          'application/json': {
-            schema: compileSchemaWithContext(response.schema, ctx),
-          },
-        },
+      const mediaType: MediaTypeObject = {
+        schema: compileSchemaWithContext(response.schema, ctx),
       };
-    } else {
-      // No schema (e.g., 204 No Content)
-      operation.responses[statusCode] = {
-        description,
-      };
+
+      // Add example
+      if (response.example !== undefined) {
+        mediaType.example = response.example;
+      }
+
+      // Add examples
+      if (response.examples) {
+        mediaType.examples = response.examples as Record<string, ExampleObject>;
+      }
+
+      oasResponse.content = { 'application/json': mediaType };
     }
+
+    // Add response headers
+    if (response.headers) {
+      oasResponse.headers = compileHeaders(response.headers);
+    }
+
+    // Add response links
+    if (response.links) {
+      oasResponse.links = response.links as Record<string, LinkObject>;
+    }
+
+    // Passthrough vendor extensions
+    if (response.extensions) {
+      for (const [key, value] of Object.entries(response.extensions)) {
+        oasResponse[key] = value;
+      }
+    }
+
+    operation.responses[statusCode] = oasResponse;
   }
 
   // Ensure at least one response
@@ -461,6 +614,36 @@ function compileSchemaInternal(type: OmgType, ctx: CompilerContext): SchemaObjec
   // Handle description
   if (type.description) {
     schema.description = type.description;
+  }
+
+  // Handle title
+  if ('title' in type && type.title) {
+    schema.title = type.title;
+  }
+
+  // Handle example
+  if ('example' in type && type.example !== undefined) {
+    schema.example = type.example;
+  }
+
+  // Handle readOnly/writeOnly
+  if ('readOnly' in type && type.readOnly) {
+    schema.readOnly = true;
+  }
+  if ('writeOnly' in type && type.writeOnly) {
+    schema.writeOnly = true;
+  }
+
+  // Handle deprecated
+  if ('deprecated' in type && type.deprecated) {
+    schema.deprecated = true;
+  }
+
+  // Passthrough vendor extensions
+  if ('extensions' in type && type.extensions) {
+    for (const [key, value] of Object.entries(type.extensions)) {
+      schema[key] = value;
+    }
   }
 
   // Apply annotations
@@ -647,6 +830,26 @@ function compileIntersectionWithContext(
 function compileReference(type: OmgReference, schema: SchemaObject): SchemaObject {
   schema.$ref = `#/components/schemas/${type.name}`;
   return schema;
+}
+
+/**
+ * Compile headers to OpenAPI format
+ */
+function compileHeaders(headers: Record<string, OmgHeader>): Record<string, HeaderObject> {
+  const result: Record<string, HeaderObject> = {};
+  for (const [name, header] of Object.entries(headers)) {
+    const h: HeaderObject = {
+      description: header.description,
+      required: header.required,
+      deprecated: header.deprecated,
+    };
+    if (header.schema) {
+      const ctx = createContext();
+      h.schema = compileSchemaWithContext(header.schema, ctx);
+    }
+    result[name] = h;
+  }
+  return result;
 }
 
 /**

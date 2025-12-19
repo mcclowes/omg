@@ -14,6 +14,7 @@ export type {
   PartialRef,
   OmgDocument,
   OmgType,
+  OmgTypeMetadata,
   OmgPrimitive,
   OmgObject,
   OmgArray,
@@ -30,6 +31,20 @@ export type {
   ParsedReturnsBlock,
   ParseWarning,
   WhenCondition,
+  EndpointWebhooks,
+  // New OpenAPI preservation types
+  OmgServer,
+  OmgServerVariable,
+  OmgSecurityScheme,
+  OmgOAuthFlows,
+  OmgOAuthFlow,
+  OmgSecurityRequirement,
+  OmgExternalDocs,
+  OmgExample,
+  OmgHeader,
+  OmgTag,
+  OmgLicense,
+  OmgLink,
 } from './types.js';
 
 // Document parsing

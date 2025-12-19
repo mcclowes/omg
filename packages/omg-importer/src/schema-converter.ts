@@ -265,6 +265,9 @@ function convertAllOf(schema: SchemaObject, ctx: ConversionContext): OmgType {
     description: schema.description,
   };
 
+  // Add OAS metadata
+  applyOasMetadata(result, schema);
+
   return result;
 }
 
@@ -286,6 +289,9 @@ function convertOneOf(schema: SchemaObject, ctx: ConversionContext): OmgType {
     annotations: extractAnnotations(schema),
     description: schema.description,
   };
+
+  // Add OAS metadata
+  applyOasMetadata(result, schema);
 
   return result;
 }
@@ -309,6 +315,9 @@ function convertAnyOf(schema: SchemaObject, ctx: ConversionContext): OmgType {
     description: schema.description,
   };
 
+  // Add OAS metadata
+  applyOasMetadata(result, schema);
+
   return result;
 }
 
@@ -325,6 +334,9 @@ function convertEnum(schema: SchemaObject): OmgType {
     annotations: extractAnnotations(schema),
     description: schema.description,
   };
+
+  // Add OAS metadata
+  applyOasMetadata(result, schema);
 
   return result;
 }
@@ -353,6 +365,9 @@ function convertObject(schema: SchemaObject, ctx: ConversionContext): OmgType {
     description: schema.description,
   };
 
+  // Add OAS metadata
+  applyOasMetadata(result, schema);
+
   return result;
 }
 
@@ -376,6 +391,9 @@ function convertArray(schema: SchemaObject, ctx: ConversionContext): OmgType {
     annotations: extractAnnotations(schema),
     description: schema.description,
   };
+
+  // Add OAS metadata
+  applyOasMetadata(result, schema);
 
   return result;
 }
@@ -440,13 +458,18 @@ function convertNull(schema: SchemaObject): OmgType {
  * Create a primitive type with metadata from schema
  */
 function createPrimitive(type: OmgPrimitive['type'], schema: SchemaObject): OmgPrimitive {
-  return {
+  const result: OmgPrimitive = {
     kind: 'primitive',
     type,
     nullable: isNullable(schema),
     annotations: extractAnnotations(schema),
     description: schema.description,
   };
+
+  // Add OAS metadata for round-trip preservation
+  applyOasMetadata(result, schema);
+
+  return result;
 }
 
 /**
@@ -459,7 +482,56 @@ function applySchemaMetadata(type: OmgType, schema: SchemaObject): OmgType {
   if (isNullable(schema) && !type.nullable) {
     type.nullable = true;
   }
+  // Add OAS metadata for round-trip preservation
+  applyOasMetadata(type, schema);
   return type;
+}
+
+/**
+ * Apply OpenAPI metadata fields to a type for round-trip preservation
+ */
+function applyOasMetadata(type: OmgType, schema: SchemaObject): void {
+  // Example value
+  if (schema.example !== undefined) {
+    type.example = schema.example;
+  }
+
+  // Read/write only flags
+  if (schema.readOnly) {
+    type.readOnly = true;
+  }
+  if (schema.writeOnly) {
+    type.writeOnly = true;
+  }
+
+  // Deprecated flag
+  if (schema.deprecated) {
+    type.deprecated = true;
+  }
+
+  // Title
+  if (schema.title) {
+    type.title = schema.title;
+  }
+
+  // Vendor extensions
+  const extensions = extractSchemaExtensions(schema);
+  if (extensions) {
+    type.extensions = extensions;
+  }
+}
+
+/**
+ * Extract vendor extensions (x-*) from a schema
+ */
+function extractSchemaExtensions(schema: SchemaObject): Record<string, unknown> | undefined {
+  const extensions: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(schema)) {
+    if (key.startsWith('x-')) {
+      extensions[key] = value;
+    }
+  }
+  return Object.keys(extensions).length > 0 ? extensions : undefined;
 }
 
 /**
