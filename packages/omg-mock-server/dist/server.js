@@ -13,13 +13,15 @@ exports.startMockServer = startMockServer;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const mock_generator_js_1 = require("./mock-generator.js");
+const vague_generator_js_1 = require("./vague-generator.js");
 /**
  * Create a mock server from a ParsedApi
  */
 function createMockServer(api, options = {}) {
-    const { port = 3000, basePath = '', cors: enableCors = true, seed, delay = 0, logging = true, handlers = {}, } = options;
+    const { port = 3000, basePath = '', cors: enableCors = true, seed, delay = 0, logging = true, useVague = true, handlers = {}, } = options;
     const app = (0, express_1.default)();
     const mockGenerator = (0, mock_generator_js_1.createMockGenerator)(api, seed);
+    const vagueGenerator = useVague ? (0, vague_generator_js_1.createVagueGenerator)(api, seed) : null;
     const routes = [];
     // Middleware
     app.use(express_1.default.json());
@@ -63,7 +65,7 @@ function createMockServer(api, options = {}) {
         }
         else {
             // Create default mock handler
-            const handler = createRouteHandler(endpoint, mockGenerator, api.types);
+            const handler = createRouteHandler(endpoint, mockGenerator, vagueGenerator, api.types);
             app[method](routePath, handler);
         }
         routes.push({
@@ -144,43 +146,61 @@ function convertPath(openApiPath) {
 /**
  * Create a route handler for an endpoint
  */
-function createRouteHandler(endpoint, mockGenerator, types) {
-    return (req, res) => {
-        // Validate request body if expected
-        if (endpoint.requestBody && endpoint.method !== 'GET') {
-            if (!req.body || Object.keys(req.body).length === 0) {
-                // Don't require body, just note it's missing
+function createRouteHandler(endpoint, mockGenerator, vagueGenerator, types) {
+    return async (req, res) => {
+        try {
+            // Validate request body if expected
+            if (endpoint.requestBody && endpoint.method !== 'GET') {
+                if (!req.body || Object.keys(req.body).length === 0) {
+                    // Don't require body, just note it's missing
+                }
             }
+            // Determine response status code
+            const responseCodes = Object.keys(endpoint.responses)
+                .map(Number)
+                .sort((a, b) => a - b);
+            // Default to first success code (2xx) or 200
+            let statusCode = responseCodes.find((c) => c >= 200 && c < 300) || responseCodes[0] || 200;
+            // For POST, prefer 201 if available
+            if (endpoint.method === 'POST' && endpoint.responses[201]) {
+                statusCode = 201;
+            }
+            // For DELETE, prefer 204 if available
+            if (endpoint.method === 'DELETE' && endpoint.responses[204]) {
+                res.status(204).send();
+                return;
+            }
+            // Get response schema
+            const responseInfo = endpoint.responses[statusCode];
+            if (!responseInfo || !responseInfo.schema) {
+                // No response schema defined, return empty object
+                res.status(statusCode).json({});
+                return;
+            }
+            // Generate mock response - try Vague first, fallback to simple generator
+            let mockResponse;
+            if (vagueGenerator) {
+                try {
+                    mockResponse = await vagueGenerator.generate(responseInfo.schema);
+                }
+                catch {
+                    // Fallback to simple generator
+                    mockResponse = mockGenerator.generate(responseInfo.schema);
+                }
+            }
+            else {
+                mockResponse = mockGenerator.generate(responseInfo.schema);
+            }
+            // Inject path parameters into response if they exist
+            if (req.params && typeof mockResponse === 'object' && mockResponse !== null) {
+                mockResponse = injectPathParams(mockResponse, req.params);
+            }
+            res.status(statusCode).json(mockResponse);
         }
-        // Determine response status code
-        const responseCodes = Object.keys(endpoint.responses)
-            .map(Number)
-            .sort((a, b) => a - b);
-        // Default to first success code (2xx) or 200
-        let statusCode = responseCodes.find((c) => c >= 200 && c < 300) || responseCodes[0] || 200;
-        // For POST, prefer 201 if available
-        if (endpoint.method === 'POST' && endpoint.responses[201]) {
-            statusCode = 201;
+        catch (error) {
+            console.error('Error generating mock response:', error);
+            res.status(500).json({ error: 'Failed to generate mock response' });
         }
-        // For DELETE, prefer 204 if available
-        if (endpoint.method === 'DELETE' && endpoint.responses[204]) {
-            res.status(204).send();
-            return;
-        }
-        // Get response schema
-        const responseInfo = endpoint.responses[statusCode];
-        if (!responseInfo || !responseInfo.schema) {
-            // No response schema defined, return empty object
-            res.status(statusCode).json({});
-            return;
-        }
-        // Generate mock response
-        let mockResponse = mockGenerator.generate(responseInfo.schema);
-        // Inject path parameters into response if they exist
-        if (req.params && typeof mockResponse === 'object' && mockResponse !== null) {
-            mockResponse = injectPathParams(mockResponse, req.params);
-        }
-        res.status(statusCode).json(mockResponse);
     };
 }
 /**

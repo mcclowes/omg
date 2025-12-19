@@ -18,6 +18,8 @@ export interface MockServerOptions {
     delay?: number;
     /** Enable request logging */
     logging?: boolean;
+    /** Use Vague for realistic mock data generation (default: true) */
+    useVague?: boolean;
     /** Custom response handlers */
     handlers?: Record<string, (req: Request, res: Response) => void>;
 }
