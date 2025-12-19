@@ -29,7 +29,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w omg-parser && npm run build -w omg-compiler && npm run build -w omg-linter && npm run build -w omg-lsp && npm run build -w omg-md-cli",
+    "build": "npm run build -w omg-parser && npm run build -w omg-compiler && npm run build -w omg-linter && npm run build -w omg-importer && npm run build -w omg-lsp && npm run build -w omg-md-cli",
     "test": "npm run test --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "prepare": "husky install",
