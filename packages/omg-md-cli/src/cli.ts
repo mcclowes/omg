@@ -9,6 +9,8 @@
 import { Command } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
+import { execSync, spawnSync } from 'child_process';
 import chalk from 'chalk';
 import chokidar from 'chokidar';
 import { loadApi, parseDocument, resolveDocument, buildEndpoint, formatDocument } from 'omg-parser';
@@ -16,6 +18,75 @@ import { compileToOpenApi, serialize, detectFormat } from 'omg-compiler';
 import { lintDocument, summarizeLintResults, type Severity, type LintResult } from 'omg-linter';
 import { importOpenApi, generateDocument, generateFiles, type OpenApiSpec } from 'omg-importer';
 import YAML from 'yaml';
+
+/**
+ * Check if oasdiff is installed and available
+ */
+function checkOasdiff(): boolean {
+  try {
+    execSync('oasdiff --version', { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Compile an OMG file to a temporary OpenAPI YAML file
+ * Returns the path to the temp file
+ */
+function compileToTempFile(inputPath: string): string {
+  const api = loadApi(inputPath);
+  const openapi = compileToOpenApi(api);
+  const yaml = serialize(openapi, 'yaml');
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omg-diff-'));
+  const tempFile = path.join(tempDir, 'openapi.yaml');
+  fs.writeFileSync(tempFile, yaml);
+
+  return tempFile;
+}
+
+/**
+ * Clean up temporary files
+ */
+function cleanupTempFiles(...files: string[]): void {
+  for (const file of files) {
+    try {
+      const dir = path.dirname(file);
+      fs.rmSync(dir, { recursive: true, force: true });
+    } catch {
+      // Ignore cleanup errors
+    }
+  }
+}
+
+/**
+ * Run oasdiff command and return the result
+ */
+function runOasdiff(
+  command: 'diff' | 'breaking' | 'changelog',
+  baseSpec: string,
+  revisionSpec: string,
+  options: { format?: string; failOnDiff?: boolean } = {}
+): { output: string; exitCode: number } {
+  const format = options.format || 'text';
+  const args = [command, baseSpec, revisionSpec, '--format', format];
+
+  if (command === 'breaking' && options.failOnDiff) {
+    args.push('--fail-on', 'ERR');
+  }
+
+  const result = spawnSync('oasdiff', args, {
+    encoding: 'utf-8',
+    maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+  });
+
+  return {
+    output: result.stdout || result.stderr || '',
+    exitCode: result.status ?? 1,
+  };
+}
 
 const program = new Command();
 
@@ -730,5 +801,276 @@ program
       }
     }
   );
+
+// Diff command
+program
+  .command('diff <base> <revision>')
+  .description('Compare two OMG API specifications and show all differences')
+  .option('-f, --format <format>', 'Output format: text, yaml, json, html (default: text)', 'text')
+  .option('-o, --output <file>', 'Write output to file instead of stdout')
+  .addHelpText(
+    'after',
+    `
+Examples:
+  $ omg diff v1/api.omg.md v2/api.omg.md
+  $ omg diff old.omg.md new.omg.md --format json
+  $ omg diff base.omg.md head.omg.md -o diff.html --format html
+
+Requirements:
+  This command requires oasdiff to be installed.
+  Install via: brew install oasdiff (macOS) or see https://github.com/oasdiff/oasdiff
+
+Powered by oasdiff: https://github.com/oasdiff/oasdiff
+`
+  )
+  .action(async (base: string, revision: string, options: { format?: string; output?: string }) => {
+    try {
+      // Check oasdiff is installed
+      if (!checkOasdiff()) {
+        console.error(chalk.red('Error: oasdiff is not installed.'));
+        console.error();
+        console.error('Install oasdiff using one of these methods:');
+        console.error(chalk.blue('  brew install oasdiff') + ' (macOS)');
+        console.error(chalk.blue('  go install github.com/oasdiff/oasdiff@latest') + ' (Go)');
+        console.error(
+          chalk.blue(
+            '  curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh'
+          )
+        );
+        console.error();
+        console.error('For more options, see: https://github.com/oasdiff/oasdiff');
+        process.exit(1);
+      }
+
+      const basePath = path.resolve(base);
+      const revisionPath = path.resolve(revision);
+
+      // Validate input files exist
+      if (!fs.existsSync(basePath)) {
+        console.error(chalk.red(`Error: Base file not found: ${basePath}`));
+        process.exit(1);
+      }
+      if (!fs.existsSync(revisionPath)) {
+        console.error(chalk.red(`Error: Revision file not found: ${revisionPath}`));
+        process.exit(1);
+      }
+
+      console.error(chalk.blue(`Compiling ${path.basename(base)}...`));
+      const baseTemp = compileToTempFile(basePath);
+
+      console.error(chalk.blue(`Compiling ${path.basename(revision)}...`));
+      const revisionTemp = compileToTempFile(revisionPath);
+
+      try {
+        console.error(chalk.blue('Running diff...'));
+        const result = runOasdiff('diff', baseTemp, revisionTemp, { format: options.format });
+
+        if (options.output) {
+          fs.writeFileSync(options.output, result.output);
+          console.error(chalk.green(`✓ Diff written to ${options.output}`));
+        } else {
+          console.log(result.output);
+        }
+      } finally {
+        cleanupTempFiles(baseTemp, revisionTemp);
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error: ${(error as Error).message}`));
+      process.exit(1);
+    }
+  });
+
+// Breaking changes command
+program
+  .command('breaking <base> <revision>')
+  .description('Detect breaking changes between two OMG API specifications')
+  .option('-f, --format <format>', 'Output format: text, yaml, json, html (default: text)', 'text')
+  .option('-o, --output <file>', 'Write output to file instead of stdout')
+  .option('--fail-on-diff', 'Exit with code 1 if breaking changes are found (for CI)')
+  .addHelpText(
+    'after',
+    `
+Examples:
+  $ omg breaking v1/api.omg.md v2/api.omg.md
+  $ omg breaking old.omg.md new.omg.md --fail-on-diff
+  $ omg breaking base.omg.md head.omg.md --format json
+
+Breaking changes detected include:
+  - Removed endpoints or operations
+  - New required request parameters
+  - Removed response fields
+  - Type changes (e.g., string to integer)
+  - Enum value removal
+  - Constraint tightening
+
+Requirements:
+  This command requires oasdiff to be installed.
+  Install via: brew install oasdiff (macOS) or see https://github.com/oasdiff/oasdiff
+
+Powered by oasdiff: https://github.com/oasdiff/oasdiff
+`
+  )
+  .action(
+    async (
+      base: string,
+      revision: string,
+      options: { format?: string; output?: string; failOnDiff?: boolean }
+    ) => {
+      try {
+        // Check oasdiff is installed
+        if (!checkOasdiff()) {
+          console.error(chalk.red('Error: oasdiff is not installed.'));
+          console.error();
+          console.error('Install oasdiff using one of these methods:');
+          console.error(chalk.blue('  brew install oasdiff') + ' (macOS)');
+          console.error(chalk.blue('  go install github.com/oasdiff/oasdiff@latest') + ' (Go)');
+          console.error(
+            chalk.blue(
+              '  curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh'
+            )
+          );
+          console.error();
+          console.error('For more options, see: https://github.com/oasdiff/oasdiff');
+          process.exit(1);
+        }
+
+        const basePath = path.resolve(base);
+        const revisionPath = path.resolve(revision);
+
+        // Validate input files exist
+        if (!fs.existsSync(basePath)) {
+          console.error(chalk.red(`Error: Base file not found: ${basePath}`));
+          process.exit(1);
+        }
+        if (!fs.existsSync(revisionPath)) {
+          console.error(chalk.red(`Error: Revision file not found: ${revisionPath}`));
+          process.exit(1);
+        }
+
+        console.error(chalk.blue(`Compiling ${path.basename(base)}...`));
+        const baseTemp = compileToTempFile(basePath);
+
+        console.error(chalk.blue(`Compiling ${path.basename(revision)}...`));
+        const revisionTemp = compileToTempFile(revisionPath);
+
+        try {
+          console.error(chalk.blue('Checking for breaking changes...'));
+          const result = runOasdiff('breaking', baseTemp, revisionTemp, {
+            format: options.format,
+            failOnDiff: options.failOnDiff,
+          });
+
+          if (options.output) {
+            fs.writeFileSync(options.output, result.output);
+            console.error(chalk.green(`✓ Results written to ${options.output}`));
+          } else if (result.output.trim()) {
+            console.log(result.output);
+          }
+
+          // Check if breaking changes were found
+          const hasBreakingChanges = result.output.trim().length > 0;
+
+          if (hasBreakingChanges) {
+            console.error(chalk.red('\n⚠ Breaking changes detected'));
+            if (options.failOnDiff) {
+              process.exit(1);
+            }
+          } else {
+            console.error(chalk.green('\n✓ No breaking changes detected'));
+          }
+        } finally {
+          cleanupTempFiles(baseTemp, revisionTemp);
+        }
+      } catch (error) {
+        console.error(chalk.red(`Error: ${(error as Error).message}`));
+        process.exit(1);
+      }
+    }
+  );
+
+// Changelog command
+program
+  .command('changelog <base> <revision>')
+  .description('Generate a changelog between two OMG API specifications')
+  .option('-f, --format <format>', 'Output format: text, yaml, json, html (default: text)', 'text')
+  .option('-o, --output <file>', 'Write output to file instead of stdout')
+  .addHelpText(
+    'after',
+    `
+Examples:
+  $ omg changelog v1/api.omg.md v2/api.omg.md
+  $ omg changelog old.omg.md new.omg.md --format html -o CHANGELOG.html
+  $ omg changelog base.omg.md head.omg.md --format json
+
+The changelog includes:
+  - Breaking changes (marked as such)
+  - New endpoints and operations
+  - Modified parameters and responses
+  - Deprecations
+  - Documentation changes
+
+Requirements:
+  This command requires oasdiff to be installed.
+  Install via: brew install oasdiff (macOS) or see https://github.com/oasdiff/oasdiff
+
+Powered by oasdiff: https://github.com/oasdiff/oasdiff
+`
+  )
+  .action(async (base: string, revision: string, options: { format?: string; output?: string }) => {
+    try {
+      // Check oasdiff is installed
+      if (!checkOasdiff()) {
+        console.error(chalk.red('Error: oasdiff is not installed.'));
+        console.error();
+        console.error('Install oasdiff using one of these methods:');
+        console.error(chalk.blue('  brew install oasdiff') + ' (macOS)');
+        console.error(chalk.blue('  go install github.com/oasdiff/oasdiff@latest') + ' (Go)');
+        console.error(
+          chalk.blue(
+            '  curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh | sh'
+          )
+        );
+        console.error();
+        console.error('For more options, see: https://github.com/oasdiff/oasdiff');
+        process.exit(1);
+      }
+
+      const basePath = path.resolve(base);
+      const revisionPath = path.resolve(revision);
+
+      // Validate input files exist
+      if (!fs.existsSync(basePath)) {
+        console.error(chalk.red(`Error: Base file not found: ${basePath}`));
+        process.exit(1);
+      }
+      if (!fs.existsSync(revisionPath)) {
+        console.error(chalk.red(`Error: Revision file not found: ${revisionPath}`));
+        process.exit(1);
+      }
+
+      console.error(chalk.blue(`Compiling ${path.basename(base)}...`));
+      const baseTemp = compileToTempFile(basePath);
+
+      console.error(chalk.blue(`Compiling ${path.basename(revision)}...`));
+      const revisionTemp = compileToTempFile(revisionPath);
+
+      try {
+        console.error(chalk.blue('Generating changelog...'));
+        const result = runOasdiff('changelog', baseTemp, revisionTemp, { format: options.format });
+
+        if (options.output) {
+          fs.writeFileSync(options.output, result.output);
+          console.error(chalk.green(`✓ Changelog written to ${options.output}`));
+        } else {
+          console.log(result.output);
+        }
+      } finally {
+        cleanupTempFiles(baseTemp, revisionTemp);
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error: ${(error as Error).message}`));
+      process.exit(1);
+    }
+  });
 
 program.parse();

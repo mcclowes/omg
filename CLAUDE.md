@@ -189,6 +189,15 @@ node packages/omg-md-cli/dist/cli.js fmt my-api/ --write
 
 # Check formatting
 node packages/omg-md-cli/dist/cli.js fmt my-api/ --check
+
+# Compare API versions (requires oasdiff: https://github.com/oasdiff/oasdiff)
+node packages/omg-md-cli/dist/cli.js diff v1/api.omg.md v2/api.omg.md
+
+# Detect breaking changes
+node packages/omg-md-cli/dist/cli.js breaking old.omg.md new.omg.md --fail-on-diff
+
+# Generate changelog
+node packages/omg-md-cli/dist/cli.js changelog v1/api.omg.md v2/api.omg.md
 ```
 
 ## Code Conventions
