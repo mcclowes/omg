@@ -30,7 +30,7 @@ Returns a user by ID.
 {
   userId: uuid
 }
-```
+\```
 
 ```omg.response
 {
@@ -38,7 +38,7 @@ Returns a user by ID.
   name: string,
   email: string
 }
-```
+\```
 ```
 
 ## Code Block Types
