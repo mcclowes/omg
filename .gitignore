@@ -25,6 +25,9 @@ __pycache__/*
 # Ignore node version manager
 .nvmrc
 
+# Compiled output
+dist/
+
 # Docusaurus
 docusaurus/build
 docusaurus/.docusaurus
