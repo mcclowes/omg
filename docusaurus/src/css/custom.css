@@ -195,3 +195,48 @@
 [data-theme='dark'] .card {
   border-color: rgba(255, 255, 255, 0.1);
 }
+
+/* Footer styling - inverted from main theme */
+/* Light mode: dark footer */
+.footer {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.footer__title {
+  color: #ffffff;
+}
+
+.footer__link-item {
+  color: #a0a0a0;
+}
+
+.footer__link-item:hover {
+  color: #ffffff;
+}
+
+.footer__copyright {
+  color: #a0a0a0;
+}
+
+/* Dark mode: light footer (inverted) */
+[data-theme='dark'] .footer {
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .footer__title {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .footer__link-item {
+  color: #666666;
+}
+
+[data-theme='dark'] .footer__link-item:hover {
+  color: #1a1a1a;
+}
+
+[data-theme='dark'] .footer__copyright {
+  color: #666666;
+}
