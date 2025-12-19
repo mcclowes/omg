@@ -417,6 +417,59 @@ class Parser {
     if (this.check('IDENTIFIER')) {
       const typeName = this.advance().value;
 
+      // Check for array suffix notation (type[])
+      if (this.check('LBRACKET')) {
+        this.advance();
+        this.expect('RBRACKET');
+
+        // Check for optional marker on the array
+        const optional = this.check('QUESTION');
+        if (optional) {
+          this.advance();
+        }
+
+        const annotations = this.parseAnnotations();
+
+        // Determine item type (primitive or reference)
+        const primitives = [
+          'string',
+          'number',
+          'integer',
+          'boolean',
+          'decimal',
+          'date',
+          'datetime',
+          'uuid',
+          'any',
+          'int',
+          'bool',
+        ];
+        let itemType: OmgType;
+        if (primitives.includes(typeName.toLowerCase())) {
+          let type = typeName.toLowerCase();
+          if (type === 'int') type = 'integer';
+          if (type === 'bool') type = 'boolean';
+          itemType = {
+            kind: 'primitive',
+            type: type as OmgPrimitive['type'],
+            annotations: [],
+          };
+        } else {
+          itemType = {
+            kind: 'reference',
+            name: typeName,
+            annotations: [],
+          };
+        }
+
+        return {
+          kind: 'array',
+          items: itemType,
+          optional,
+          annotations,
+        };
+      }
+
       // Check for optional marker
       const optional = this.check('QUESTION');
       if (optional) {

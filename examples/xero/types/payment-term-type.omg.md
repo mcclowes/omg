@@ -1,0 +1,5 @@
+# PaymentTermType
+
+```omg.type
+type PaymentTermType = "DAYSAFTERBILLDATE" | "DAYSAFTERBILLMONTH" | "OFCURRENTMONTH" | "OFFOLLOWINGMONTH"
+```

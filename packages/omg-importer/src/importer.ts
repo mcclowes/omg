@@ -348,12 +348,13 @@ function convertOperation(
     }
   }
 
-  // Build file path
-  const safePath = path.replace(/[{}]/g, '').replace(/\//g, '-').replace(/^-/, '');
-  const fileName = `${method.toLowerCase()}${safePath || '-root'}.omg.md`;
+  // Build file path with logical grouping
+  // e.g., /Accounts/{AccountID} + GET -> accounts/get-account.omg.md
+  // e.g., /Accounts/{AccountID}/Attachments/{FileName} + PUT -> accounts/attachments/put-attachment-by-filename.omg.md
+  const { directory, fileName } = generateEndpointFilePath(path, method, operationId);
 
   return {
-    filePath: `${baseDir}/endpoints/${fileName}`,
+    filePath: `${baseDir}/endpoints/${directory}${fileName}`,
     frontMatter,
     title: operation.summary || `${method} ${path}`,
     description: operation.description || '',
@@ -563,6 +564,141 @@ function generateOperationId(method: string, path: string): string {
     .toLowerCase();
 
   return `${method.toLowerCase()}-${pathPart || 'root'}`;
+}
+
+/**
+ * Generate endpoint file path with logical grouping
+ *
+ * Examples:
+ * - GET /Accounts -> accounts/list-accounts.omg.md
+ * - GET /Accounts/{AccountID} -> accounts/get-account.omg.md
+ * - PUT /Accounts -> accounts/create-account.omg.md
+ * - POST /Accounts/{AccountID} -> accounts/update-account.omg.md
+ * - DELETE /Accounts/{AccountID} -> accounts/delete-account.omg.md
+ * - GET /Accounts/{AccountID}/Attachments -> accounts/attachments/list-attachments.omg.md
+ * - GET /Accounts/{AccountID}/Attachments/{AttachmentID} -> accounts/attachments/get-attachment.omg.md
+ */
+function generateEndpointFilePath(
+  urlPath: string,
+  method: HttpMethod,
+  operationId: string
+): { directory: string; fileName: string } {
+  // Parse path segments, separating resources from parameters
+  const segments = urlPath.split('/').filter((s) => s.length > 0);
+
+  // Identify resource segments (not path parameters)
+  const resources: string[] = [];
+  const params: string[] = [];
+
+  for (const segment of segments) {
+    if (segment.startsWith('{') && segment.endsWith('}')) {
+      params.push(segment.slice(1, -1)); // Remove braces
+    } else {
+      resources.push(segment);
+    }
+  }
+
+  // Build directory from ALL resources (kebab-case)
+  // e.g., /Accounts -> accounts/, /Accounts/{id}/Attachments -> accounts/attachments/
+  const directory =
+    resources.length > 0 ? resources.map((r) => toKebabCase(r)).join('/') + '/' : '';
+
+  // The primary resource is the last resource segment
+  const primaryResource = resources.length > 0 ? resources[resources.length - 1] : 'root';
+
+  // Generate action name based on method and context
+  let action: string;
+  const hasIdParam = params.length > 0;
+  const singularResource = toSingular(toKebabCase(primaryResource));
+
+  switch (method) {
+    case 'GET':
+      action = hasIdParam ? `get-${singularResource}` : `list-${toKebabCase(primaryResource)}`;
+      break;
+    case 'POST':
+      action = hasIdParam ? `update-${singularResource}` : `create-${singularResource}`;
+      break;
+    case 'PUT':
+      action = hasIdParam ? `replace-${singularResource}` : `create-${singularResource}`;
+      break;
+    case 'PATCH':
+      action = `update-${singularResource}`;
+      break;
+    case 'DELETE':
+      action = `delete-${singularResource}`;
+      break;
+    case 'HEAD':
+      action = `head-${singularResource}`;
+      break;
+    case 'OPTIONS':
+      action = `options-${singularResource}`;
+      break;
+  }
+
+  // If there are multiple path params, make the action more specific
+  // e.g., /Accounts/{AccountID}/Attachments/{FileName} -> get-attachment-by-filename
+  if (params.length > 1) {
+    const lastParam = params[params.length - 1];
+    const paramName = toKebabCase(lastParam.replace(/Id$/i, '').replace(/ID$/i, ''));
+    if (paramName && paramName !== singularResource) {
+      action = `${action}-by-${paramName}`;
+    }
+  }
+
+  // Use operationId as fallback/override if it's more descriptive
+  // Check if operationId follows common patterns and use it for better names
+  const operationAction = extractActionFromOperationId(operationId, primaryResource);
+  if (operationAction && operationAction !== action) {
+    // Prefer operationId-derived action if it's more specific
+    action = operationAction;
+  }
+
+  return {
+    directory,
+    fileName: `${action}.omg.md`,
+  };
+}
+
+/**
+ * Extract action name from operationId
+ * e.g., "getAccounts" -> "list-accounts", "getAccount" -> "get-account"
+ */
+function extractActionFromOperationId(operationId: string, resource: string): string | null {
+  // Common patterns: getAccounts, createAccount, updateAccount, deleteAccount
+  const patterns = [
+    { regex: /^get([A-Z][a-z]+)s$/, action: 'list' }, // getAccounts -> list
+    { regex: /^get([A-Z][a-z]+)$/, action: 'get' }, // getAccount -> get
+    { regex: /^create([A-Z][a-z]+)$/, action: 'create' }, // createAccount -> create
+    { regex: /^update([A-Z][a-z]+)$/, action: 'update' }, // updateAccount -> update
+    { regex: /^delete([A-Z][a-z]+)$/, action: 'delete' }, // deleteAccount -> delete
+  ];
+
+  for (const { regex, action } of patterns) {
+    const match = operationId.match(regex);
+    if (match) {
+      const resourceName = toKebabCase(match[1]);
+      return `${action}-${resourceName}${action === 'list' ? 's' : ''}`;
+    }
+  }
+
+  // Fallback: convert camelCase operationId to kebab-case
+  return toKebabCase(operationId);
+}
+
+/**
+ * Convert plural to singular (simple heuristic)
+ */
+function toSingular(word: string): string {
+  if (word.endsWith('ies')) {
+    return word.slice(0, -3) + 'y';
+  }
+  if (word.endsWith('ses') || word.endsWith('xes') || word.endsWith('zes')) {
+    return word.slice(0, -2);
+  }
+  if (word.endsWith('s') && !word.endsWith('ss')) {
+    return word.slice(0, -1);
+  }
+  return word;
 }
 
 /**

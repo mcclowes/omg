@@ -97,12 +97,26 @@ export function resolveDocument(
 
     // Parse other blocks as schemas
     if (!block.parsed) {
+      // Skip parsing for empty content (e.g., 204 No Content responses)
+      if (!block.content || block.content.trim() === '') {
+        continue;
+      }
+
+      // For type blocks, strip the "type Name = " prefix before parsing
+      let contentToParse = block.content;
+      if (block.type === 'omg.type') {
+        const typeDefMatch = contentToParse.match(/^\s*type\s+[A-Za-z_][A-Za-z0-9_]*\s*=\s*/);
+        if (typeDefMatch) {
+          contentToParse = contentToParse.slice(typeDefMatch[0].length);
+        }
+      }
+
       try {
-        block.parsed = parseSchema(block.content);
+        block.parsed = parseSchema(contentToParse);
       } catch (error) {
         // If schema parsing fails, might be pure JSON - try to parse as JSON
         try {
-          const json = JSON.parse(block.content);
+          const json = JSON.parse(contentToParse);
           block.parsed = inferSchemaFromJson(json);
         } catch {
           // Re-throw original error with context

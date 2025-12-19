@@ -199,6 +199,24 @@ function generatePrimitive(type: OmgPrimitive): string {
 }
 
 /**
+ * Check if a property name needs to be quoted
+ */
+function needsQuoting(name: string): boolean {
+  // Quote if contains non-identifier characters or starts with a digit
+  return !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name);
+}
+
+/**
+ * Quote a property name if needed
+ */
+function quoteName(name: string): string {
+  if (needsQuoting(name)) {
+    return `"${name}"`;
+  }
+  return name;
+}
+
+/**
  * Generate object type
  */
 function generateObject(type: OmgObject, opts: GeneratorOptions, depth: number): string {
@@ -215,16 +233,17 @@ function generateObject(type: OmgObject, opts: GeneratorOptions, depth: number):
   const lines: string[] = ['{'];
 
   for (const [name, propType] of entries) {
+    const quotedName = quoteName(name);
     const optional = propType.optional ? '?' : '';
     const value = generateSchema(propType, opts, depth + 1);
     const comment = propType.description ? `  // ${propType.description}` : '';
 
     // For simple types, put on one line
     if (isSimpleType(propType)) {
-      lines.push(`${innerIndent}${name}${optional}: ${value}${comment}`);
+      lines.push(`${innerIndent}${quotedName}${optional}: ${value}${comment}`);
     } else {
       // For complex types, format appropriately
-      lines.push(`${innerIndent}${name}${optional}: ${value}${comment}`);
+      lines.push(`${innerIndent}${quotedName}${optional}: ${value}${comment}`);
     }
   }
 
@@ -430,63 +449,52 @@ export function generateFiles(
     });
   }
 
-  // Generate type files (if there are named types)
+  // Generate individual type files
   if (types.size > 0) {
-    // Option 1: Single types file
-    const typesDoc: OmgDocument = {
-      filePath: 'types/index.omg.md',
-      frontMatter: null,
-      title: 'Type Definitions',
-      description: 'Shared type definitions for this API.',
-      blocks: [],
-      partials: [],
-    };
+    // Derive base directory from API file path
+    const baseDir = api.filePath.replace(/\/api\.omg\.md$/, '').replace(/api\.omg\.md$/, '') || '.';
 
     for (const [name, { schema }] of types) {
-      typesDoc.blocks.push({
-        type: 'omg.type',
-        content: `type ${name} = `,
-        parsed: schema,
-        line: 0,
+      const fileName = toKebabCase(name) + '.omg.md';
+      const content = generateSingleTypeFile(name, schema, options);
+      files.push({
+        path: `${baseDir}/types/${fileName}`,
+        content,
       });
     }
-
-    files.push({
-      path: typesDoc.filePath,
-      content: generateTypesDocument(typesDoc, types, options),
-    });
   }
 
   return files;
 }
 
 /**
- * Generate a types document with all named types
+ * Generate a single type definition file
  */
-function generateTypesDocument(
-  doc: OmgDocument,
-  types: Map<string, { schema: OmgSchema; document: OmgDocument }>,
+function generateSingleTypeFile(
+  name: string,
+  schema: OmgSchema,
   options: GeneratorOptions
 ): string {
   const parts: string[] = [];
 
   // Title
-  if (doc.title) {
-    parts.push(`# ${doc.title}\n`);
-  }
+  parts.push(`# ${name}\n`);
 
-  // Description
-  if (doc.description) {
-    parts.push(`${doc.description}\n`);
-  }
-
-  // Generate each type block
-  for (const [name, { schema }] of types) {
-    const schemaStr = generateSchema(schema, options, 0);
-    parts.push('```omg.type');
-    parts.push(`type ${name} = ${schemaStr}`);
-    parts.push('```\n');
-  }
+  // Type definition
+  const schemaStr = generateSchema(schema, options, 0);
+  parts.push('```omg.type');
+  parts.push(`type ${name} = ${schemaStr}`);
+  parts.push('```\n');
 
   return parts.join('\n').trim() + '\n';
+}
+
+/**
+ * Convert a string to kebab-case
+ */
+function toKebabCase(str: string): string {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
 }
