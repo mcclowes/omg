@@ -8,6 +8,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import cors from 'cors';
 import type { ParsedApi, ParsedEndpoint, OmgSchema } from 'omg-parser';
 import { MockGenerator, createMockGenerator } from './mock-generator.js';
+import { createVagueGenerator, generateWithVague } from './vague-generator.js';
 
 export interface MockServerOptions {
   /** Port to listen on */
@@ -22,6 +23,8 @@ export interface MockServerOptions {
   delay?: number;
   /** Enable request logging */
   logging?: boolean;
+  /** Use Vague for realistic mock data generation (default: true) */
+  useVague?: boolean;
   /** Custom response handlers */
   handlers?: Record<string, (req: Request, res: Response) => void>;
 }
@@ -57,11 +60,13 @@ export function createMockServer(api: ParsedApi, options: MockServerOptions = {}
     seed,
     delay = 0,
     logging = true,
+    useVague = true,
     handlers = {},
   } = options;
 
   const app = express();
   const mockGenerator = createMockGenerator(api, seed);
+  const vagueGenerator = useVague ? createVagueGenerator(api, seed) : null;
   const routes: RouteInfo[] = [];
 
   // Middleware
@@ -110,7 +115,7 @@ export function createMockServer(api: ParsedApi, options: MockServerOptions = {}
       (app as any)[method](routePath, handlers[endpoint.operationId]);
     } else {
       // Create default mock handler
-      const handler = createRouteHandler(endpoint, mockGenerator, api.types);
+      const handler = createRouteHandler(endpoint, mockGenerator, vagueGenerator, api.types);
       (app as any)[method](routePath, handler);
     }
 
@@ -194,58 +199,79 @@ function convertPath(openApiPath: string): string {
   return openApiPath.replace(/\{(\w+)\}/g, ':$1');
 }
 
+interface VagueGeneratorInterface {
+  generate: (schema: OmgSchema | null) => Promise<unknown>;
+  generateArray: (schema: OmgSchema, count: number) => Promise<unknown[]>;
+}
+
 /**
  * Create a route handler for an endpoint
  */
 function createRouteHandler(
   endpoint: ParsedEndpoint,
   mockGenerator: MockGenerator,
+  vagueGenerator: VagueGeneratorInterface | null,
   types: Record<string, OmgSchema>
 ): (req: Request, res: Response) => void {
-  return (req: Request, res: Response) => {
-    // Validate request body if expected
-    if (endpoint.requestBody && endpoint.method !== 'GET') {
-      if (!req.body || Object.keys(req.body).length === 0) {
-        // Don't require body, just note it's missing
+  return async (req: Request, res: Response) => {
+    try {
+      // Validate request body if expected
+      if (endpoint.requestBody && endpoint.method !== 'GET') {
+        if (!req.body || Object.keys(req.body).length === 0) {
+          // Don't require body, just note it's missing
+        }
       }
+
+      // Determine response status code
+      const responseCodes = Object.keys(endpoint.responses)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+      // Default to first success code (2xx) or 200
+      let statusCode = responseCodes.find((c) => c >= 200 && c < 300) || responseCodes[0] || 200;
+
+      // For POST, prefer 201 if available
+      if (endpoint.method === 'POST' && endpoint.responses[201]) {
+        statusCode = 201;
+      }
+
+      // For DELETE, prefer 204 if available
+      if (endpoint.method === 'DELETE' && endpoint.responses[204]) {
+        res.status(204).send();
+        return;
+      }
+
+      // Get response schema
+      const responseInfo = endpoint.responses[statusCode];
+      if (!responseInfo || !responseInfo.schema) {
+        // No response schema defined, return empty object
+        res.status(statusCode).json({});
+        return;
+      }
+
+      // Generate mock response - try Vague first, fallback to simple generator
+      let mockResponse: unknown;
+      if (vagueGenerator) {
+        try {
+          mockResponse = await vagueGenerator.generate(responseInfo.schema);
+        } catch {
+          // Fallback to simple generator
+          mockResponse = mockGenerator.generate(responseInfo.schema);
+        }
+      } else {
+        mockResponse = mockGenerator.generate(responseInfo.schema);
+      }
+
+      // Inject path parameters into response if they exist
+      if (req.params && typeof mockResponse === 'object' && mockResponse !== null) {
+        mockResponse = injectPathParams(mockResponse as Record<string, unknown>, req.params);
+      }
+
+      res.status(statusCode).json(mockResponse);
+    } catch (error) {
+      console.error('Error generating mock response:', error);
+      res.status(500).json({ error: 'Failed to generate mock response' });
     }
-
-    // Determine response status code
-    const responseCodes = Object.keys(endpoint.responses)
-      .map(Number)
-      .sort((a, b) => a - b);
-
-    // Default to first success code (2xx) or 200
-    let statusCode = responseCodes.find((c) => c >= 200 && c < 300) || responseCodes[0] || 200;
-
-    // For POST, prefer 201 if available
-    if (endpoint.method === 'POST' && endpoint.responses[201]) {
-      statusCode = 201;
-    }
-
-    // For DELETE, prefer 204 if available
-    if (endpoint.method === 'DELETE' && endpoint.responses[204]) {
-      res.status(204).send();
-      return;
-    }
-
-    // Get response schema
-    const responseInfo = endpoint.responses[statusCode];
-    if (!responseInfo || !responseInfo.schema) {
-      // No response schema defined, return empty object
-      res.status(statusCode).json({});
-      return;
-    }
-
-    // Generate mock response
-    let mockResponse = mockGenerator.generate(responseInfo.schema);
-
-    // Inject path parameters into response if they exist
-    if (req.params && typeof mockResponse === 'object' && mockResponse !== null) {
-      mockResponse = injectPathParams(mockResponse as Record<string, unknown>, req.params);
-    }
-
-    res.status(statusCode).json(mockResponse);
   };
 }
 

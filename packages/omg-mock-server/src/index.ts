@@ -7,6 +7,13 @@
 export { MockGenerator, createMockGenerator, type MockGeneratorOptions } from './mock-generator.js';
 
 export {
+  createVagueGenerator,
+  generateWithVague,
+  generateArrayWithVague,
+  type VagueGeneratorOptions,
+} from './vague-generator.js';
+
+export {
   createMockServer,
   startMockServer,
   type MockServer,

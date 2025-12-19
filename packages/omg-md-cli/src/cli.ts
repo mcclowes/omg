@@ -822,6 +822,7 @@ program
   .option('-s, --seed <seed>', 'Random seed for deterministic mock data')
   .option('--no-cors', 'Disable CORS')
   .option('-q, --quiet', 'Disable request logging')
+  .option('--simple', 'Use simple mock generator instead of Vague')
   .option('-w, --watch', 'Watch for changes and restart server')
   .action(
     async (
@@ -833,6 +834,7 @@ program
         seed?: string;
         cors?: boolean;
         quiet?: boolean;
+        simple?: boolean;
         watch?: boolean;
       }
     ) => {
@@ -860,6 +862,7 @@ program
             seed: options.seed ? parseInt(options.seed, 10) : undefined,
             cors: options.cors !== false,
             logging: !options.quiet,
+            useVague: !options.simple,
           });
 
           await server.start();
