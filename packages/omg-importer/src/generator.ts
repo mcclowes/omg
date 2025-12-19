@@ -431,6 +431,7 @@ export function generateFiles(
   api: OmgDocument,
   endpoints: OmgDocument[],
   types: Map<string, { schema: OmgSchema; document: OmgDocument }>,
+  partials?: Map<string, OmgDocument>,
   options: GeneratorOptions = {}
 ): GeneratedFiles[] {
   const files: GeneratedFiles[] = [];
@@ -460,6 +461,16 @@ export function generateFiles(
       files.push({
         path: `${baseDir}/types/${fileName}`,
         content,
+      });
+    }
+  }
+
+  // Generate partial files
+  if (partials && partials.size > 0) {
+    for (const [, partialDoc] of partials) {
+      files.push({
+        path: partialDoc.filePath,
+        content: generateDocument(partialDoc, options),
       });
     }
   }

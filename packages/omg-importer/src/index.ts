@@ -16,6 +16,19 @@ export {
 } from './schema-converter.js';
 export type { ConversionContext } from './schema-converter.js';
 
+// Pattern detection
+export { detectPatterns, findMatchingPatterns } from './pattern-detector.js';
+export type {
+  DetectedPattern,
+  ParameterCategory,
+  PatternDetectionOptions,
+  PatternDetectionResult,
+} from './pattern-detector.js';
+
+// Partial generation
+export { generatePartials, buildPatternToPartialMap } from './partial-generator.js';
+export type { GeneratedPartial, PartialGeneratorOptions } from './partial-generator.js';
+
 // Generator
 export { generateDocument, generateSchema, generateFiles } from './generator.js';
 export type { GeneratorOptions, GeneratedFiles } from './generator.js';

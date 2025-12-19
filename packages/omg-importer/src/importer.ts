@@ -21,6 +21,7 @@ import type {
   OmgExample,
   OmgLink,
   ParsedResponse,
+  PartialRef,
 } from 'omg-parser';
 import type {
   OpenApiSpec,
@@ -42,6 +43,17 @@ import {
   createConversionContext,
   type ConversionContext,
 } from './schema-converter.js';
+import {
+  detectPatterns,
+  findMatchingPatterns,
+  type DetectedPattern,
+  type ParameterCategory,
+} from './pattern-detector.js';
+import {
+  generatePartials,
+  buildPatternToPartialMap,
+  type GeneratedPartial,
+} from './partial-generator.js';
 
 /**
  * Result of importing an OpenAPI spec
@@ -55,6 +67,10 @@ export interface ImportResult {
   types: Map<string, { schema: OmgSchema; document: OmgDocument }>;
   /** Warnings encountered during import */
   warnings: ImportWarning[];
+  /** Generated partial documents */
+  partials: Map<string, OmgDocument>;
+  /** Mapping from pattern key to partial path */
+  patternToPartial: Map<string, string>;
 }
 
 /**
@@ -76,6 +92,12 @@ export interface ImportOptions {
   baseDir?: string;
   /** Whether to generate separate type files (default: true) */
   generateTypeFiles?: boolean;
+  /** Whether to extract repeated parameters as partials (default: true) */
+  extractPartials?: boolean;
+  /** Minimum occurrences to extract as partial (default: 3) */
+  partialThreshold?: number;
+  /** Categories to extract partials for (default: ['header', 'query']) */
+  partialCategories?: ParameterCategory[];
 }
 
 /**
@@ -83,24 +105,64 @@ export interface ImportOptions {
  */
 export function importOpenApi(spec: OpenApiSpec, options: ImportOptions = {}): ImportResult {
   const warnings: ImportWarning[] = [];
+  const extractPartials = options.extractPartials ?? true;
+  const partialThreshold = options.partialThreshold ?? 3;
+  const partialCategories = options.partialCategories ?? ['header', 'query'];
+
   const ctx = createConversionContext(spec.components?.schemas || {}, {
     inlineRefs: options.inlineRefs ?? false,
   });
 
+  // Phase 1: Detect patterns (if extraction enabled)
+  let detectedPatterns = new Map<string, DetectedPattern>();
+  let generatedPartials: GeneratedPartial[] = [];
+  let patternToPartial = new Map<string, string>();
+
+  if (extractPartials) {
+    const detection = detectPatterns(spec, {
+      categories: partialCategories,
+      threshold: partialThreshold,
+    });
+    detectedPatterns = detection.patterns;
+
+    // Generate partial documents
+    generatedPartials = generatePartials(detectedPatterns, ctx, {
+      baseDir: options.baseDir || '.',
+    });
+
+    // Build pattern-to-partial mapping
+    patternToPartial = buildPatternToPartialMap(generatedPartials);
+  }
+
   // Create root API document
   const api = createApiDocument(spec, options);
 
-  // Convert endpoints
-  const endpoints = convertEndpoints(spec, ctx, warnings, options);
+  // Convert endpoints (with partial references)
+  const endpoints = convertEndpoints(
+    spec,
+    ctx,
+    warnings,
+    options,
+    detectedPatterns,
+    patternToPartial
+  );
 
   // Convert named types
   const types = convertNamedTypes(spec, ctx, options);
+
+  // Build partials map
+  const partialsMap = new Map<string, OmgDocument>();
+  for (const partial of generatedPartials) {
+    partialsMap.set(partial.path, partial.document);
+  }
 
   return {
     api,
     endpoints,
     types,
     warnings,
+    partials: partialsMap,
+    patternToPartial,
   };
 }
 
@@ -196,7 +258,9 @@ function convertEndpoints(
   spec: OpenApiSpec,
   ctx: ConversionContext,
   warnings: ImportWarning[],
-  options: ImportOptions
+  options: ImportOptions,
+  detectedPatterns: Map<string, DetectedPattern>,
+  patternToPartial: Map<string, string>
 ): OmgDocument[] {
   const endpoints: OmgDocument[] = [];
   const paths = spec.paths || {};
@@ -227,7 +291,9 @@ function convertEndpoints(
         spec,
         ctx,
         warnings,
-        options
+        options,
+        detectedPatterns,
+        patternToPartial
       );
       endpoints.push(doc);
     }
@@ -291,7 +357,9 @@ function convertOperation(
   spec: OpenApiSpec,
   ctx: ConversionContext,
   warnings: ImportWarning[],
-  options: ImportOptions
+  options: ImportOptions,
+  detectedPatterns: Map<string, DetectedPattern>,
+  patternToPartial: Map<string, string>
 ): OmgDocument {
   // Generate operationId if not present
   const operationId = operation.operationId || generateOperationId(method, path);
@@ -312,9 +380,8 @@ function convertOperation(
     frontMatter.deprecated = true;
   }
 
-  if (operation.summary) {
-    frontMatter.summary = operation.summary;
-  }
+  // Note: We don't add summary to frontMatter because it duplicates the title.
+  // The title is set to operation.summary at the end of this function.
 
   // Handle x-follows extension
   if (operation['x-follows'] && operation['x-follows'].length > 0) {
@@ -357,8 +424,9 @@ function convertOperation(
     frontMatter.extensions = extensions;
   }
 
-  // Collect blocks
+  // Collect blocks and partial references
   const blocks: OmgBlock[] = [];
+  const partialRefs: PartialRef[] = [];
 
   // Merge path-level and operation-level parameters
   const allParams = [
@@ -371,38 +439,40 @@ function convertOperation(
   const queryParams = allParams.filter((p) => p.in === 'query');
   const headerParams = allParams.filter((p) => p.in === 'header');
 
-  // Convert path parameters
-  if (pathParams.length > 0) {
-    const schema = parametersToSchema(pathParams, ctx);
-    blocks.push({
-      type: 'omg.path',
-      content: '', // Will be generated
-      parsed: schema,
-      line: 0,
-    });
-  }
+  // Helper to process parameters with partial extraction
+  const processParams = (params: ParameterObject[], blockType: OmgBlockType) => {
+    if (params.length === 0) return;
 
-  // Convert query parameters
-  if (queryParams.length > 0) {
-    const schema = parametersToSchema(queryParams, ctx);
-    blocks.push({
-      type: 'omg.query',
-      content: '',
-      parsed: schema,
-      line: 0,
-    });
-  }
+    // Find matching patterns and remaining params
+    const { matchedPatternKeys, remainingParams } = findMatchingPatterns(params, detectedPatterns);
 
-  // Convert header parameters
-  if (headerParams.length > 0) {
-    const schema = parametersToSchema(headerParams, ctx);
-    blocks.push({
-      type: 'omg.headers',
-      content: '',
-      parsed: schema,
-      line: 0,
-    });
-  }
+    // Add partial references for matched patterns
+    for (const patternKey of matchedPatternKeys) {
+      const partialPath = patternToPartial.get(patternKey);
+      if (partialPath) {
+        // Avoid duplicate partial references
+        if (!partialRefs.some((p) => p.path === partialPath)) {
+          partialRefs.push({ path: partialPath, line: 0 });
+        }
+      }
+    }
+
+    // Add inline block for remaining params (if any)
+    if (remainingParams.length > 0) {
+      const schema = parametersToSchema(remainingParams, ctx);
+      blocks.push({
+        type: blockType,
+        content: '',
+        parsed: schema,
+        line: 0,
+      });
+    }
+  };
+
+  // Process each parameter category
+  processParams(pathParams, 'omg.path');
+  processParams(queryParams, 'omg.query');
+  processParams(headerParams, 'omg.headers');
 
   // Convert request body
   if (operation.requestBody) {
@@ -448,7 +518,7 @@ function convertOperation(
     title: operation.summary || `${method} ${path}`,
     description: operation.description || '',
     blocks,
-    partials: [],
+    partials: partialRefs,
   };
 }
 

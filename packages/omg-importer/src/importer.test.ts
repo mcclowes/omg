@@ -352,4 +352,117 @@ describe('importOpenApi', () => {
       expect(result.warnings[0].message).toContain('Could not resolve parameter reference');
     });
   });
+
+  describe('partial extraction', () => {
+    it('extracts repeated header parameters as partials', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'list-users',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+            post: {
+              operationId: 'create-user',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+          },
+          '/accounts': {
+            get: {
+              operationId: 'list-accounts',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      // Should extract the repeated header as a partial
+      expect(result.partials.size).toBe(1);
+      const partial = [...result.partials.values()][0];
+      expect(partial.filePath).toContain('partials/headers/x-tenant-id.omg.md');
+
+      // Endpoints should reference the partial
+      const endpoint = result.endpoints[0];
+      expect(endpoint.partials.length).toBeGreaterThan(0);
+      expect(endpoint.partials[0].path).toBe('headers/x-tenant-id');
+    });
+
+    it('respects extractPartials option', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'list-users',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+            post: {
+              operationId: 'create-user',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+          },
+          '/accounts': {
+            get: {
+              operationId: 'list-accounts',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+          },
+        },
+      };
+
+      // With extraction disabled
+      const result = importOpenApi(spec, { extractPartials: false });
+
+      expect(result.partials.size).toBe(0);
+      // Endpoints should have inline blocks instead
+      const endpoint = result.endpoints[0];
+      expect(endpoint.partials.length).toBe(0);
+      expect(endpoint.blocks.some((b) => b.type === 'omg.headers')).toBe(true);
+    });
+
+    it('respects partialThreshold option', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': {
+            get: {
+              operationId: 'list-users',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+            post: {
+              operationId: 'create-user',
+              parameters: [
+                { name: 'X-Tenant-ID', in: 'header', required: true, schema: { type: 'string' } },
+              ],
+            },
+          },
+        },
+      };
+
+      // With high threshold - should not extract
+      const result = importOpenApi(spec, { partialThreshold: 5 });
+      expect(result.partials.size).toBe(0);
+
+      // With low threshold - should extract
+      const result2 = importOpenApi(spec, { partialThreshold: 2 });
+      expect(result2.partials.size).toBe(1);
+    });
+  });
 });

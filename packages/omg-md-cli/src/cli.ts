@@ -692,6 +692,8 @@ program
   .option('-o, --output <directory>', 'Output directory (default: current directory)')
   .option('--inline', 'Inline referenced schemas instead of using references')
   .option('--dry-run', 'Show what would be generated without writing files')
+  .option('--no-partials', 'Disable automatic partial extraction for repeated parameters')
+  .option('--partial-threshold <n>', 'Minimum occurrences to extract as partial (default: 3)', '3')
   .action(
     async (
       input: string,
@@ -699,6 +701,8 @@ program
         output?: string;
         inline?: boolean;
         dryRun?: boolean;
+        partials?: boolean;
+        partialThreshold?: string;
       }
     ) => {
       try {
@@ -744,11 +748,16 @@ program
         const result = importOpenApi(spec, {
           baseDir: outputDir,
           inlineRefs: options.inline ?? false,
+          extractPartials: options.partials !== false,
+          partialThreshold: parseInt(options.partialThreshold ?? '3', 10),
         });
 
         console.error(chalk.blue(`Converted ${result.endpoints.length} endpoints`));
         if (result.types.size > 0) {
           console.error(chalk.blue(`Found ${result.types.size} named types`));
+        }
+        if (result.partials.size > 0) {
+          console.error(chalk.blue(`Extracted ${result.partials.size} reusable partials`));
         }
 
         // Show warnings
@@ -760,7 +769,7 @@ program
         }
 
         // Generate files
-        const files = generateFiles(result.api, result.endpoints, result.types);
+        const files = generateFiles(result.api, result.endpoints, result.types, result.partials);
 
         if (options.dryRun) {
           console.log(chalk.blue('\nDry run - would generate the following files:\n'));
