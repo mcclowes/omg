@@ -9,7 +9,7 @@ Parse an OMG file and output its AST (Abstract Syntax Tree).
 ## Usage
 
 ```bash
-npx omg parse <file>
+omg parse <file>
 ```
 
 ## Arguments
@@ -23,13 +23,13 @@ npx omg parse <file>
 ### Parse a single endpoint
 
 ```bash
-npx omg parse endpoints/get-user.omg.md
+omg parse endpoints/get-user.omg.md
 ```
 
 ### View parsed structure
 
 ```bash
-npx omg parse api.omg.md | jq .
+omg parse api.omg.md | jq .
 ```
 
 ## Output

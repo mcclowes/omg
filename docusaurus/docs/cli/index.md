@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # CLI Overview
 
-The OMG CLI (`omg-cli`) provides commands for working with OMG files.
+The OMG CLI (`omg-md-cli`) provides commands for working with OMG files.
 
 ## Installation
 

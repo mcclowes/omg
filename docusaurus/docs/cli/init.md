@@ -9,7 +9,7 @@ Initialize a new OMG project with example files.
 ## Usage
 
 ```bash
-npx omg init <directory>
+omg init <directory>
 ```
 
 ## Arguments
@@ -23,13 +23,13 @@ npx omg init <directory>
 ### Create a new project
 
 ```bash
-npx omg init my-api
+omg init my-api
 ```
 
 ### Initialize in current directory
 
 ```bash
-npx omg init .
+omg init .
 ```
 
 ## Generated Structure
@@ -88,5 +88,5 @@ After initializing:
 
 ```bash
 cd my-api
-npx omg build api.omg.md -o openapi.yaml
+omg build api.omg.md -o openapi.yaml
 ```
