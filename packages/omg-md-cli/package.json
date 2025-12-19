@@ -4,6 +4,7 @@
   "description": "CLI for OMG (OpenAPI Markdown Grammar)",
   "author": "mcclowes",
   "license": "MIT",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/mcclowes/omg.git",
