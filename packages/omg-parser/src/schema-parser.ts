@@ -283,10 +283,38 @@ class Parser {
     return this.currentToken.value === value;
   }
 
+  private formatTokenForError(type: TokenType): string {
+    const tokenNames: Record<TokenType, string> = {
+      LBRACE: "'{'",
+      RBRACE: "'}'",
+      LBRACKET: "'['",
+      RBRACKET: "']'",
+      LPAREN: "'('",
+      RPAREN: "')'",
+      COLON: "':'",
+      COMMA: "','",
+      PIPE: "'|'",
+      AMPERSAND: "'&'",
+      QUESTION: "'?'",
+      AT: "'@'",
+      STRING: 'a string',
+      NUMBER: 'a number',
+      TRUE: "'true'",
+      FALSE: "'false'",
+      NULL: "'null'",
+      IDENTIFIER: 'an identifier',
+      EOF: 'end of input',
+    };
+    return tokenNames[type] || type;
+  }
+
   private expect(type: TokenType): Token {
     if (!this.check(type)) {
+      const expected = this.formatTokenForError(type);
+      const got = this.formatTokenForError(this.currentToken.type);
+      const gotValue = this.currentToken.value ? ` '${this.currentToken.value}'` : '';
       throw new Error(
-        `Expected ${type} but got ${this.currentToken.type} at line ${this.currentToken.line}, column ${this.currentToken.column}`
+        `Expected ${expected} but found ${got}${gotValue} at line ${this.currentToken.line}, column ${this.currentToken.column}`
       );
     }
     return this.advance();
@@ -318,8 +346,11 @@ class Parser {
             // Treat unquoted identifier as string in annotation args
             args.push(this.advance().value);
           } else {
+            const got = this.formatTokenForError(this.currentToken.type);
             throw new Error(
-              `Unexpected token in annotation args: ${this.currentToken.type} at line ${this.currentToken.line}, column ${this.currentToken.column}. Expected string, number, boolean, or identifier.`
+              `Invalid annotation argument at line ${this.currentToken.line}, column ${this.currentToken.column}. ` +
+                `Found ${got} but expected a string, number, or boolean value. ` +
+                `Example: @min(0) or @format("email")`
             );
           }
 
@@ -544,9 +575,49 @@ class Parser {
       return this.parseObject();
     }
 
+    const suggestions = this.getSuggestions(token);
     throw new Error(
-      `Unexpected token: ${token.type} at line ${token.line}, column ${token.column}`
+      `Unexpected ${this.formatTokenForError(token.type)}${token.value ? ` '${token.value}'` : ''} at line ${token.line}, column ${token.column}. ` +
+        `Expected a type (string, integer, etc.), object { }, array [ ], or type reference.` +
+        (suggestions ? ` ${suggestions}` : '')
     );
+  }
+
+  private getSuggestions(token: Token): string {
+    // Provide helpful suggestions for common mistakes
+    if (token.type === 'IDENTIFIER') {
+      const value = token.value.toLowerCase();
+      const primitives = [
+        'string',
+        'integer',
+        'number',
+        'boolean',
+        'date',
+        'datetime',
+        'uuid',
+        'decimal',
+        'any',
+      ];
+
+      // Check for typos in primitive types
+      if (value === 'str') return "Did you mean 'string'?";
+      if (value === 'int') return "Did you mean 'integer'?";
+      if (value === 'num' || value === 'float' || value === 'double')
+        return "Did you mean 'number'?";
+      if (value === 'bool') return "Did you mean 'boolean'?";
+      if (value === 'object') return 'For objects, use { } syntax. Example: { id: string }';
+      if (value === 'array') return 'For arrays, use [ ] syntax. Example: [string] or Product[]';
+    }
+
+    if (token.type === 'COLON') {
+      return 'Colons are used inside objects. Example: { name: string }';
+    }
+
+    if (token.type === 'COMMA') {
+      return 'Commas separate object properties. Example: { id: string, name: string }';
+    }
+
+    return '';
   }
 
   /**
@@ -631,8 +702,10 @@ class Parser {
       } else if (this.check('IDENTIFIER')) {
         key = this.advance().value;
       } else {
+        const got = this.formatTokenForError(this.currentToken.type);
         throw new Error(
-          `Expected property key (string or identifier) at line ${this.currentToken.line}, column ${this.currentToken.column}, but found '${this.currentToken.type}'`
+          `Expected property name at line ${this.currentToken.line}, column ${this.currentToken.column}, but found ${got}. ` +
+            `Property names should be identifiers (e.g., 'id', 'userName') or quoted strings (e.g., '"content-type"').`
         );
       }
 
@@ -680,7 +753,12 @@ class Parser {
     const result = this.parseType();
 
     if (!this.check('EOF')) {
-      throw new Error(`Unexpected token after schema: ${this.currentToken.type}`);
+      const got = this.formatTokenForError(this.currentToken.type);
+      const gotValue = this.currentToken.value ? ` '${this.currentToken.value}'` : '';
+      throw new Error(
+        `Unexpected ${got}${gotValue} after schema definition at line ${this.currentToken.line}, column ${this.currentToken.column}. ` +
+          `The schema appears complete but there is additional content. Did you forget a closing '}' or ']'?`
+      );
     }
 
     return result;

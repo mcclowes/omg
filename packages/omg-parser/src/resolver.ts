@@ -26,6 +26,52 @@ interface ResolverOptions {
   basePath: string;
 }
 
+/**
+ * Get helpful context for block parsing errors
+ */
+function getBlockHelp(blockType: string): string {
+  const examples: Record<string, string> = {
+    'omg.response': `Example:
+\`\`\`omg.response
+{
+  id: string,
+  name: string,
+  createdAt: datetime
+}
+\`\`\``,
+    'omg.body': `Example:
+\`\`\`omg.body
+{
+  name: string,
+  email: string @format("email"),
+  age?: integer @min(0)
+}
+\`\`\``,
+    'omg.path': `Example:
+\`\`\`omg.path
+{
+  id: string  // Path parameter
+}
+\`\`\``,
+    'omg.query': `Example:
+\`\`\`omg.query
+{
+  page?: integer @min(1),
+  limit?: integer @min(1) @max(100)
+}
+\`\`\``,
+    'omg.type': `Example:
+\`\`\`omg.type
+type User = {
+  id: uuid,
+  name: string,
+  email: string
+}
+\`\`\``,
+  };
+  return examples[blockType] || '';
+}
+
 export interface ResolvedDocument extends OmgDocument {
   resolvedBlocks: OmgBlock[];
   warnings: ParseWarning[];
@@ -44,7 +90,12 @@ export function resolveDocument(
 
   // Prevent circular references
   if (visited.has(docPath)) {
-    throw new Error(`Circular partial reference detected: ${docPath}`);
+    const chain = Array.from(visited).join(' → ') + ' → ' + docPath;
+    throw new Error(
+      `Circular partial reference detected.\n` +
+        `Reference chain: ${chain}\n` +
+        `To fix: Remove one of the circular @partial references.`
+    );
   }
   visited.add(docPath);
 
@@ -55,7 +106,12 @@ export function resolveDocument(
     const partialPath = resolvePartialPath(partial.path, options.basePath);
 
     if (!fs.existsSync(partialPath)) {
-      throw new Error(`Partial not found: ${partial.path} (resolved to ${partialPath})`);
+      throw new Error(
+        `Partial not found: '${partial.path}' at line ${partial.line}.\n` +
+          `Searched: ${partialPath}\n` +
+          `Make sure the file exists in your partials/ directory.\n` +
+          `Expected: partials/${partial.path}.omg.md`
+      );
     }
 
     const partialContent = fs.readFileSync(partialPath, 'utf-8');
@@ -89,7 +145,13 @@ export function resolveDocument(
         }
       } catch (error) {
         throw new Error(
-          `Failed to parse returns block at line ${block.line}: ${(error as Error).message}`
+          `Failed to parse omg.returns block at line ${block.line}.\n` +
+            `${(error as Error).message}\n` +
+            `Expected format:\n` +
+            `  200: Success description\n` +
+            `    { id: string }\n` +
+            `  404: Not found\n` +
+            `    { error: string }`
         );
       }
       continue;
@@ -120,8 +182,11 @@ export function resolveDocument(
           block.parsed = inferSchemaFromJson(json);
         } catch {
           // Re-throw original error with context
+          const blockHelp = getBlockHelp(block.type);
           throw new Error(
-            `Failed to parse ${block.type} block at line ${block.line}: ${(error as Error).message}`
+            `Failed to parse ${block.type} block at line ${block.line}.\n` +
+              `${(error as Error).message}` +
+              (blockHelp ? `\n\n${blockHelp}` : '')
           );
         }
       }
