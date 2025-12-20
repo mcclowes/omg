@@ -30,6 +30,10 @@ npm install
 npm run build
 ```
 
+## Editor Support
+
+Install the [OMG VS Code Extension](https://marketplace.visualstudio.com/items?itemName=mcclowes.omg-vscode) for syntax highlighting, validation, and completions.
+
 ## Initialize a project
 
 Create a new OMG API project:
