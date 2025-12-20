@@ -1,8 +1,9 @@
 ---
 sidebar_position: 5
+description: Format OMG files for consistent style with automatic frontmatter ordering.
 ---
 
-# fmt
+# Fmt
 
 Format OMG files for consistent style.
 
@@ -87,14 +88,14 @@ Frontmatter keys are sorted in this order:
 9. `webhooks`
 10. Other keys (alphabetically)
 
-## Exit Codes
+## Exit codes
 
 | Code | Description |
 |------|-------------|
 | 0 | All files formatted (or already formatted with `--check`) |
 | 1 | Files need formatting (with `--check`) or error occurred |
 
-## CI Integration
+## CI integration
 
 Add to your CI pipeline to enforce consistent formatting:
 

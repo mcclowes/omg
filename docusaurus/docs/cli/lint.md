@@ -1,8 +1,9 @@
 ---
 sidebar_position: 4
+description: Lint OMG files for style issues, missing fields, and syntax errors.
 ---
 
-# lint
+# Lint
 
 Lint OMG files for style and correctness issues.
 
@@ -56,7 +57,7 @@ my-api/endpoints/list-users.omg.md
 2 files checked, 2 errors, 1 warning
 ```
 
-## Exit Codes
+## Exit codes
 
 | Code | Description |
 |------|-------------|

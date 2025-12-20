@@ -1,12 +1,13 @@
 ---
 sidebar_position: 2
+description: YAML frontmatter reference for defining HTTP method, path, tags, and workflow metadata.
 ---
 
 # Frontmatter
 
 The YAML frontmatter at the top of each OMG file defines the endpoint's HTTP method, path, and metadata.
 
-## Required Fields
+## Required fields
 
 ```yaml
 ---
@@ -22,7 +23,7 @@ operationId: get-user
 | `path` | URL path with parameter placeholders |
 | `operationId` | Unique identifier for this operation |
 
-## Optional Fields
+## Optional fields
 
 ```yaml
 ---
@@ -44,7 +45,7 @@ security:
 | `summary` | Short summary (alternative to H1) |
 | `security` | Security requirements |
 
-## Workflow Metadata
+## Workflow metadata
 
 OMG supports additional metadata for documenting API workflows:
 
@@ -84,7 +85,7 @@ webhooks:
 - `webhooks.resulting` — Webhooks triggered by this endpoint
 - `webhooks.listen` — Webhooks to subscribe to for updates
 
-## Variant Expansion
+## Variant expansion
 
 ### expandVariants
 

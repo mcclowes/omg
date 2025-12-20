@@ -1,8 +1,9 @@
 ---
 sidebar_position: 1
+description: Overview of OMG CLI commands for building, linting, formatting, and comparing API specifications.
 ---
 
-# CLI Overview
+# CLI overview
 
 The OMG CLI (`omg-md-cli`) provides commands for working with OMG files.
 
@@ -31,7 +32,7 @@ npx omg-md-cli <command>
 | [`breaking`](/docs/cli/change-management#breaking) | Detect breaking changes |
 | [`changelog`](/docs/cli/change-management#changelog) | Generate API changelog |
 
-## Quick Reference
+## Quick reference
 
 ```bash
 # Initialize a new project
@@ -62,7 +63,7 @@ omg breaking old.omg.md new.omg.md --fail-on-diff
 omg changelog v1/api.omg.md v2/api.omg.md
 ```
 
-## Global Options
+## Global options
 
 | Option | Description |
 |--------|-------------|

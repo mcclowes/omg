@@ -1,12 +1,13 @@
 ---
 sidebar_position: 3
+description: Reference for OMG code block types including path, query, body, response, and type definitions.
 ---
 
-# Code Blocks
+# Code blocks
 
 OMG uses fenced code blocks with special language identifiers to define API parameters and schemas.
 
-## Parameter Blocks
+## Parameter blocks
 
 ### omg.path
 
@@ -42,7 +43,7 @@ Custom request headers:
 }
 ```
 
-## Request Body
+## Request body
 
 ### omg.body
 
@@ -56,7 +57,7 @@ Request body schema:
 }
 ```
 
-## Response Blocks
+## Response blocks
 
 ### omg.response
 
@@ -103,7 +104,7 @@ Conditional responses with status codes:
   "Cannot delete sent or paid invoice"
 ```
 
-## Type Definitions
+## Type definitions
 
 ### omg.type
 
@@ -158,7 +159,7 @@ Include shared content using Handlebars-style syntax:
 \{\{> partials/pagination \}\}
 ```
 
-## Variant Conditions
+## Variant conditions
 
 ### @when annotation
 

@@ -1,12 +1,13 @@
 ---
 sidebar_position: 6
+description: Reuse content across OMG files using Handlebars-style partials for errors, pagination, and shared schemas.
 ---
 
 # Partials
 
 Partials allow you to reuse content across multiple OMG files using Handlebars-style includes.
 
-## Basic Usage
+## Basic usage
 
 Include a partial with the `\{\{> path \}\}` syntax:
 
@@ -25,7 +26,7 @@ Returns a user by ID.
 \{\{> partials/errors \}\}
 ```
 
-## Partial Files
+## Partial files
 
 Partials are OMG files stored in a `partials/` directory:
 
@@ -77,7 +78,7 @@ my-api/
 ```
 ```
 
-## Nested Partials
+## Nested partials
 
 Partials can include other partials:
 
@@ -86,7 +87,7 @@ Partials can include other partials:
 \{\{> partials/rate-limit-errors \}\}
 ```
 
-## Path Resolution
+## Path resolution
 
 Partial paths are resolved relative to the including document:
 
@@ -94,9 +95,9 @@ Partial paths are resolved relative to the including document:
 - `\{\{> partials/errors \}\}` — `partials/` subdirectory
 - `\{\{> ../shared/errors \}\}` — Parent directory
 
-## Common Patterns
+## Common patterns
 
-### Shared Error Responses
+### Shared error responses
 
 Define standard error schemas once, include everywhere:
 
@@ -112,7 +113,7 @@ Include pagination query parameters:
 \{\{> params/pagination \}\}
 ```
 
-### Authentication Headers
+### Authentication headers
 
 Include auth headers:
 
