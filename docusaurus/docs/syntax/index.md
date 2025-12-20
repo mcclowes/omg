@@ -1,12 +1,13 @@
 ---
 sidebar_position: 1
+description: Overview of OMG file structure including YAML frontmatter, Markdown prose, and code block types.
 ---
 
-# Syntax Overview
+# Syntax overview
 
 OMG files (`.omg.md`) are Markdown documents with YAML frontmatter and special code blocks that define API endpoints.
 
-## File Structure
+## File structure
 
 Every OMG endpoint file has three main parts:
 
@@ -41,7 +42,7 @@ Returns a user by ID.
 \```
 ```
 
-## Code Block Types
+## Code block types
 
 | Block Type | Purpose |
 |------------|---------|
@@ -57,7 +58,7 @@ Returns a user by ID.
 | `omg.errors` | Error response definitions |
 | `omg.config` | Configuration block |
 
-## Learn More
+## Learn more
 
 - [Frontmatter](/docs/syntax/frontmatter) — YAML metadata options
 - [Code Blocks](/docs/syntax/code-blocks) — Block types and usage

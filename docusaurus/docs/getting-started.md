@@ -1,8 +1,9 @@
 ---
 sidebar_position: 2
+description: Install OMG and compile your first API specification to OpenAPI 3.1 in under 5 minutes.
 ---
 
-# Getting Started
+# Getting started
 
 Get up and running with OMG in under 5 minutes.
 
@@ -18,7 +19,7 @@ Or use directly with npx (no installation required):
 npx omg-md-cli <command>
 ```
 
-### From Source
+### From source
 
 For development or contributing:
 
@@ -29,7 +30,7 @@ npm install
 npm run build
 ```
 
-## Initialize a Project
+## Initialize a project
 
 Create a new OMG API project:
 
@@ -56,7 +57,7 @@ Compile your OMG files to OpenAPI 3.1:
 omg build my-api/api.omg.md -o openapi.yaml
 ```
 
-## File Structure
+## File structure
 
 OMG files use the `.omg.md` extension and are standard Markdown with:
 
@@ -91,7 +92,7 @@ Returns a user by ID.
 ```
 ```
 
-## Next Steps
+## Next steps
 
 - Read the [Syntax Reference](/docs/syntax) for full documentation
 - Explore the [CLI Commands](/docs/cli) for all available operations

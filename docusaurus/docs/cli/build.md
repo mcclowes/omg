@@ -1,8 +1,9 @@
 ---
 sidebar_position: 2
+description: Compile OMG files to OpenAPI 3.1 YAML or JSON output.
 ---
 
-# build
+# Build
 
 Compile OMG files to OpenAPI 3.1 specification.
 
@@ -52,7 +53,7 @@ omg build api.omg.md -o openapi.yaml
 npx @apidevtools/swagger-cli validate openapi.yaml
 ```
 
-## Input File Structure
+## Input file structure
 
 The build command expects a root OMG file that may include other files:
 

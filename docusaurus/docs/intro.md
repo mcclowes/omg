@@ -1,6 +1,7 @@
 ---
 sidebar_position: 1
 slug: /
+description: OMG is a human-first DSL that compiles Markdown-based API definitions to OpenAPI 3.1.
 ---
 
 # Introduction

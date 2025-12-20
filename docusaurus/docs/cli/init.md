@@ -1,8 +1,9 @@
 ---
 sidebar_position: 5
+description: Initialize a new OMG project with example API definition, endpoint, and shared partials.
 ---
 
-# init
+# Init
 
 Initialize a new OMG project with example files.
 
@@ -32,7 +33,7 @@ omg init my-api
 omg init .
 ```
 
-## Generated Structure
+## Generated structure
 
 ```
 my-api/
@@ -82,7 +83,7 @@ Returns the health status of the API.
 \{\{> partials/errors \}\}
 ```
 
-## Next Steps
+## Next steps
 
 After initializing:
 
