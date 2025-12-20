@@ -32,7 +32,7 @@ Compare two OMG API specifications and show all differences.
 ### Usage
 
 ```bash
-npx omg diff <base> <revision> [options]
+omg diff <base> <revision> [options]
 ```
 
 ### Arguments
@@ -71,7 +71,7 @@ Detect breaking changes between two OMG API specifications.
 ### Usage
 
 ```bash
-npx omg breaking <base> <revision> [options]
+omg breaking <base> <revision> [options]
 ```
 
 ### Arguments
@@ -121,7 +121,7 @@ Use the `--fail-on-diff` flag in your CI pipeline:
 ```yaml
 # GitHub Actions example
 - name: Check for breaking changes
-  run: npx omg breaking main-api.omg.md pr-api.omg.md --fail-on-diff
+  run: npx omg-md-cli breaking main-api.omg.md pr-api.omg.md --fail-on-diff
 ```
 
 You can also use the [oasdiff GitHub Action](https://github.com/oasdiff/oasdiff-action) directly on compiled OpenAPI specs.
@@ -135,7 +135,7 @@ Generate a changelog between two OMG API specifications.
 ### Usage
 
 ```bash
-npx omg changelog <base> <revision> [options]
+omg changelog <base> <revision> [options]
 ```
 
 ### Arguments

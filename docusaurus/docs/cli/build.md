@@ -9,7 +9,7 @@ Compile OMG files to OpenAPI 3.1 specification.
 ## Usage
 
 ```bash
-npx omg build <input> [options]
+omg build <input> [options]
 ```
 
 ## Arguments
@@ -30,25 +30,25 @@ npx omg build <input> [options]
 ### Build to YAML
 
 ```bash
-npx omg build api.omg.md -o openapi.yaml
+omg build api.omg.md -o openapi.yaml
 ```
 
 ### Build to JSON
 
 ```bash
-npx omg build api.omg.md -o openapi.json -f json
+omg build api.omg.md -o openapi.json -f json
 ```
 
 ### Output to stdout
 
 ```bash
-npx omg build api.omg.md
+omg build api.omg.md
 ```
 
 ### Validate output
 
 ```bash
-npx omg build api.omg.md -o openapi.yaml
+omg build api.omg.md -o openapi.yaml
 npx @apidevtools/swagger-cli validate openapi.yaml
 ```
 
