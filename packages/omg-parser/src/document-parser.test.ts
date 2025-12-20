@@ -2,6 +2,122 @@ import { describe, it, expect } from 'vitest';
 import { parseDocument } from './document-parser.js';
 
 describe('parseDocument', () => {
+  describe('partial parsing', () => {
+    it('parses Handlebars-style partial references', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+{{> params/company }}
+{{> responses/errors }}
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(2);
+      expect(doc.partials[0].path).toBe('params/company');
+      expect(doc.partials[1].path).toBe('responses/errors');
+    });
+
+    it('parses OMG-style @ partial references', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+@params/company
+@responses/errors
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(2);
+      expect(doc.partials[0].path).toBe('params/company');
+      expect(doc.partials[1].path).toBe('responses/errors');
+    });
+
+    it('parses mixed partial syntaxes in the same document', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+{{> params/company }}
+@responses/errors
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(2);
+      expect(doc.partials[0].path).toBe('params/company');
+      expect(doc.partials[1].path).toBe('responses/errors');
+    });
+
+    it('tracks correct line numbers for @ partials', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+Some description.
+
+@params/company
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(1);
+      expect(doc.partials[0].path).toBe('params/company');
+      // Line number is relative to the markdown content after frontmatter extraction
+      expect(doc.partials[0].line).toBe(6);
+    });
+
+    it('excludes @ partial references from description', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+This is the description.
+
+@params/company
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.description).toBe('This is the description.');
+      expect(doc.partials).toHaveLength(1);
+    });
+
+    it('handles @ partials with underscores and hyphens', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+@common_params/user-id
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(1);
+      expect(doc.partials[0].path).toBe('common_params/user-id');
+    });
+  });
+
   describe('@when annotation parsing', () => {
     it('parses @when annotation on omg.body block', () => {
       const content = `---
