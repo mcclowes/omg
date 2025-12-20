@@ -18,7 +18,7 @@
 ### Long-term (Ecosystem)
 
 - [ ] **Contract testing engine** - Validate live APIs against spec
-- [ ] **Mock server** - Generate mock responses from spec
+- [x] **Mock server** - Generate mock responses from spec (`omg mock` command)
 - [ ] **OpenAPI importer** - Convert existing specs to OMG
 - [ ] **Documentation generator** - Beautiful API docs from OMG
 - [ ] **GitHub Actions** - CI/CD integration
@@ -131,3 +131,4 @@ This is an early-stage project. To contribute:
 - [x] Added parse warnings system for non-fatal issues
 - [x] Stack traces in CLI error output
 - [x] Variant expansion (`expandVariants` + `@when`) for polymorphic endpoints
+- [x] Mock server generator (`omg-mock-server` package) with `omg mock` CLI command

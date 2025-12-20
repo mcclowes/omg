@@ -1,0 +1,49 @@
+{
+  "name": "omg-mock-server",
+  "version": "0.1.0",
+  "description": "Mock server generator for OMG (OpenAPI Markdown Grammar) specifications",
+  "author": "mcclowes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcclowes/omg.git",
+    "directory": "packages/omg-mock-server"
+  },
+  "bugs": {
+    "url": "https://github.com/mcclowes/omg/issues"
+  },
+  "homepage": "https://github.com/mcclowes/omg/tree/main/packages/omg-mock-server#readme",
+  "keywords": [
+    "openapi",
+    "omg",
+    "mock",
+    "mock-server",
+    "api",
+    "testing",
+    "development"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "omg-parser": "^0.1.0",
+    "vague-lang": "^3.2.0",
+    "express": "^4.21.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17"
+  }
+}

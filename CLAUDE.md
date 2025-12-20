@@ -65,6 +65,13 @@ omg/
 │   │   │   └── cli.ts               # Main CLI entry point
 │   │   └── dist/
 │   │
+│   ├── omg-mock-server/        # omg-mock-server - Mock server generator
+│   │   ├── src/
+│   │   │   ├── index.ts             # Main exports
+│   │   │   ├── mock-generator.ts    # Mock data generation from schemas
+│   │   │   └── server.ts            # Express HTTP server
+│   │   └── dist/
+│   │
 │   └── omg-vscode/             # VS Code extension for syntax highlighting
 │       ├── syntaxes/              # TextMate grammar files
 │       └── package.json           # Extension manifest
@@ -191,6 +198,12 @@ node packages/omg-md-cli/dist/cli.js fmt my-api/ --write
 # Check formatting
 node packages/omg-md-cli/dist/cli.js fmt my-api/ --check
 
+# Start mock server
+node packages/omg-md-cli/dist/cli.js mock my-api/api.omg.md
+
+# Mock server with options
+node packages/omg-md-cli/dist/cli.js mock my-api/api.omg.md -p 8080 -b /api/v1 -w
+
 # Compare API versions (requires oasdiff: https://github.com/oasdiff/oasdiff)
 node packages/omg-md-cli/dist/cli.js diff v1/api.omg.md v2/api.omg.md
 
@@ -217,7 +230,9 @@ node packages/omg-md-cli/dist/cli.js changelog v1/api.omg.md v2/api.omg.md
 omg-md-cli
   ├── omg-compiler
   │     └── omg-parser
-  └── omg-linter
+  ├── omg-linter
+  └── omg-mock-server
+        └── omg-parser
 
 omg-lsp
   ├── omg-parser
