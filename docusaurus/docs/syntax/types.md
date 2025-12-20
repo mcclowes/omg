@@ -1,12 +1,13 @@
 ---
 sidebar_position: 4
+description: Type system reference including primitives, objects, arrays, enums, unions, and nullable fields.
 ---
 
 # Types
 
 OMG has a rich type system that compiles to OpenAPI 3.1 schemas.
 
-## Primitive Types
+## Primitive types
 
 | Type | Description | OpenAPI Mapping |
 |------|-------------|-----------------|
@@ -33,7 +34,7 @@ Define object schemas with typed fields:
 }
 ```
 
-### Nested Objects
+### Nested objects
 
 ```
 {
@@ -72,7 +73,7 @@ Define fixed value sets using union syntax:
 }
 ```
 
-## Union Types
+## Union types
 
 Combine types with `|`:
 
@@ -83,7 +84,7 @@ Combine types with `|`:
 }
 ```
 
-## Optional Fields
+## Optional fields
 
 Mark fields as optional with `?`:
 
@@ -95,7 +96,7 @@ Mark fields as optional with `?`:
 }
 ```
 
-## Nullable Fields
+## Nullable fields
 
 Allow null values with `| null`:
 
@@ -105,7 +106,7 @@ Allow null values with `| null`:
 }
 ```
 
-## Type References
+## Type references
 
 Reference other defined types:
 

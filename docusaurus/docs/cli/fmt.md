@@ -1,15 +1,16 @@
 ---
 sidebar_position: 5
+description: Format OMG files for consistent style with automatic frontmatter ordering.
 ---
 
-# fmt
+# Fmt
 
 Format OMG files for consistent style.
 
 ## Usage
 
 ```bash
-npx omg fmt <path> [options]
+omg fmt <path> [options]
 ```
 
 ## Arguments
@@ -31,7 +32,7 @@ npx omg fmt <path> [options]
 ### Preview formatting
 
 ```bash
-npx omg fmt my-api/
+omg fmt my-api/
 ```
 
 Outputs the formatted content to stdout without modifying files.
@@ -39,13 +40,13 @@ Outputs the formatted content to stdout without modifying files.
 ### Format files in place
 
 ```bash
-npx omg fmt my-api/ --write
+omg fmt my-api/ --write
 ```
 
 ### Check formatting in CI
 
 ```bash
-npx omg fmt my-api/ --check
+omg fmt my-api/ --check
 ```
 
 Returns exit code 1 if any files need formatting.
@@ -53,13 +54,13 @@ Returns exit code 1 if any files need formatting.
 ### Format a single file
 
 ```bash
-npx omg fmt my-api/endpoints/get-user.omg.md -w
+omg fmt my-api/endpoints/get-user.omg.md -w
 ```
 
 ### Custom indentation
 
 ```bash
-npx omg fmt my-api/ -w --indent 4
+omg fmt my-api/ -w --indent 4
 ```
 
 ## What gets formatted
@@ -87,18 +88,18 @@ Frontmatter keys are sorted in this order:
 9. `webhooks`
 10. Other keys (alphabetically)
 
-## Exit Codes
+## Exit codes
 
 | Code | Description |
 |------|-------------|
 | 0 | All files formatted (or already formatted with `--check`) |
 | 1 | Files need formatting (with `--check`) or error occurred |
 
-## CI Integration
+## CI integration
 
 Add to your CI pipeline to enforce consistent formatting:
 
 ```yaml
 - name: Check formatting
-  run: npx omg fmt . --check
+  run: npx omg-md-cli fmt . --check
 ```

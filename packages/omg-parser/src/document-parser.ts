@@ -6,7 +6,7 @@
  * - Extracts title (first # heading)
  * - Extracts description (prose content)
  * - Extracts code blocks by language tag
- * - Extracts partial references ({{> path }})
+ * - Extracts partial references ({{> path }} or @path)
  */
 
 import matter from 'gray-matter';
@@ -29,7 +29,11 @@ const OMG_BLOCK_PATTERN =
   /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+))?$/;
 // Matches: @when(fieldName = "value") in code block meta
 const WHEN_PATTERN = /@when\((\w+)\s*=\s*"([^"]+)"\)/;
+// Partial patterns - two syntaxes supported:
+// - Handlebars style: {{> path/to/partial }}
+// - OMG style: @path/to/partial
 const PARTIAL_PATTERN = /\{\{>\s*([^}\s]+)\s*\}\}/g;
+const AT_PARTIAL_PATTERN = /(?:^|\s)@([a-zA-Z][a-zA-Z0-9_/-]*)(?:\s|$)/g;
 
 /**
  * Parse a .omg.md file into an OmgDocument
@@ -94,10 +98,13 @@ function extractDescription(tree: Root, rawContent: string): string {
       continue;
     }
 
-    // Skip partial references (lines with {{> ... }})
+    // Skip partial references ({{> ... }} or @path)
     if (node.type === 'paragraph') {
       const text = extractTextFromNode(node);
-      if (PARTIAL_PATTERN.test(text)) {
+      // Reset lastIndex for global regex patterns
+      PARTIAL_PATTERN.lastIndex = 0;
+      AT_PARTIAL_PATTERN.lastIndex = 0;
+      if (PARTIAL_PATTERN.test(text) || AT_PARTIAL_PATTERN.test(text)) {
         continue;
       }
     }
@@ -179,7 +186,9 @@ function extractCodeBlocks(tree: Root): OmgBlock[] {
 }
 
 /**
- * Extract partial references ({{> path }})
+ * Extract partial references from both syntaxes:
+ * - Handlebars style: {{> path/to/partial }}
+ * - OMG style: @path/to/partial
  */
 function extractPartials(content: string): PartialRef[] {
   const partials: PartialRef[] = [];
@@ -187,9 +196,19 @@ function extractPartials(content: string): PartialRef[] {
 
   lines.forEach((line, index) => {
     let match;
-    PARTIAL_PATTERN.lastIndex = 0;
 
+    // Check Handlebars-style partials: {{> path }}
+    PARTIAL_PATTERN.lastIndex = 0;
     while ((match = PARTIAL_PATTERN.exec(line)) !== null) {
+      partials.push({
+        path: match[1],
+        line: index + 1,
+      });
+    }
+
+    // Check OMG-style partials: @path
+    AT_PARTIAL_PATTERN.lastIndex = 0;
+    while ((match = AT_PARTIAL_PATTERN.exec(line)) !== null) {
       partials.push({
         path: match[1],
         line: index + 1,

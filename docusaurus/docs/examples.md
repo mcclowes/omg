@@ -1,12 +1,13 @@
 ---
 sidebar_position: 10
+description: Real-world examples of OMG API definitions including CRUD operations, complex types, and conditional responses.
 ---
 
 # Examples
 
 Real-world examples of OMG API definitions.
 
-## Complete Examples on GitHub
+## Complete examples on GitHub
 
 These fully working examples are available in our repository:
 
@@ -20,7 +21,7 @@ These fully working examples are available in our repository:
 
 ## Basic CRUD API
 
-### List Resources
+### List resources
 
 ```markdown
 ---
@@ -58,7 +59,7 @@ Returns a paginated list of users.
 \`\`\`
 ```
 
-### Get Resource
+### Get resource
 
 ```markdown
 ---
@@ -90,7 +91,7 @@ Returns a user by ID.
 \`\`\`
 ```
 
-### Create Resource
+### Create resource
 
 ```markdown
 ---
@@ -123,7 +124,7 @@ Creates a new user.
 \`\`\`
 ```
 
-### Update Resource
+### Update resource
 
 ```markdown
 ---
@@ -162,7 +163,7 @@ Updates a user.
 \`\`\`
 ```
 
-### Delete Resource
+### Delete resource
 
 ```markdown
 ---
@@ -187,9 +188,9 @@ Deletes a user.
 \`\`\`
 ```
 
-## Complex Types
+## Complex types
 
-### Nested Objects
+### Nested objects
 
 ```markdown
 \`\`\`omg.response
@@ -210,7 +211,7 @@ Deletes a user.
 \`\`\`
 ```
 
-### Arrays of Objects
+### Arrays of objects
 
 ```markdown
 \`\`\`omg.response
@@ -229,7 +230,7 @@ Deletes a user.
 \`\`\`
 ```
 
-## Conditional Responses
+## Conditional responses
 
 ```markdown
 ---
@@ -264,7 +265,7 @@ Deletes an invoice if it's in a deletable state.
 \`\`\`
 ```
 
-## API Root File
+## API root file
 
 ```markdown
 ---

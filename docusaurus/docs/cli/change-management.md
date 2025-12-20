@@ -1,8 +1,9 @@
 ---
 sidebar_position: 6
+description: Compare API versions, detect breaking changes, and generate changelogs using oasdiff.
 ---
 
-# Change Management
+# Change management
 
 OMG provides commands for comparing API versions, detecting breaking changes, and generating changelogs. These commands are powered by [oasdiff](https://github.com/oasdiff/oasdiff), a comprehensive OpenAPI comparison tool.
 
@@ -32,7 +33,7 @@ Compare two OMG API specifications and show all differences.
 ### Usage
 
 ```bash
-npx omg diff <base> <revision> [options]
+omg diff <base> <revision> [options]
 ```
 
 ### Arguments
@@ -71,7 +72,7 @@ Detect breaking changes between two OMG API specifications.
 ### Usage
 
 ```bash
-npx omg breaking <base> <revision> [options]
+omg breaking <base> <revision> [options]
 ```
 
 ### Arguments
@@ -89,7 +90,7 @@ npx omg breaking <base> <revision> [options]
 | `-o, --output <file>` | Write output to file | stdout |
 | `--fail-on-diff` | Exit with code 1 if breaking changes found | false |
 
-### Breaking Changes Detected
+### Breaking changes detected
 
 The command detects over 250 types of breaking changes, including:
 
@@ -114,14 +115,14 @@ omg breaking old.omg.md new.omg.md --fail-on-diff
 omg breaking base.omg.md head.omg.md --format json
 ```
 
-### CI/CD Integration
+### CI/CD integration
 
 Use the `--fail-on-diff` flag in your CI pipeline:
 
 ```yaml
 # GitHub Actions example
 - name: Check for breaking changes
-  run: npx omg breaking main-api.omg.md pr-api.omg.md --fail-on-diff
+  run: npx omg-md-cli breaking main-api.omg.md pr-api.omg.md --fail-on-diff
 ```
 
 You can also use the [oasdiff GitHub Action](https://github.com/oasdiff/oasdiff-action) directly on compiled OpenAPI specs.
@@ -135,7 +136,7 @@ Generate a changelog between two OMG API specifications.
 ### Usage
 
 ```bash
-npx omg changelog <base> <revision> [options]
+omg changelog <base> <revision> [options]
 ```
 
 ### Arguments
@@ -152,7 +153,7 @@ npx omg changelog <base> <revision> [options]
 | `-f, --format <fmt>` | Output format: `text`, `yaml`, `json`, `html` | `text` |
 | `-o, --output <file>` | Write output to file | stdout |
 
-### Changelog Contents
+### Changelog contents
 
 The generated changelog includes:
 
@@ -178,7 +179,7 @@ omg changelog base.omg.md head.omg.md --format json -o changes.json
 
 ---
 
-## How It Works
+## How it works
 
 These commands work by:
 
@@ -188,7 +189,7 @@ These commands work by:
 
 This approach leverages the robust [oasdiff](https://github.com/oasdiff/oasdiff) engine (250+ checks) while maintaining the OMG workflow.
 
-## Further Reading
+## Further reading
 
 - [oasdiff Documentation](https://github.com/oasdiff/oasdiff)
 - [oasdiff Breaking Changes Reference](https://github.com/oasdiff/oasdiff/blob/main/docs/BREAKING-CHANGES.md)

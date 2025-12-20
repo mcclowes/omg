@@ -1,15 +1,16 @@
 ---
 sidebar_position: 4
+description: Lint OMG files for style issues, missing fields, and syntax errors.
 ---
 
-# lint
+# Lint
 
 Lint OMG files for style and correctness issues.
 
 ## Usage
 
 ```bash
-npx omg lint <path>
+omg lint <path>
 ```
 
 ## Arguments
@@ -23,13 +24,13 @@ npx omg lint <path>
 ### Lint a directory
 
 ```bash
-npx omg lint my-api/
+omg lint my-api/
 ```
 
 ### Lint a single file
 
 ```bash
-npx omg lint my-api/endpoints/get-user.omg.md
+omg lint my-api/endpoints/get-user.omg.md
 ```
 
 ## Rules
@@ -56,7 +57,7 @@ my-api/endpoints/list-users.omg.md
 2 files checked, 2 errors, 1 warning
 ```
 
-## Exit Codes
+## Exit codes
 
 | Code | Description |
 |------|-------------|

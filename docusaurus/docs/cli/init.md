@@ -1,15 +1,16 @@
 ---
 sidebar_position: 5
+description: Initialize a new OMG project with example API definition, endpoint, and shared partials.
 ---
 
-# init
+# Init
 
 Initialize a new OMG project with example files.
 
 ## Usage
 
 ```bash
-npx omg init <directory>
+omg init <directory>
 ```
 
 ## Arguments
@@ -23,16 +24,16 @@ npx omg init <directory>
 ### Create a new project
 
 ```bash
-npx omg init my-api
+omg init my-api
 ```
 
 ### Initialize in current directory
 
 ```bash
-npx omg init .
+omg init .
 ```
 
-## Generated Structure
+## Generated structure
 
 ```
 my-api/
@@ -82,11 +83,11 @@ Returns the health status of the API.
 \{\{> partials/errors \}\}
 ```
 
-## Next Steps
+## Next steps
 
 After initializing:
 
 ```bash
 cd my-api
-npx omg build api.omg.md -o openapi.yaml
+omg build api.omg.md -o openapi.yaml
 ```

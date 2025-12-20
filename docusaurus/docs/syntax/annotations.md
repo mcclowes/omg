@@ -1,12 +1,13 @@
 ---
 sidebar_position: 5
+description: Annotation reference for adding constraints like @min, @max, @minLength, @pattern, and default values.
 ---
 
 # Annotations
 
 Annotations add constraints and metadata to fields using the `@` prefix.
 
-## Numeric Constraints
+## Numeric constraints
 
 ```
 {
@@ -21,7 +22,7 @@ Annotations add constraints and metadata to fields using the `@` prefix.
 | `@min(n)` | Minimum value (inclusive) |
 | `@max(n)` | Maximum value (inclusive) |
 
-## String Constraints
+## String constraints
 
 ```
 {
@@ -38,7 +39,7 @@ Annotations add constraints and metadata to fields using the `@` prefix.
 | `@pattern("regex")` | Regex pattern |
 | `@format("fmt")` | Format hint (email, uri, etc.) |
 
-## Array Constraints
+## Array constraints
 
 ```
 {
@@ -52,7 +53,7 @@ Annotations add constraints and metadata to fields using the `@` prefix.
 | `@minItems(n)` | Minimum array length |
 | `@maxItems(n)` | Maximum array length |
 
-## Default Values
+## Default values
 
 Use `= value` syntax for defaults:
 
@@ -64,7 +65,7 @@ Use `= value` syntax for defaults:
 }
 ```
 
-## Multiple Annotations
+## Multiple annotations
 
 Combine annotations on a single field:
 
@@ -75,9 +76,9 @@ Combine annotations on a single field:
 }
 ```
 
-## Common Patterns
+## Common patterns
 
-### Pagination Parameters
+### Pagination parameters
 
 ```omg.query
 {
@@ -86,7 +87,7 @@ Combine annotations on a single field:
 }
 ```
 
-### Email Field
+### Email field
 
 ```
 {
@@ -94,7 +95,7 @@ Combine annotations on a single field:
 }
 ```
 
-### Money Field
+### Money field
 
 ```
 {

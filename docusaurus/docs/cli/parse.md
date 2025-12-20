@@ -1,15 +1,16 @@
 ---
 sidebar_position: 3
+description: Parse OMG files and output the Abstract Syntax Tree as JSON for debugging and tooling.
 ---
 
-# parse
+# Parse
 
 Parse an OMG file and output its AST (Abstract Syntax Tree).
 
 ## Usage
 
 ```bash
-npx omg parse <file>
+omg parse <file>
 ```
 
 ## Arguments
@@ -23,13 +24,13 @@ npx omg parse <file>
 ### Parse a single endpoint
 
 ```bash
-npx omg parse endpoints/get-user.omg.md
+omg parse endpoints/get-user.omg.md
 ```
 
 ### View parsed structure
 
 ```bash
-npx omg parse api.omg.md | jq .
+omg parse api.omg.md | jq .
 ```
 
 ## Output
@@ -63,7 +64,7 @@ The command outputs a JSON representation of the parsed AST:
 }
 ```
 
-## Use Cases
+## Use cases
 
 - **Debugging** — Verify how your OMG is being parsed
 - **Tooling** — Build custom tools that consume OMG AST
