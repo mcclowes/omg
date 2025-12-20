@@ -793,14 +793,16 @@ function generateOperationId(method: string, path: string): string {
 /**
  * Generate endpoint file path with logical grouping
  *
+ * Uses resource-action pattern: resource-verb.omg.md
+ *
  * Examples:
- * - GET /Accounts -> accounts/list-accounts.omg.md
- * - GET /Accounts/{AccountID} -> accounts/get-account.omg.md
- * - PUT /Accounts -> accounts/create-account.omg.md
- * - POST /Accounts/{AccountID} -> accounts/update-account.omg.md
- * - DELETE /Accounts/{AccountID} -> accounts/delete-account.omg.md
- * - GET /Accounts/{AccountID}/Attachments -> accounts/attachments/list-attachments.omg.md
- * - GET /Accounts/{AccountID}/Attachments/{AttachmentID} -> accounts/attachments/get-attachment.omg.md
+ * - GET /Accounts -> accounts/accounts-list.omg.md
+ * - GET /Accounts/{AccountID} -> accounts/account-get.omg.md
+ * - PUT /Accounts -> accounts/account-create.omg.md
+ * - POST /Accounts/{AccountID} -> accounts/account-update.omg.md
+ * - DELETE /Accounts/{AccountID} -> accounts/account-delete.omg.md
+ * - GET /Accounts/{AccountID}/Attachments -> accounts/attachments/attachments-list.omg.md
+ * - GET /Accounts/{AccountID}/Attachments/{AttachmentID} -> accounts/attachments/attachment-get.omg.md
  */
 function generateEndpointFilePath(
   urlPath: string,
@@ -830,83 +832,115 @@ function generateEndpointFilePath(
   // The primary resource is the last resource segment
   const primaryResource = resources.length > 0 ? resources[resources.length - 1] : 'root';
 
-  // Generate action name based on method and context
-  let action: string;
+  // Generate filename using resource-action pattern
   const hasIdParam = params.length > 0;
   const singularResource = toSingular(toKebabCase(primaryResource));
+  const pluralResource = toKebabCase(primaryResource);
+
+  let resourceName: string;
+  let action: string;
 
   switch (method) {
     case 'GET':
-      action = hasIdParam ? `get-${singularResource}` : `list-${toKebabCase(primaryResource)}`;
+      if (hasIdParam) {
+        resourceName = singularResource;
+        action = 'get';
+      } else {
+        resourceName = pluralResource;
+        action = 'list';
+      }
       break;
     case 'POST':
-      action = hasIdParam ? `update-${singularResource}` : `create-${singularResource}`;
+      resourceName = singularResource;
+      action = hasIdParam ? 'update' : 'create';
       break;
     case 'PUT':
-      action = hasIdParam ? `replace-${singularResource}` : `create-${singularResource}`;
+      resourceName = singularResource;
+      action = hasIdParam ? 'replace' : 'create';
       break;
     case 'PATCH':
-      action = `update-${singularResource}`;
+      resourceName = singularResource;
+      action = 'update';
       break;
     case 'DELETE':
-      action = `delete-${singularResource}`;
+      resourceName = singularResource;
+      action = 'delete';
       break;
     case 'HEAD':
-      action = `head-${singularResource}`;
+      resourceName = singularResource;
+      action = 'head';
       break;
     case 'OPTIONS':
-      action = `options-${singularResource}`;
+      resourceName = singularResource;
+      action = 'options';
       break;
   }
 
-  // If there are multiple path params, make the action more specific
-  // e.g., /Accounts/{AccountID}/Attachments/{FileName} -> get-attachment-by-filename
+  // If there are multiple path params, make the filename more specific
+  // e.g., /Accounts/{AccountID}/Attachments/{FileName} -> attachment-get-by-filename
+  let suffix = '';
   if (params.length > 1) {
     const lastParam = params[params.length - 1];
     const paramName = toKebabCase(lastParam.replace(/Id$/i, '').replace(/ID$/i, ''));
     if (paramName && paramName !== singularResource) {
-      action = `${action}-by-${paramName}`;
+      suffix = `-by-${paramName}`;
     }
   }
 
   // Use operationId as fallback/override if it's more descriptive
   // Check if operationId follows common patterns and use it for better names
   const operationAction = extractActionFromOperationId(operationId, primaryResource);
-  if (operationAction && operationAction !== action) {
-    // Prefer operationId-derived action if it's more specific
-    action = operationAction;
+  if (operationAction) {
+    // Parse the operationId-derived action to maintain resource-action pattern
+    const parts = operationAction.match(/^(\w+)-(.+)$/);
+    if (parts) {
+      action = parts[1];
+      resourceName = parts[2];
+    }
   }
 
   return {
     directory,
-    fileName: `${action}.omg.md`,
+    fileName: `${resourceName}-${action}${suffix}.omg.md`,
   };
 }
 
 /**
- * Extract action name from operationId
- * e.g., "getAccounts" -> "list-accounts", "getAccount" -> "get-account"
+ * Extract action name from operationId using resource-action pattern
+ * e.g., "getAccounts" -> "accounts-list", "getAccount" -> "account-get"
  */
 function extractActionFromOperationId(operationId: string, resource: string): string | null {
   // Common patterns: getAccounts, createAccount, updateAccount, deleteAccount
   const patterns = [
-    { regex: /^get([A-Z][a-z]+)s$/, action: 'list' }, // getAccounts -> list
-    { regex: /^get([A-Z][a-z]+)$/, action: 'get' }, // getAccount -> get
-    { regex: /^create([A-Z][a-z]+)$/, action: 'create' }, // createAccount -> create
-    { regex: /^update([A-Z][a-z]+)$/, action: 'update' }, // updateAccount -> update
-    { regex: /^delete([A-Z][a-z]+)$/, action: 'delete' }, // deleteAccount -> delete
+    { regex: /^get([A-Z][a-zA-Z]*)s$/, action: 'list', plural: true }, // getAccounts -> accounts-list
+    { regex: /^list([A-Z][a-zA-Z]*)$/, action: 'list', plural: true }, // listAccounts -> accounts-list
+    { regex: /^get([A-Z][a-zA-Z]*)$/, action: 'get', plural: false }, // getAccount -> account-get
+    { regex: /^create([A-Z][a-zA-Z]*)$/, action: 'create', plural: false }, // createAccount -> account-create
+    { regex: /^update([A-Z][a-zA-Z]*)$/, action: 'update', plural: false }, // updateAccount -> account-update
+    { regex: /^delete([A-Z][a-zA-Z]*)$/, action: 'delete', plural: false }, // deleteAccount -> account-delete
+    { regex: /^replace([A-Z][a-zA-Z]*)$/, action: 'replace', plural: false }, // replaceAccount -> account-replace
   ];
 
-  for (const { regex, action } of patterns) {
+  for (const { regex, action, plural } of patterns) {
     const match = operationId.match(regex);
     if (match) {
-      const resourceName = toKebabCase(match[1]);
-      return `${action}-${resourceName}${action === 'list' ? 's' : ''}`;
+      let resourceName = toKebabCase(match[1]);
+      if (plural && !resourceName.endsWith('s')) {
+        resourceName += 's';
+      }
+      // Return in action-resource format so the caller can parse it
+      return `${action}-${resourceName}`;
     }
   }
 
-  // Fallback: convert camelCase operationId to kebab-case
-  return toKebabCase(operationId);
+  // Fallback: try to parse kebab-case operationId (e.g., "get-account" -> "get-account")
+  const kebab = toKebabCase(operationId);
+  const verbMatch = kebab.match(/^(get|list|create|update|delete|replace|head|options)-(.+)$/);
+  if (verbMatch) {
+    return `${verbMatch[1]}-${verbMatch[2]}`;
+  }
+
+  return null;
 }
 
 /**
