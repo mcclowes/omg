@@ -58,8 +58,15 @@ export { parseReturnsBlock } from './returns-parser.js';
 export type { ParseReturnsResult } from './returns-parser.js';
 
 // Resolution
-export { resolveDocument, buildEndpoint, buildEndpoints, loadApi } from './resolver.js';
-export type { ResolvedDocument } from './resolver.js';
+export {
+  resolveDocument,
+  buildEndpoint,
+  buildEndpoints,
+  loadApi,
+  clearDocumentCache,
+  getDocumentCacheSize,
+} from './resolver.js';
+export type { ResolvedDocument, LoadApiOptions } from './resolver.js';
 
 // Formatter
 export { formatDocument } from './formatter.js';

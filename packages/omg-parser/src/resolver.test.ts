@@ -8,6 +8,8 @@ import {
   buildEndpoint,
   extractTypeName,
   loadApi,
+  clearDocumentCache,
+  getDocumentCacheSize,
 } from './resolver.js';
 
 // Mock fs module for partial resolution tests
@@ -693,5 +695,198 @@ describe('extractTypeName', () => {
 
   it('handles whitespace', () => {
     expect(extractTypeName('  type  User  =  { id: string }')).toBe('User');
+  });
+});
+
+describe('document caching', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    clearDocumentCache();
+  });
+
+  afterEach(() => {
+    clearDocumentCache();
+  });
+
+  it('caches parsed partials for reuse', () => {
+    const mainContent = `---
+method: GET
+path: /users
+---
+
+# Get Users
+
+@shared/errors
+`;
+
+    const partialContent = `\`\`\`omg.response.500
+{
+  error: string
+}
+\`\`\`
+`;
+
+    vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => {
+      const pathStr = p.toString();
+      return pathStr.includes('partials/shared/errors.omg.md') || pathStr.includes('partials');
+    });
+
+    vi.mocked(fs.readFileSync).mockImplementation((p: fs.PathOrFileDescriptor) => {
+      const pathStr = p.toString();
+      if (pathStr.includes('errors.omg.md')) {
+        return partialContent;
+      }
+      return '';
+    });
+
+    // First resolution
+    const doc1 = parseDocument(mainContent, 'test1.omg.md');
+    resolveDocument(doc1, { basePath: '/project' });
+
+    // Cache should have the partial
+    expect(getDocumentCacheSize()).toBe(1);
+
+    // Second resolution with same partial
+    const doc2 = parseDocument(mainContent, 'test2.omg.md');
+    resolveDocument(doc2, { basePath: '/project' });
+
+    // Cache should still have only one entry (same partial)
+    expect(getDocumentCacheSize()).toBe(1);
+  });
+
+  it('invalidates cache when content changes', () => {
+    const mainContent = `---
+method: GET
+path: /users
+---
+
+# Get Users
+
+@shared/errors
+`;
+
+    let partialContent = `\`\`\`omg.response.500
+{
+  error: string
+}
+\`\`\`
+`;
+
+    vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => {
+      const pathStr = p.toString();
+      return pathStr.includes('partials/shared/errors.omg.md') || pathStr.includes('partials');
+    });
+
+    vi.mocked(fs.readFileSync).mockImplementation((p: fs.PathOrFileDescriptor) => {
+      const pathStr = p.toString();
+      if (pathStr.includes('errors.omg.md')) {
+        return partialContent;
+      }
+      return '';
+    });
+
+    // First resolution
+    const doc1 = parseDocument(mainContent, 'test.omg.md');
+    resolveDocument(doc1, { basePath: '/project' });
+
+    expect(getDocumentCacheSize()).toBe(1);
+
+    // Change partial content
+    partialContent = `\`\`\`omg.response.500
+{
+  error: string,
+  code: integer
+}
+\`\`\`
+`;
+
+    // Second resolution should detect content change
+    const doc2 = parseDocument(mainContent, 'test.omg.md');
+    resolveDocument(doc2, { basePath: '/project' });
+
+    // Cache entry was invalidated and replaced
+    expect(getDocumentCacheSize()).toBe(1);
+  });
+
+  it('respects noCache option', () => {
+    const mainContent = `---
+method: GET
+path: /users
+---
+
+# Get Users
+
+@shared/errors
+`;
+
+    const partialContent = `\`\`\`omg.response.500
+{
+  error: string
+}
+\`\`\`
+`;
+
+    vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => {
+      const pathStr = p.toString();
+      return pathStr.includes('partials/shared/errors.omg.md') || pathStr.includes('partials');
+    });
+
+    vi.mocked(fs.readFileSync).mockImplementation((p: fs.PathOrFileDescriptor) => {
+      const pathStr = p.toString();
+      if (pathStr.includes('errors.omg.md')) {
+        return partialContent;
+      }
+      return '';
+    });
+
+    // Resolution with noCache
+    const doc = parseDocument(mainContent, 'test.omg.md');
+    resolveDocument(doc, { basePath: '/project', noCache: true });
+
+    // Cache should be empty
+    expect(getDocumentCacheSize()).toBe(0);
+  });
+
+  it('clearDocumentCache empties the cache', () => {
+    const mainContent = `---
+method: GET
+path: /users
+---
+
+# Get Users
+
+@shared/errors
+`;
+
+    const partialContent = `\`\`\`omg.response.500
+{
+  error: string
+}
+\`\`\`
+`;
+
+    vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => {
+      const pathStr = p.toString();
+      return pathStr.includes('partials/shared/errors.omg.md') || pathStr.includes('partials');
+    });
+
+    vi.mocked(fs.readFileSync).mockImplementation((p: fs.PathOrFileDescriptor) => {
+      const pathStr = p.toString();
+      if (pathStr.includes('errors.omg.md')) {
+        return partialContent;
+      }
+      return '';
+    });
+
+    // Resolve and populate cache
+    const doc = parseDocument(mainContent, 'test.omg.md');
+    resolveDocument(doc, { basePath: '/project' });
+
+    expect(getDocumentCacheSize()).toBeGreaterThan(0);
+
+    // Clear cache
+    clearDocumentCache();
+
+    expect(getDocumentCacheSize()).toBe(0);
   });
 });

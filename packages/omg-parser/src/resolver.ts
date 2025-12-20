@@ -4,6 +4,7 @@
  * Resolves partials and builds the complete API from multiple .omg.md files.
  */
 
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseDocument, parseHttpBlock } from './document-parser.js';
@@ -22,8 +23,99 @@ import type {
   ParseWarning,
 } from './types.js';
 
+/**
+ * Document cache entry with content hash for invalidation
+ */
+interface CacheEntry {
+  hash: string;
+  document: OmgDocument;
+}
+
+/**
+ * Document cache for parsed OMG files.
+ * Uses content hashing to detect changes and avoid re-parsing unchanged files.
+ */
+class DocumentCache {
+  private cache = new Map<string, CacheEntry>();
+  private maxSize: number;
+
+  constructor(maxSize = 100) {
+    this.maxSize = maxSize;
+  }
+
+  /**
+   * Get a cached document if it exists and content hasn't changed
+   */
+  get(filePath: string, content: string): OmgDocument | null {
+    const entry = this.cache.get(filePath);
+    if (!entry) return null;
+
+    const hash = this.computeHash(content);
+    if (entry.hash !== hash) {
+      // Content changed, invalidate cache
+      this.cache.delete(filePath);
+      return null;
+    }
+
+    return entry.document;
+  }
+
+  /**
+   * Store a parsed document in the cache
+   */
+  set(filePath: string, content: string, document: OmgDocument): void {
+    // Evict oldest entries if at capacity (simple LRU-like behavior)
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
+    }
+
+    const hash = this.computeHash(content);
+    this.cache.set(filePath, { hash, document });
+  }
+
+  /**
+   * Clear all cached documents
+   */
+  clear(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * Get the number of cached documents
+   */
+  get size(): number {
+    return this.cache.size;
+  }
+
+  private computeHash(content: string): string {
+    return crypto.createHash('md5').update(content).digest('hex');
+  }
+}
+
+// Global document cache instance
+const documentCache = new DocumentCache();
+
+/**
+ * Clear the document cache. Useful for testing or when files are known to have changed.
+ */
+export function clearDocumentCache(): void {
+  documentCache.clear();
+}
+
+/**
+ * Get the current document cache size. Useful for debugging and testing.
+ */
+export function getDocumentCacheSize(): number {
+  return documentCache.size;
+}
+
 interface ResolverOptions {
   basePath: string;
+  /** Disable caching for this resolution (useful for testing) */
+  noCache?: boolean;
 }
 
 /**
@@ -115,7 +207,20 @@ export function resolveDocument(
     }
 
     const partialContent = fs.readFileSync(partialPath, 'utf-8');
-    const partialDoc = parseDocument(partialContent, partial.path);
+
+    // Try to get cached document, or parse and cache it
+    let partialDoc: OmgDocument;
+    if (!options.noCache) {
+      const cached = documentCache.get(partialPath, partialContent);
+      if (cached) {
+        partialDoc = cached;
+      } else {
+        partialDoc = parseDocument(partialContent, partial.path);
+        documentCache.set(partialPath, partialContent, partialDoc);
+      }
+    } else {
+      partialDoc = parseDocument(partialContent, partial.path);
+    }
 
     // Recursively resolve the partial
     const resolvedPartial = resolveDocument(partialDoc, options, visited);
@@ -491,15 +596,33 @@ function buildSingleEndpoint(
   };
 }
 
+export interface LoadApiOptions {
+  /** Disable caching (useful for testing) */
+  noCache?: boolean;
+}
+
 /**
  * Load and parse an entire API from a directory
  */
-export function loadApi(rootPath: string): ParsedApi {
+export function loadApi(rootPath: string, options: LoadApiOptions = {}): ParsedApi {
   const basePath = path.dirname(rootPath);
 
   // Load root API document
   const rootContent = fs.readFileSync(rootPath, 'utf-8');
-  const rootDoc = parseDocument(rootContent, path.basename(rootPath));
+
+  // Try to get cached root document
+  let rootDoc: OmgDocument;
+  if (!options.noCache) {
+    const cached = documentCache.get(rootPath, rootContent);
+    if (cached) {
+      rootDoc = cached;
+    } else {
+      rootDoc = parseDocument(rootContent, path.basename(rootPath));
+      documentCache.set(rootPath, rootContent, rootDoc);
+    }
+  } else {
+    rootDoc = parseDocument(rootContent, path.basename(rootPath));
+  }
   const rootFrontMatter = rootDoc.frontMatter as ApiFrontMatter | null;
 
   // Find all endpoint files
@@ -510,8 +633,22 @@ export function loadApi(rootPath: string): ParsedApi {
 
   for (const file of endpointFiles) {
     const content = fs.readFileSync(file, 'utf-8');
-    const doc = parseDocument(content, path.relative(basePath, file));
-    const resolved = resolveDocument(doc, { basePath });
+
+    // Try to get cached endpoint document
+    let doc: OmgDocument;
+    if (!options.noCache) {
+      const cached = documentCache.get(file, content);
+      if (cached) {
+        doc = cached;
+      } else {
+        doc = parseDocument(content, path.relative(basePath, file));
+        documentCache.set(file, content, doc);
+      }
+    } else {
+      doc = parseDocument(content, path.relative(basePath, file));
+    }
+
+    const resolved = resolveDocument(doc, { basePath, noCache: options.noCache });
 
     // Check for type definitions
     const typeBlocks = resolved.resolvedBlocks.filter((b) => b.type === 'omg.type');
