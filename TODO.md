@@ -17,7 +17,7 @@
 
 ### Long-term (Ecosystem)
 
-- [ ] **Contract testing engine** - Validate live APIs against spec
+- [x] **Contract testing engine** - Validate live APIs against spec (`omg test`)
 - [ ] **Mock server** - Generate mock responses from spec
 - [ ] **OpenAPI importer** - Convert existing specs to OMG
 - [ ] **Documentation generator** - Beautiful API docs from OMG

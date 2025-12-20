@@ -14,6 +14,7 @@ import chokidar from 'chokidar';
 import { loadApi, parseDocument, resolveDocument, buildEndpoint, formatDocument } from 'omg-parser';
 import { compileToOpenApi, serialize, detectFormat } from 'omg-compiler';
 import { lintDocument, summarizeLintResults, type Severity, type LintResult } from 'omg-linter';
+import { runContractTests, formatResults, type ReportFormat, type AuthConfig } from 'omg-test';
 
 const program = new Command();
 
@@ -611,5 +612,130 @@ Returns the health status of the API.
     console.log(`  2. Add endpoints in ${chalk.blue('endpoints/')}`);
     console.log(`  3. Run ${chalk.blue('omg build api.omg.md -o openapi.yaml')} to compile`);
   });
+
+// Test command (contract testing)
+program
+  .command('test <input>')
+  .description('Run contract tests against a live API')
+  .requiredOption('-a, --against <url>', 'Base URL of the API to test against')
+  .option('--auth <token>', 'Bearer token for authentication')
+  .option('--auth-header <name:value>', 'Custom auth header (e.g., "X-API-Key:secret")')
+  .option('--basic-auth <credentials>', 'Basic auth credentials (user:password)')
+  .option('-e, --endpoint <endpoints...>', 'Filter to specific endpoints (operationId or path)')
+  .option('--env <file>', 'Environment file with parameter values')
+  .option('-H, --header <headers...>', 'Additional headers (e.g., "X-Custom: value")')
+  .option('-t, --timeout <ms>', 'Request timeout in milliseconds', '30000')
+  .option('-r, --retries <count>', 'Number of retries on network failure', '2')
+  .option('--report <format>', 'Output format: console, json, junit', 'console')
+  .option('-o, --output <file>', 'Write report to file instead of stdout')
+  .option('-v, --verbose', 'Verbose output')
+  .action(
+    async (
+      input: string,
+      options: {
+        against: string;
+        auth?: string;
+        authHeader?: string;
+        basicAuth?: string;
+        endpoint?: string[];
+        env?: string;
+        header?: string[];
+        timeout?: string;
+        retries?: string;
+        report?: string;
+        output?: string;
+        verbose?: boolean;
+      }
+    ) => {
+      try {
+        const inputPath = path.resolve(input);
+
+        if (!fs.existsSync(inputPath)) {
+          console.error(chalk.red(`Error: File not found: ${inputPath}`));
+          process.exit(1);
+        }
+
+        // Parse auth configuration
+        let auth: AuthConfig | undefined;
+        if (options.auth) {
+          auth = { type: 'bearer', value: options.auth };
+        } else if (options.basicAuth) {
+          auth = { type: 'basic', value: Buffer.from(options.basicAuth).toString('base64') };
+        } else if (options.authHeader) {
+          const [name, ...valueParts] = options.authHeader.split(':');
+          auth = { type: 'header', headerName: name, value: valueParts.join(':').trim() };
+        }
+
+        // Parse environment file
+        let env: Record<string, string> | undefined;
+        if (options.env) {
+          const envPath = path.resolve(options.env);
+          if (fs.existsSync(envPath)) {
+            const envContent = fs.readFileSync(envPath, 'utf-8');
+            env = {};
+            for (const line of envContent.split('\n')) {
+              const trimmed = line.trim();
+              if (trimmed && !trimmed.startsWith('#')) {
+                const [key, ...valueParts] = trimmed.split('=');
+                if (key) {
+                  env[key.trim()] = valueParts.join('=').trim();
+                }
+              }
+            }
+          } else {
+            console.error(chalk.yellow(`Warning: Environment file not found: ${envPath}`));
+          }
+        }
+
+        // Parse additional headers
+        const headers: Record<string, string> = {};
+        if (options.header) {
+          for (const h of options.header) {
+            const [name, ...valueParts] = h.split(':');
+            if (name) {
+              headers[name.trim()] = valueParts.join(':').trim();
+            }
+          }
+        }
+
+        console.error(chalk.blue(`Running contract tests against ${options.against}...`));
+
+        // Run the tests
+        const summary = await runContractTests(inputPath, {
+          baseUrl: options.against,
+          auth,
+          endpoints: options.endpoint,
+          env,
+          headers,
+          timeout: parseInt(options.timeout || '30000', 10),
+          retries: parseInt(options.retries || '2', 10),
+          verbose: options.verbose,
+        });
+
+        // Format output
+        const reportFormat = (options.report || 'console') as ReportFormat;
+        const output = formatResults(summary, reportFormat, options.verbose);
+
+        // Write or print output
+        if (options.output) {
+          fs.writeFileSync(options.output, output);
+          console.error(chalk.green(`✓ Report written to ${options.output}`));
+        } else {
+          console.log(output);
+        }
+
+        // Exit with error if tests failed
+        if (summary.failed > 0) {
+          process.exit(1);
+        }
+      } catch (error) {
+        console.error(chalk.red(`Error: ${(error as Error).message}`));
+        if ((error as Error).stack) {
+          console.error(chalk.gray((error as Error).stack));
+        }
+        process.exit(1);
+      }
+    }
+  );
 
 program.parse();

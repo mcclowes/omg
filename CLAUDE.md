@@ -60,6 +60,14 @@ omg/
 │   │   │   └── server.ts            # LSP server implementation
 │   │   └── dist/
 │   │
+│   ├── omg-test/               # omg-test - Contract testing for live APIs
+│   │   ├── src/
+│   │   │   ├── runner.ts            # Test orchestration
+│   │   │   ├── validator.ts         # Response validation (ajv)
+│   │   │   ├── request-builder.ts   # Request generation from spec
+│   │   │   └── reporter.ts          # Output formatting (console, JUnit)
+│   │   └── dist/
+│   │
 │   ├── omg-md-cli/             # omg-md-cli - Command-line interface (npm: omg-md-cli)
 │   │   ├── src/
 │   │   │   └── cli.ts               # Main CLI entry point
@@ -189,6 +197,12 @@ node packages/omg-md-cli/dist/cli.js fmt my-api/ --write
 
 # Check formatting
 node packages/omg-md-cli/dist/cli.js fmt my-api/ --check
+
+# Run contract tests against a live API
+node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://api.example.com --auth "Bearer $TOKEN"
+
+# Test with JUnit report for CI
+node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://api.example.com --report junit -o results.xml
 ```
 
 ## Code Conventions
@@ -207,7 +221,11 @@ node packages/omg-md-cli/dist/cli.js fmt my-api/ --check
 omg-md-cli
   ├── omg-compiler
   │     └── omg-parser
-  └── omg-linter
+  ├── omg-linter
+  └── omg-test
+        ├── omg-compiler
+        │     └── omg-parser
+        └── ajv (JSON Schema validation)
 
 omg-lsp
   ├── omg-parser
