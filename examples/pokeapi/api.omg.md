@@ -19,8 +19,8 @@ PokéAPI provides a RESTful API interface to highly detailed objects built from 
 
 ## Resources
 
-- Pokemon - Core Pokémon data (list-pokemon, get-pokemon)
-- Abilities - Pokémon abilities (list-abilities, get-ability)
-- Types - Elemental types and damage relations (list-types, get-type)
-- Moves - Battle moves (list-moves, get-move)
-- Species - Species information and evolution (list-species, get-species)
+- Pokemon - Core Pokémon data (pokemon-list, pokemon-get)
+- Abilities - Pokémon abilities (abilities-list, ability-get)
+- Types - Elemental types and damage relations (types-list, type-get)
+- Moves - Battle moves (moves-list, move-get)
+- Species - Species information and evolution (species-list, species-get)

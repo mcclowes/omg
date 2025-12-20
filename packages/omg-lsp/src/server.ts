@@ -23,11 +23,21 @@ import {
   Hover,
   MarkupKind,
   Position,
+  Definition,
 } from 'vscode-languageserver/node.js';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { fileURLToPath, pathToFileURL } from 'url';
+import * as path from 'path';
 
-import { parseDocument, resolveDocument } from 'omg-parser';
+import {
+  parseDocument,
+  resolveDocument,
+  buildTypeIndex,
+  findTypeDefinition,
+  formatTypeForHover,
+  type TypeIndex,
+} from 'omg-parser';
 import { lintDocument, type Severity } from 'omg-linter';
 
 // Create connection
@@ -36,9 +46,38 @@ const connection = createConnection(ProposedFeatures.all);
 // Document manager
 const documents = new TextDocuments(TextDocument);
 
+// Workspace state
+let workspaceRoot: string | null = null;
+let typeIndex: TypeIndex | null = null;
+
+/**
+ * Get or build the type index for the workspace
+ */
+function getTypeIndex(): TypeIndex | null {
+  if (!typeIndex && workspaceRoot) {
+    try {
+      typeIndex = buildTypeIndex(workspaceRoot);
+      connection.console.log(`Built type index with ${typeIndex.types.size} types`);
+    } catch (error) {
+      connection.console.error(`Failed to build type index: ${error}`);
+    }
+  }
+  return typeIndex;
+}
+
 // Initialization
 connection.onInitialize((params: InitializeParams): InitializeResult => {
   connection.console.log('OMG Language Server initializing...');
+
+  // Capture workspace root for type indexing
+  if (params.rootUri) {
+    try {
+      workspaceRoot = fileURLToPath(params.rootUri);
+      connection.console.log(`Workspace root: ${workspaceRoot}`);
+    } catch {
+      // Fallback for non-file URIs
+    }
+  }
 
   return {
     capabilities: {
@@ -48,12 +87,19 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
         triggerCharacters: ['.', '@', '{', ':'],
       },
       hoverProvider: true,
+      definitionProvider: true,
     },
   };
 });
 
 connection.onInitialized(() => {
   connection.console.log('OMG Language Server initialized');
+});
+
+// Invalidate type index when files change
+connection.onDidChangeWatchedFiles(() => {
+  typeIndex = null;
+  connection.console.log('Type index invalidated due to file changes');
 });
 
 // Validate document
@@ -258,6 +304,19 @@ connection.onCompletion((params): CompletionItem[] => {
       { label: 'uuid', kind: CompletionItemKind.TypeParameter, detail: 'UUID type' },
       { label: 'any', kind: CompletionItemKind.TypeParameter, detail: 'Any type' }
     );
+
+    // User-defined types from workspace
+    const index = getTypeIndex();
+    if (index) {
+      for (const [name, def] of index.types) {
+        completions.push({
+          label: name,
+          kind: CompletionItemKind.Class,
+          detail: `Type from ${path.basename(def.filePath)}`,
+        });
+      }
+    }
+
     return completions;
   }
 
@@ -297,7 +356,7 @@ connection.onHover((params): Hover | null => {
 
   if (!word) return null;
 
-  // Type documentation
+  // Primitive type documentation
   const typeDoc = getTypeDocumentation(word);
   if (typeDoc) {
     return {
@@ -319,7 +378,51 @@ connection.onHover((params): Hover | null => {
     };
   }
 
+  // Check for user-defined type references (PascalCase words)
+  if (/^[A-Z][a-zA-Z0-9]*$/.test(word)) {
+    const index = getTypeIndex();
+    if (index) {
+      const typeDef = findTypeDefinition(index, word);
+      if (typeDef) {
+        return {
+          contents: {
+            kind: MarkupKind.Markdown,
+            value: formatTypeForHover(typeDef.name, typeDef.schema, typeDef.filePath),
+          },
+        };
+      }
+    }
+  }
+
   return null;
+});
+
+// Go to Definition
+connection.onDefinition((params): Definition | null => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) return null;
+
+  const word = getWordAtPosition(document, params.position);
+  if (!word) return null;
+
+  // Only look up PascalCase words (type references)
+  if (!/^[A-Z][a-zA-Z0-9]*$/.test(word)) {
+    return null;
+  }
+
+  const index = getTypeIndex();
+  if (!index) return null;
+
+  const typeDef = findTypeDefinition(index, word);
+  if (!typeDef) return null;
+
+  return {
+    uri: pathToFileURL(typeDef.filePath).toString(),
+    range: {
+      start: { line: typeDef.line - 1, character: 0 },
+      end: { line: typeDef.line - 1, character: 0 },
+    },
+  };
 });
 
 function getWordAtPosition(document: TextDocument, position: Position): string | null {

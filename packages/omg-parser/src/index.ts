@@ -64,3 +64,10 @@ export type { ResolvedDocument } from './resolver.js';
 // Formatter
 export { formatDocument } from './formatter.js';
 export type { FormatOptions } from './formatter.js';
+
+// Type index (for IDE features)
+export { buildTypeIndex, findTypeDefinition, getTypeNames } from './type-index.js';
+export type { TypeDefinition, TypeIndex } from './type-index.js';
+
+// Type serializer (for hover display)
+export { serializeType, formatTypeForHover } from './type-serializer.js';

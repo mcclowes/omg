@@ -15,16 +15,16 @@ This example demonstrates OMG (OpenAPI Markdown Grammar) by documenting a subset
 pokeapi/
 ├── api.omg.md              # API root (name, version, base URL)
 └── endpoints/
-    ├── list-pokemon.omg.md # GET /pokemon
-    ├── get-pokemon.omg.md  # GET /pokemon/{id}
-    ├── list-abilities.omg.md
-    ├── get-ability.omg.md
-    ├── list-types.omg.md
-    ├── get-type.omg.md
-    ├── list-moves.omg.md
-    ├── get-move.omg.md
-    ├── list-species.omg.md
-    └── get-species.omg.md
+    ├── pokemon-list.omg.md # GET /pokemon
+    ├── pokemon-get.omg.md  # GET /pokemon/{id}
+    ├── abilities-list.omg.md
+    ├── ability-get.omg.md
+    ├── types-list.omg.md
+    ├── type-get.omg.md
+    ├── moves-list.omg.md
+    ├── move-get.omg.md
+    ├── species-list.omg.md
+    └── species-get.omg.md
 ```
 
 ## Usage
