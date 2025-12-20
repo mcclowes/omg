@@ -136,8 +136,9 @@ Returns details of a specific account.
 
 ### Partials System
 
-Partials allow reuse via Handlebars-style includes:
-- `{{> params/company }}` - Include a partial
+Partials allow reuse via two syntaxes:
+- `@params/company` - OMG-style (recommended)
+- `{{> params/company }}` - Handlebars-style (also supported)
 - Stored in `partials/` directories
 - Resolved relative to the document
 
