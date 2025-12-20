@@ -1,0 +1,217 @@
+{
+  "OMG Endpoint": {
+    "prefix": "omg-endpoint",
+    "body": [
+      "---",
+      "method: ${1|GET,POST,PUT,PATCH,DELETE|}",
+      "path: /${2:resource}",
+      "operationId: ${3:operation-id}",
+      "tags: [${4:Tag}]",
+      "---",
+      "",
+      "# ${5:Endpoint Title}",
+      "",
+      "${6:Description of the endpoint.}",
+      "",
+      "```omg.response",
+      "{",
+      "  ${7:id: uuid}",
+      "}",
+      "```"
+    ],
+    "description": "Complete OMG endpoint template"
+  },
+  "OMG Request Body": {
+    "prefix": "omg-body",
+    "body": ["```omg.body", "{", "  ${1:field}: ${2:string}", "}", "```"],
+    "description": "Request body block"
+  },
+  "OMG Response": {
+    "prefix": "omg-response",
+    "body": ["```omg.response${1:.200}", "{", "  ${2:id: uuid}", "}", "```"],
+    "description": "Response block with optional status code"
+  },
+  "OMG Response 201": {
+    "prefix": "omg-response-201",
+    "body": ["```omg.response.201", "{", "  ${1:id: uuid}", "}", "```"],
+    "description": "201 Created response block"
+  },
+  "OMG Response 204": {
+    "prefix": "omg-response-204",
+    "body": ["```omg.response.204", "null", "```"],
+    "description": "204 No Content response block"
+  },
+  "OMG Type Definition": {
+    "prefix": "omg-type",
+    "body": [
+      "```omg.type",
+      "${1:TypeName} = {",
+      "  ${2:id}: uuid,",
+      "  ${3:name}: string",
+      "}",
+      "```"
+    ],
+    "description": "Type definition block"
+  },
+  "OMG Path Parameters": {
+    "prefix": "omg-path",
+    "body": ["```omg.path", "{", "  ${1:id}: ${2:uuid}  // ${3:Resource identifier}", "}", "```"],
+    "description": "Path parameters block"
+  },
+  "OMG Query Parameters": {
+    "prefix": "omg-query",
+    "body": [
+      "```omg.query",
+      "{",
+      "  ${1:limit}: integer? @min(1) @max(100),  // ${2:Maximum items to return}",
+      "  ${3:offset}: integer? @min(0)  // ${4:Number of items to skip}",
+      "}",
+      "```"
+    ],
+    "description": "Query parameters block with pagination"
+  },
+  "OMG Returns Block": {
+    "prefix": "omg-returns",
+    "body": [
+      "```omg.returns",
+      "200: ${1:Success} -> {",
+      "  ${2:data}: ${3:any}",
+      "}",
+      "",
+      "400: ${4:Bad Request} -> {",
+      "  error: string,",
+      "  message: string",
+      "}",
+      "",
+      "404: ${5:Not Found} -> null",
+      "```"
+    ],
+    "description": "Conditional returns block with multiple responses"
+  },
+  "OMG Object Type": {
+    "prefix": "omg-object",
+    "body": ["{", "  ${1:field}: ${2:string}", "}"],
+    "description": "Object type definition"
+  },
+  "OMG Array Type": {
+    "prefix": "omg-array",
+    "body": ["${1:Item}[]"],
+    "description": "Array type definition"
+  },
+  "OMG Inline Array": {
+    "prefix": "omg-inline-array",
+    "body": ["[{", "  ${1:field}: ${2:string}", "}]"],
+    "description": "Inline array with object items"
+  },
+  "OMG Errors Block": {
+    "prefix": "omg-errors",
+    "body": [
+      "```omg.errors",
+      "400: BadRequest = {",
+      "  error: string,",
+      "  message: string,",
+      "  details: [{",
+      "    field: string,",
+      "    message: string",
+      "  }]?",
+      "}",
+      "",
+      "401: Unauthorized = {",
+      "  error: \"unauthorized\",",
+      "  message: string",
+      "}",
+      "",
+      "404: NotFound = {",
+      "  error: \"not_found\",",
+      "  message: string",
+      "}",
+      "",
+      "500: InternalError = {",
+      "  error: \"internal_error\",",
+      "  message: string",
+      "}",
+      "```"
+    ],
+    "description": "Common error definitions block"
+  },
+  "OMG Example": {
+    "prefix": "omg-example",
+    "body": ["```omg.example", "{", "  \"${1:field}\": \"${2:value}\"", "}", "```"],
+    "description": "JSON example block"
+  },
+  "OMG Headers": {
+    "prefix": "omg-headers",
+    "body": [
+      "```omg.headers",
+      "{",
+      "  ${1:Authorization}: string  // ${2:Bearer token}",
+      "}",
+      "```"
+    ],
+    "description": "Header parameters block"
+  },
+  "OMG Partial Include": {
+    "prefix": "omg-partial",
+    "body": ["{{> ${1:partials/common} }}"],
+    "description": "Include a partial file"
+  },
+  "OMG Optional Field": {
+    "prefix": "omg-optional",
+    "body": ["${1:field}: ${2:string}?"],
+    "description": "Optional field"
+  },
+  "OMG Enum Type": {
+    "prefix": "omg-enum",
+    "body": ["\"${1:value1}\" | \"${2:value2}\" | \"${3:value3}\""],
+    "description": "Enum (union of string literals)"
+  },
+  "OMG Field with Annotation": {
+    "prefix": "omg-field-annotated",
+    "body": [
+      "${1:field}: ${2:string} @${3|min,max,minLength,maxLength,pattern,format|}(${4:value})"
+    ],
+    "description": "Field with validation annotation"
+  },
+  "OMG Pagination Query": {
+    "prefix": "omg-pagination",
+    "body": [
+      "limit: integer? @min(1) @max(100),  // Maximum items per page",
+      "offset: integer? @min(0),  // Number of items to skip",
+      "cursor: string?  // Pagination cursor"
+    ],
+    "description": "Common pagination query parameters"
+  },
+  "OMG CRUD Endpoints": {
+    "prefix": "omg-crud",
+    "body": [
+      "# List ${1:Resources}",
+      "",
+      "Returns a paginated list of ${1:Resources}.",
+      "",
+      "```omg.query",
+      "{",
+      "  limit: integer? @min(1) @max(100),",
+      "  offset: integer? @min(0)",
+      "}",
+      "```",
+      "",
+      "```omg.response",
+      "{",
+      "  items: ${2:Resource}[],",
+      "  total: integer",
+      "}",
+      "```"
+    ],
+    "description": "CRUD list endpoint template"
+  },
+  "HTTP Block": {
+    "prefix": "http",
+    "body": ["```http", "${1|GET,POST,PUT,PATCH,DELETE|} /${2:path}", "```"],
+    "description": "HTTP method and path block"
+  },
+  "OMG Config": {
+    "prefix": "omg-config",
+    "body": ["```omg.config", "{", "  ${1:key}: ${2:value}", "}", "```"],
+    "description": "Configuration block"
+  }
+}
