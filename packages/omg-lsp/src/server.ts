@@ -24,6 +24,12 @@ import {
   MarkupKind,
   Position,
   Definition,
+  DocumentSymbol,
+  SymbolKind,
+  TextEdit,
+  CodeAction,
+  CodeActionKind,
+  Range,
 } from 'vscode-languageserver/node.js';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -36,7 +42,10 @@ import {
   buildTypeIndex,
   findTypeDefinition,
   formatTypeForHover,
+  formatDocument,
   type TypeIndex,
+  type OmgDocument,
+  type OmgBlock,
 } from 'omg-parser';
 import { lintDocument, type Severity } from 'omg-linter';
 
@@ -88,6 +97,11 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
       },
       hoverProvider: true,
       definitionProvider: true,
+      documentFormattingProvider: true,
+      documentSymbolProvider: true,
+      codeActionProvider: {
+        codeActionKinds: [CodeActionKind.QuickFix],
+      },
     },
   };
 });
@@ -323,17 +337,125 @@ connection.onCompletion((params): CompletionItem[] => {
   // In frontmatter - suggest method
   if (lineText.match(/^method:\s*$/)) {
     completions.push(
-      { label: 'GET', kind: CompletionItemKind.EnumMember },
-      { label: 'POST', kind: CompletionItemKind.EnumMember },
-      { label: 'PUT', kind: CompletionItemKind.EnumMember },
-      { label: 'PATCH', kind: CompletionItemKind.EnumMember },
-      { label: 'DELETE', kind: CompletionItemKind.EnumMember }
+      { label: 'GET', kind: CompletionItemKind.EnumMember, detail: 'Retrieve resource(s)' },
+      { label: 'POST', kind: CompletionItemKind.EnumMember, detail: 'Create resource' },
+      { label: 'PUT', kind: CompletionItemKind.EnumMember, detail: 'Replace resource' },
+      { label: 'PATCH', kind: CompletionItemKind.EnumMember, detail: 'Update resource' },
+      { label: 'DELETE', kind: CompletionItemKind.EnumMember, detail: 'Delete resource' },
+      { label: 'HEAD', kind: CompletionItemKind.EnumMember, detail: 'Get headers only' },
+      { label: 'OPTIONS', kind: CompletionItemKind.EnumMember, detail: 'Get allowed methods' }
     );
     return completions;
   }
 
+  // In frontmatter - suggest auth type
+  if (lineText.match(/^auth:\s*$/)) {
+    completions.push(
+      {
+        label: 'bearer',
+        kind: CompletionItemKind.EnumMember,
+        detail: 'Bearer token authentication',
+      },
+      { label: 'apikey', kind: CompletionItemKind.EnumMember, detail: 'API key authentication' },
+      { label: 'none', kind: CompletionItemKind.EnumMember, detail: 'No authentication required' },
+      { label: 'basic', kind: CompletionItemKind.EnumMember, detail: 'HTTP Basic authentication' },
+      { label: 'oauth2', kind: CompletionItemKind.EnumMember, detail: 'OAuth 2.0 authentication' }
+    );
+    return completions;
+  }
+
+  // In frontmatter - suggest boolean for deprecated
+  if (lineText.match(/^deprecated:\s*$/)) {
+    completions.push(
+      { label: 'true', kind: CompletionItemKind.Value },
+      { label: 'false', kind: CompletionItemKind.Value }
+    );
+    return completions;
+  }
+
+  // Check if we're in frontmatter (between --- markers)
+  const beforeCursor = text.substring(0, offset);
+  const inFrontmatter = isInFrontmatter(beforeCursor);
+
+  if (inFrontmatter) {
+    // Suggest frontmatter keys at the start of a line
+    if (lineText.match(/^\s*$/)) {
+      completions.push(
+        {
+          label: 'method',
+          kind: CompletionItemKind.Property,
+          detail: 'HTTP method',
+          insertText: 'method: ',
+        },
+        {
+          label: 'path',
+          kind: CompletionItemKind.Property,
+          detail: 'API path',
+          insertText: 'path: /',
+        },
+        {
+          label: 'operationId',
+          kind: CompletionItemKind.Property,
+          detail: 'Unique operation identifier',
+          insertText: 'operationId: ',
+        },
+        {
+          label: 'tags',
+          kind: CompletionItemKind.Property,
+          detail: 'Operation tags',
+          insertText: 'tags: [${1}]',
+        },
+        {
+          label: 'summary',
+          kind: CompletionItemKind.Property,
+          detail: 'Short description',
+          insertText: 'summary: ',
+        },
+        {
+          label: 'deprecated',
+          kind: CompletionItemKind.Property,
+          detail: 'Mark as deprecated',
+          insertText: 'deprecated: true',
+        },
+        {
+          label: 'auth',
+          kind: CompletionItemKind.Property,
+          detail: 'Authentication type',
+          insertText: 'auth: ',
+        },
+        {
+          label: 'follows',
+          kind: CompletionItemKind.Property,
+          detail: 'Required prior operations',
+          insertText: 'follows: [${1}]',
+        },
+        {
+          label: 'security',
+          kind: CompletionItemKind.Property,
+          detail: 'Security requirements',
+          insertText: 'security:\n  - ${1}: []',
+        }
+      );
+      return completions;
+    }
+  }
+
   return completions;
 });
+
+function isInFrontmatter(text: string): boolean {
+  const lines = text.split('\n');
+  let dashCount = 0;
+
+  for (const line of lines) {
+    if (line.trim() === '---') {
+      dashCount++;
+    }
+  }
+
+  // In frontmatter if we've seen exactly one ---
+  return dashCount === 1;
+}
 
 // Check if position is inside an OMG code block
 function isInsideOmgBlock(text: string, offset: number): boolean {
@@ -483,6 +605,294 @@ function getAnnotationDocumentation(annotation: string): string | null {
 
   return docs[annotation] || null;
 }
+
+// Document formatting
+connection.onDocumentFormatting((params): TextEdit[] => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) return [];
+
+  const text = document.getText();
+
+  try {
+    const formatted = formatDocument(text, { indent: params.options.tabSize || 2 });
+
+    // If no changes, return empty
+    if (formatted === text) return [];
+
+    // Return single edit that replaces entire document
+    return [
+      TextEdit.replace(
+        {
+          start: { line: 0, character: 0 },
+          end: document.positionAt(text.length),
+        },
+        formatted
+      ),
+    ];
+  } catch (error) {
+    connection.console.error(`Format error: ${error}`);
+    return [];
+  }
+});
+
+// Document symbols (outline)
+connection.onDocumentSymbol((params): DocumentSymbol[] => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) return [];
+
+  const text = document.getText();
+  const symbols: DocumentSymbol[] = [];
+
+  try {
+    const doc = parseDocument(text, document.uri);
+
+    // Add title as the main symbol
+    if (doc.title) {
+      const titleLine = findTitleLine(text);
+      symbols.push({
+        name: doc.title,
+        kind: SymbolKind.Module,
+        range: {
+          start: { line: titleLine, character: 0 },
+          end: { line: titleLine, character: doc.title.length + 2 },
+        },
+        selectionRange: {
+          start: { line: titleLine, character: 0 },
+          end: { line: titleLine, character: doc.title.length + 2 },
+        },
+        children: [],
+      });
+    }
+
+    // Add frontmatter info
+    if (doc.frontMatter && 'method' in doc.frontMatter) {
+      const fm = doc.frontMatter;
+      symbols.push({
+        name: `${fm.method} ${fm.path}`,
+        detail: fm.operationId,
+        kind: SymbolKind.Method,
+        range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+        selectionRange: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+      });
+    }
+
+    // Add blocks as symbols
+    for (const block of doc.blocks) {
+      const symbol = blockToSymbol(block, text);
+      if (symbol) {
+        symbols.push(symbol);
+      }
+    }
+
+    // Add type definitions
+    for (const block of doc.blocks) {
+      if (block.type === 'omg.type' && block.parsed) {
+        const typeName = extractTypeName(block.content);
+        if (typeName) {
+          symbols.push({
+            name: typeName,
+            kind: SymbolKind.Class,
+            detail: 'Type definition',
+            range: {
+              start: { line: block.line - 1, character: 0 },
+              end: { line: block.line - 1, character: 0 },
+            },
+            selectionRange: {
+              start: { line: block.line - 1, character: 0 },
+              end: { line: block.line - 1, character: 0 },
+            },
+          });
+        }
+      }
+    }
+  } catch (error) {
+    connection.console.error(`Symbol error: ${error}`);
+  }
+
+  return symbols;
+});
+
+function findTitleLine(text: string): number {
+  const lines = text.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith('# ')) {
+      return i;
+    }
+  }
+  return 0;
+}
+
+function blockToSymbol(block: OmgBlock, text: string): DocumentSymbol | null {
+  const blockTypeLabels: Record<string, { name: string; kind: SymbolKind }> = {
+    'omg.path': { name: 'Path Parameters', kind: SymbolKind.Variable },
+    'omg.query': { name: 'Query Parameters', kind: SymbolKind.Variable },
+    'omg.headers': { name: 'Headers', kind: SymbolKind.Variable },
+    'omg.body': { name: 'Request Body', kind: SymbolKind.Struct },
+    'omg.response': { name: 'Response', kind: SymbolKind.Struct },
+    'omg.returns': { name: 'Returns', kind: SymbolKind.Struct },
+    'omg.example': { name: 'Example', kind: SymbolKind.Constant },
+    'omg.errors': { name: 'Errors', kind: SymbolKind.Enum },
+    'omg.config': { name: 'Config', kind: SymbolKind.Property },
+    http: { name: 'HTTP', kind: SymbolKind.Method },
+  };
+
+  let name: string;
+  let kind: SymbolKind;
+
+  if (block.type === 'omg.response' && block.statusCode) {
+    name = `Response ${block.statusCode}`;
+    kind = SymbolKind.Struct;
+  } else if (block.type in blockTypeLabels) {
+    name = blockTypeLabels[block.type].name;
+    kind = blockTypeLabels[block.type].kind;
+  } else {
+    name = block.type;
+    kind = SymbolKind.Object;
+  }
+
+  return {
+    name,
+    kind,
+    range: {
+      start: { line: block.line - 1, character: 0 },
+      end: { line: block.line - 1, character: 0 },
+    },
+    selectionRange: {
+      start: { line: block.line - 1, character: 0 },
+      end: { line: block.line - 1, character: 0 },
+    },
+  };
+}
+
+function extractTypeName(content: string): string | null {
+  // Look for "TypeName = {" pattern or just first PascalCase word
+  const match = content.match(/^\s*([A-Z][a-zA-Z0-9]*)\s*=/);
+  if (match) return match[1];
+
+  // Try to extract from object with PascalCase key at start
+  const pascalMatch = content.match(/^[A-Z][a-zA-Z0-9]*/);
+  return pascalMatch ? pascalMatch[0] : null;
+}
+
+// Code actions (quick fixes)
+connection.onCodeAction((params): CodeAction[] => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) return [];
+
+  const actions: CodeAction[] = [];
+  const diagnostics = params.context.diagnostics;
+
+  for (const diagnostic of diagnostics) {
+    // Offer fixes based on diagnostic codes/messages
+    if (diagnostic.message.includes('optional')) {
+      // Suggest adding ? for optional field
+      actions.push({
+        title: 'Make field optional with ?',
+        kind: CodeActionKind.QuickFix,
+        diagnostics: [diagnostic],
+        edit: {
+          changes: {
+            [params.textDocument.uri]: [
+              TextEdit.insert(
+                { line: diagnostic.range.end.line, character: diagnostic.range.end.character },
+                '?'
+              ),
+            ],
+          },
+        },
+      });
+    }
+
+    if (diagnostic.message.includes('missing operationId')) {
+      // Suggest adding operationId
+      const text = document.getText();
+      const lines = text.split('\n');
+
+      // Find end of frontmatter
+      let insertLine = 1;
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i] === '---') {
+          insertLine = i;
+          break;
+        }
+      }
+
+      // Generate operationId from method/path
+      let suggestedId = 'my-operation';
+      try {
+        const doc = parseDocument(text, document.uri);
+        if (doc.frontMatter && 'method' in doc.frontMatter) {
+          const method = doc.frontMatter.method.toLowerCase();
+          const pathParts = doc.frontMatter.path
+            .split('/')
+            .filter((p: string) => p && !p.startsWith('{'));
+          suggestedId = `${method}-${pathParts.join('-') || 'resource'}`;
+        }
+      } catch {
+        // Use default
+      }
+
+      actions.push({
+        title: `Add operationId: ${suggestedId}`,
+        kind: CodeActionKind.QuickFix,
+        diagnostics: [diagnostic],
+        edit: {
+          changes: {
+            [params.textDocument.uri]: [
+              TextEdit.insert({ line: insertLine, character: 0 }, `operationId: ${suggestedId}\n`),
+            ],
+          },
+        },
+      });
+    }
+
+    if (diagnostic.message.includes('missing tags')) {
+      // Suggest adding tags
+      const text = document.getText();
+      const lines = text.split('\n');
+
+      let insertLine = 1;
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i] === '---') {
+          insertLine = i;
+          break;
+        }
+      }
+
+      // Generate tag from path
+      let suggestedTag = 'General';
+      try {
+        const doc = parseDocument(text, document.uri);
+        if (doc.frontMatter && 'path' in doc.frontMatter) {
+          const pathParts = doc.frontMatter.path
+            .split('/')
+            .filter((p: string) => p && !p.startsWith('{'));
+          if (pathParts.length > 0) {
+            // Capitalize first path segment
+            suggestedTag = pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(1);
+          }
+        }
+      } catch {
+        // Use default
+      }
+
+      actions.push({
+        title: `Add tags: [${suggestedTag}]`,
+        kind: CodeActionKind.QuickFix,
+        diagnostics: [diagnostic],
+        edit: {
+          changes: {
+            [params.textDocument.uri]: [
+              TextEdit.insert({ line: insertLine, character: 0 }, `tags: [${suggestedTag}]\n`),
+            ],
+          },
+        },
+      });
+    }
+  }
+
+  return actions;
+});
 
 // Start listening
 documents.listen(connection);

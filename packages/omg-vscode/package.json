@@ -82,6 +82,20 @@
           "meta.embedded.block.omg": "omg"
         }
       }
+    ],
+    "snippets": [
+      {
+        "language": "omg-md",
+        "path": "./snippets/omg.json"
+      },
+      {
+        "language": "omg",
+        "path": "./snippets/omg.json"
+      },
+      {
+        "language": "markdown",
+        "path": "./snippets/omg.json"
+      }
     ]
   }
 }
