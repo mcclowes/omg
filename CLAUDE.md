@@ -41,6 +41,9 @@ omg/
 │   │   │   ├── schema-parser.ts     # Schema/type parsing
 │   │   │   ├── returns-parser.ts    # Returns block parsing
 │   │   │   ├── resolver.ts          # Partial resolution, API loading
+│   │   │   ├── formatter.ts         # Code formatting utilities
+│   │   │   ├── type-index.ts        # Type indexing and lookup
+│   │   │   ├── type-serializer.ts   # Type serialization utilities
 │   │   │   └── types.ts             # TypeScript type definitions
 │   │   └── dist/                    # Compiled output
 │   │
@@ -55,12 +58,15 @@ omg/
 │   │   │   ├── importer.ts          # Main import logic
 │   │   │   ├── generator.ts         # OMG file generation
 │   │   │   ├── schema-converter.ts  # OpenAPI schema to OMG type conversion
-│   │   │   └── pattern-detector.ts  # Detect common API patterns
+│   │   │   ├── pattern-detector.ts  # Detect common API patterns
+│   │   │   ├── partial-generator.ts # Generate partial files for reuse
+│   │   │   └── types.ts             # TypeScript type definitions
 │   │   └── dist/
 │   │
 │   ├── omg-linter/             # omg-linter - Linting for OMG files
 │   │   ├── src/
-│   │   │   └── index.ts             # Linting rules and utilities
+│   │   │   ├── index.ts             # Package exports
+│   │   │   └── linter.ts            # Linting rules and utilities
 │   │   └── dist/
 │   │
 │   ├── omg-lsp/                # omg-lsp - Language Server Protocol server
@@ -77,6 +83,7 @@ omg/
 │   │   ├── src/
 │   │   │   ├── index.ts             # Main exports
 │   │   │   ├── mock-generator.ts    # Mock data generation from schemas
+│   │   │   ├── vague-generator.ts   # Vague-based data generation
 │   │   │   └── server.ts            # Express HTTP server
 │   │   └── dist/
 │   │
@@ -365,4 +372,19 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 
 ## Skills
 
-The `.claude/skills/openapi/` directory contains an OpenAPI expert skill for Claude Code. Use the `openapi` skill when working with OpenAPI specification details.
+The `.claude/skills/` directory contains multiple Claude Code skills:
+- `openapi` - OpenAPI specification expertise
+- `omg` - OMG syntax and usage
+- `vague` - Vague constraint-based data generation
+- `vague-plugin-faker` - Faker generators for Vague
+- `vitest` - Vitest testing framework
+- `commander` - Commander.js CLI framework
+- `lsp` - Language Server Protocol implementation
+- `textmate-grammar` - TextMate grammar for syntax highlighting
+- `peggy` - PEG grammar parsing
+- `npm-workspaces` - npm workspaces monorepo management
+- `json-schema` - JSON Schema specification
+- `commonmark` - CommonMark Markdown specification
+- `github-actions` - GitHub Actions CI/CD
+- `google-style-guide` - Google technical documentation style
+- `docusaurus-*` - Various Docusaurus documentation skills
