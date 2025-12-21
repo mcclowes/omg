@@ -1,6 +1,6 @@
 {
   "name": "omg",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "OpenAPI Markdown Grammar (OMG) - A human-first domain-specific language for API specification",
   "author": "mcclowes",
