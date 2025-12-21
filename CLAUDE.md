@@ -50,6 +50,14 @@ omg/
 │   │   │   └── output.ts            # Serialization (YAML/JSON)
 │   │   └── dist/
 │   │
+│   ├── omg-importer/           # omg-importer - Import OpenAPI to OMG format
+│   │   ├── src/
+│   │   │   ├── importer.ts          # Main import logic
+│   │   │   ├── generator.ts         # OMG file generation
+│   │   │   ├── schema-converter.ts  # OpenAPI schema to OMG type conversion
+│   │   │   └── pattern-detector.ts  # Detect common API patterns
+│   │   └── dist/
+│   │
 │   ├── omg-linter/             # omg-linter - Linting for OMG files
 │   │   ├── src/
 │   │   │   └── index.ts             # Linting rules and utilities
@@ -212,6 +220,9 @@ node packages/omg-md-cli/dist/cli.js breaking old.omg.md new.omg.md --fail-on-di
 
 # Generate changelog
 node packages/omg-md-cli/dist/cli.js changelog v1/api.omg.md v2/api.omg.md
+
+# Import OpenAPI to OMG format
+node packages/omg-md-cli/dist/cli.js import openapi.yaml -o my-api/
 ```
 
 ## Code Conventions
@@ -229,6 +240,8 @@ node packages/omg-md-cli/dist/cli.js changelog v1/api.omg.md v2/api.omg.md
 ```
 omg-md-cli
   ├── omg-compiler
+  │     └── omg-parser
+  ├── omg-importer
   │     └── omg-parser
   ├── omg-linter
   └── omg-mock-server

@@ -28,11 +28,15 @@ This project is in the **MVP Implementation** phase. The core toolchain (parser,
 
 ```
 ├── packages/
-│   ├── omg-parser/     # OMG markdown parser
-│   ├── omg-compiler/   # OMG to OpenAPI compiler
-│   ├── omg-cli/        # Command-line interface
-│   └── omg-vscode/     # VS Code extension
-└── *.md                # Design documentation
+│   ├── omg-parser/       # OMG markdown parser
+│   ├── omg-compiler/     # OMG to OpenAPI compiler
+│   ├── omg-importer/     # OpenAPI to OMG importer
+│   ├── omg-linter/       # OMG file linting
+│   ├── omg-lsp/          # Language Server Protocol server
+│   ├── omg-md-cli/       # Command-line interface
+│   ├── omg-mock-server/  # Mock server generator
+│   └── omg-vscode/       # VS Code extension
+└── *.md                  # Design documentation
 ```
 
 ## Installation via OpenSkills
@@ -64,6 +68,12 @@ omg init my-api
 
 # Compile OMG to OpenAPI
 omg build api.omg.md -o openapi.yaml
+
+# Import an existing OpenAPI spec to OMG
+omg import openapi.yaml -o my-api/
+
+# Start a mock server
+omg mock api.omg.md
 ```
 
 ## Example
