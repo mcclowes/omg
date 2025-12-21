@@ -483,10 +483,14 @@ function compileEndpointWithContext(
 
     const oasResponse: ResponseObject = { description };
 
-    if (response.schema) {
-      const mediaType: MediaTypeObject = {
-        schema: compileSchemaWithContext(response.schema, ctx),
-      };
+    // Only add content if there's a schema or examples
+    if (response.schema || response.example !== undefined || response.examples) {
+      const mediaType: MediaTypeObject = {} as MediaTypeObject;
+
+      // Add schema if present
+      if (response.schema) {
+        mediaType.schema = compileSchemaWithContext(response.schema, ctx);
+      }
 
       // Add example
       if (response.example !== undefined) {

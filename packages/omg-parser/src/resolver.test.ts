@@ -274,6 +274,61 @@ path: /users/{id}
       expect(returnsBlock?.parsedResponses?.responses).toHaveLength(2);
     });
   });
+
+  describe('example block handling', () => {
+    it('preserves exampleValue and exampleName after resolution', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+\`\`\`omg.example.success
+{
+  "id": "123"
+}
+\`\`\`
+`;
+
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      const doc = parseDocument(content, 'test.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/tmp' });
+
+      const exampleBlock = resolved.resolvedBlocks.find((b) => b.type === 'omg.example');
+      expect(exampleBlock).toBeDefined();
+      expect(exampleBlock?.exampleName).toBe('success');
+      expect(exampleBlock?.exampleValue).toEqual({ id: '123' });
+    });
+
+    it('preserves statusCode for status-specific examples', () => {
+      const content = `---
+method: POST
+path: /test
+---
+
+# Test
+
+\`\`\`omg.example.201
+{
+  "id": "456",
+  "created": true
+}
+\`\`\`
+`;
+
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      const doc = parseDocument(content, 'test.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/tmp' });
+
+      const exampleBlock = resolved.resolvedBlocks.find((b) => b.type === 'omg.example');
+      expect(exampleBlock).toBeDefined();
+      expect(exampleBlock?.statusCode).toBe(201);
+      expect(exampleBlock?.exampleValue).toEqual({ id: '456', created: true });
+    });
+  });
 });
 
 describe('buildEndpoints', () => {
@@ -633,6 +688,204 @@ externalDocs:
       expect(endpoints[0].security).toBeDefined();
       expect(endpoints[0].servers).toBeDefined();
       expect(endpoints[0].externalDocs).toBeDefined();
+    });
+  });
+
+  describe('example association', () => {
+    it('associates unnamed example with response', () => {
+      const content = `---
+method: GET
+path: /users/{id}
+---
+
+# Get User
+
+\`\`\`omg.response
+{
+  id: string,
+  name: string
+}
+\`\`\`
+
+\`\`\`omg.example
+{
+  "id": "123",
+  "name": "John"
+}
+\`\`\`
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/tmp' });
+      const endpoints = buildEndpoints(resolved);
+
+      expect(endpoints[0].responses[200].example).toEqual({ id: '123', name: 'John' });
+    });
+
+    it('associates named examples with response', () => {
+      const content = `---
+method: GET
+path: /users/{id}
+---
+
+# Get User
+
+\`\`\`omg.response
+{
+  id: string,
+  name: string
+}
+\`\`\`
+
+\`\`\`omg.example.success
+{
+  "id": "123",
+  "name": "John"
+}
+\`\`\`
+
+\`\`\`omg.example.admin
+{
+  "id": "456",
+  "name": "Admin"
+}
+\`\`\`
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/tmp' });
+      const endpoints = buildEndpoints(resolved);
+
+      expect(endpoints[0].responses[200].examples).toBeDefined();
+      expect(endpoints[0].responses[200].examples!['success']).toBeDefined();
+      expect(endpoints[0].responses[200].examples!['success'].value).toEqual({
+        id: '123',
+        name: 'John',
+      });
+      expect(endpoints[0].responses[200].examples!['admin']).toBeDefined();
+      expect(endpoints[0].responses[200].examples!['admin'].value).toEqual({
+        id: '456',
+        name: 'Admin',
+      });
+    });
+
+    it('associates status-specific examples with correct response', () => {
+      const content = `---
+method: POST
+path: /users
+---
+
+# Create User
+
+\`\`\`omg.response.201
+{
+  id: string,
+  created: boolean
+}
+\`\`\`
+
+\`\`\`omg.response.400
+{
+  error: string
+}
+\`\`\`
+
+\`\`\`omg.example.201
+{
+  "id": "new-123",
+  "created": true
+}
+\`\`\`
+
+\`\`\`omg.example.400
+{
+  "error": "Validation failed"
+}
+\`\`\`
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/tmp' });
+      const endpoints = buildEndpoints(resolved);
+
+      expect(endpoints[0].responses[201].example).toEqual({ id: 'new-123', created: true });
+      expect(endpoints[0].responses[400].example).toEqual({ error: 'Validation failed' });
+    });
+
+    it('associates named status-specific examples', () => {
+      const content = `---
+method: POST
+path: /todos
+---
+
+# Create Todo
+
+\`\`\`omg.response.201
+{
+  id: string,
+  title: string
+}
+\`\`\`
+
+\`\`\`omg.example.201.minimal
+{
+  "id": "1",
+  "title": "Minimal"
+}
+\`\`\`
+
+\`\`\`omg.example.201.complete
+{
+  "id": "2",
+  "title": "Complete"
+}
+\`\`\`
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/tmp' });
+      const endpoints = buildEndpoints(resolved);
+
+      expect(endpoints[0].responses[201].examples).toBeDefined();
+      expect(endpoints[0].responses[201].examples!['minimal'].value).toEqual({
+        id: '1',
+        title: 'Minimal',
+      });
+      expect(endpoints[0].responses[201].examples!['complete'].value).toEqual({
+        id: '2',
+        title: 'Complete',
+      });
+    });
+
+    it('preserves example description from preceding markdown', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+\`\`\`omg.response
+{ id: string }
+\`\`\`
+
+This is a successful response example.
+
+\`\`\`omg.example.success
+{
+  "id": "123"
+}
+\`\`\`
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/tmp' });
+      const endpoints = buildEndpoints(resolved);
+
+      expect(endpoints[0].responses[200].examples).toBeDefined();
+      expect(endpoints[0].responses[200].examples!['success'].description).toBe(
+        'This is a successful response example.'
+      );
     });
   });
 });

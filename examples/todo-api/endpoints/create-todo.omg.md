@@ -31,9 +31,30 @@ Creates a new todo item.
 }
 ```
 
-```omg.example
+## Examples
+
+### Successful Creation
+
+A minimal todo with just a title:
+
+```omg.example.201.minimal
 {
   "id": "550e8400-e29b-41d4-a716-446655440002",
+  "title": "Buy groceries",
+  "description": null,
+  "completed": false,
+  "priority": "medium",
+  "due_date": null,
+  "created_at": "2024-12-15T11:00:00Z",
+  "updated_at": "2024-12-15T11:00:00Z"
+}
+```
+
+A fully-specified todo with all optional fields:
+
+```omg.example.201.complete
+{
+  "id": "550e8400-e29b-41d4-a716-446655440003",
   "title": "Learn OMG syntax",
   "description": "Read the documentation and try the examples",
   "completed": false,

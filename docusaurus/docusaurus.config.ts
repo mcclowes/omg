@@ -76,14 +76,28 @@ const config: Config = {
   themeConfig: {
     image: 'img/omg-social-card.png',
     metadata: [
-      { name: 'description', content: 'OMG (OpenAPI Markdown Grammar) - A human-first DSL for API specification that compiles to OpenAPI 3.1. Write APIs in Markdown, generate OpenAPI specs.' },
-      { name: 'keywords', content: 'OpenAPI, API, Markdown, DSL, API specification, OpenAPI 3.1, API documentation, REST API, omg-md' },
+      {
+        name: 'description',
+        content:
+          'OMG (OpenAPI Markdown Grammar) - A human-first DSL for API specification that compiles to OpenAPI 3.1. Write APIs in Markdown, generate OpenAPI specs.',
+      },
+      {
+        name: 'keywords',
+        content:
+          'OpenAPI, API, Markdown, DSL, API specification, OpenAPI 3.1, API documentation, REST API, omg-md',
+      },
       { property: 'og:title', content: 'OMG - OpenAPI Markdown Grammar' },
-      { property: 'og:description', content: 'A human-first DSL for API specification that compiles to OpenAPI 3.1' },
+      {
+        property: 'og:description',
+        content: 'A human-first DSL for API specification that compiles to OpenAPI 3.1',
+      },
       { property: 'og:type', content: 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: 'OMG - OpenAPI Markdown Grammar' },
-      { name: 'twitter:description', content: 'A human-first DSL for API specification that compiles to OpenAPI 3.1' },
+      {
+        name: 'twitter:description',
+        content: 'A human-first DSL for API specification that compiles to OpenAPI 3.1',
+      },
     ],
     colorMode: {
       respectPrefersColorScheme: true,

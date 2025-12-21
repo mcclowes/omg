@@ -396,6 +396,148 @@ console.log('hello');
 
       expect(doc.blocks).toHaveLength(1);
       expect(doc.blocks[0].type).toBe('omg.example');
+      expect(doc.blocks[0].exampleValue).toEqual({ id: '123', name: 'Test User' });
+    });
+
+    it('should extract named omg.example blocks', () => {
+      const content = `# Test
+
+\`\`\`omg.example.success
+{
+  "id": "123",
+  "name": "Test User"
+}
+\`\`\`
+`;
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.blocks).toHaveLength(1);
+      expect(doc.blocks[0].type).toBe('omg.example');
+      expect(doc.blocks[0].exampleName).toBe('success');
+      expect(doc.blocks[0].exampleValue).toEqual({ id: '123', name: 'Test User' });
+    });
+
+    it('should extract omg.example blocks with status code', () => {
+      const content = `# Test
+
+\`\`\`omg.example.201
+{
+  "id": "456",
+  "created": true
+}
+\`\`\`
+`;
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.blocks).toHaveLength(1);
+      expect(doc.blocks[0].type).toBe('omg.example');
+      expect(doc.blocks[0].statusCode).toBe(201);
+      expect(doc.blocks[0].exampleName).toBeUndefined();
+      expect(doc.blocks[0].exampleValue).toEqual({ id: '456', created: true });
+    });
+
+    it('should extract omg.example blocks with status code and name', () => {
+      const content = `# Test
+
+\`\`\`omg.example.201.complete
+{
+  "id": "789",
+  "status": "created"
+}
+\`\`\`
+`;
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.blocks).toHaveLength(1);
+      expect(doc.blocks[0].type).toBe('omg.example');
+      expect(doc.blocks[0].statusCode).toBe(201);
+      expect(doc.blocks[0].exampleName).toBe('complete');
+      expect(doc.blocks[0].exampleValue).toEqual({ id: '789', status: 'created' });
+    });
+
+    it('should capture preceding markdown as example description', () => {
+      const content = `# Test
+
+This is a successful response when everything works.
+
+\`\`\`omg.example.success
+{
+  "id": "123"
+}
+\`\`\`
+`;
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.blocks).toHaveLength(1);
+      expect(doc.blocks[0].exampleDescription).toBe(
+        'This is a successful response when everything works.'
+      );
+    });
+
+    it('should capture multiple paragraphs as example description', () => {
+      const content = `# Test
+
+First paragraph explaining the example.
+
+Second paragraph with more details.
+
+\`\`\`omg.example
+{
+  "id": "123"
+}
+\`\`\`
+`;
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.blocks).toHaveLength(1);
+      expect(doc.blocks[0].exampleDescription).toBe(
+        'First paragraph explaining the example.\n\nSecond paragraph with more details.'
+      );
+    });
+
+    it('should not capture markdown from before other code blocks', () => {
+      const content = `# Test
+
+Some description.
+
+\`\`\`omg.response
+{ id: string }
+\`\`\`
+
+This describes the example.
+
+\`\`\`omg.example
+{
+  "id": "123"
+}
+\`\`\`
+`;
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.blocks).toHaveLength(2);
+      const exampleBlock = doc.blocks.find((b) => b.type === 'omg.example');
+      expect(exampleBlock?.exampleDescription).toBe('This describes the example.');
+    });
+
+    it('should not capture markdown from before headings', () => {
+      const content = `# Test
+
+Some description.
+
+## Example Section
+
+This describes the example.
+
+\`\`\`omg.example
+{
+  "id": "123"
+}
+\`\`\`
+`;
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.blocks).toHaveLength(1);
+      expect(doc.blocks[0].exampleDescription).toBe('This describes the example.');
     });
 
     it('should extract omg.errors blocks', () => {

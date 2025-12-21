@@ -27,6 +27,9 @@ import type {
 // Matches: omg.body, omg.response.201
 const OMG_BLOCK_PATTERN =
   /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+))?$/;
+// Extended pattern for example blocks with optional name
+// Matches: omg.example, omg.example.201, omg.example.success, omg.example.201.success
+const EXAMPLE_BLOCK_PATTERN = /^omg\.example(?:\.(\d+))?(?:\.([a-zA-Z][a-zA-Z0-9_-]*))?$/;
 // Matches: @when(fieldName = "value") in code block meta
 const WHEN_PATTERN = /@when\((\w+)\s*=\s*"([^"]+)"\)/;
 // Partial patterns - two syntaxes supported:
@@ -48,7 +51,7 @@ export function parseDocument(content: string, filePath: string): OmgDocument {
   // Extract components
   const title = extractTitle(tree);
   const description = extractDescription(tree, markdownContent);
-  const blocks = extractCodeBlocks(tree);
+  const blocks = extractCodeBlocks(tree, markdownContent);
   const partials = extractPartials(markdownContent);
 
   return {
@@ -136,8 +139,12 @@ function extractTextFromNode(node: any): string {
 /**
  * Extract code blocks with OMG language tags
  */
-function extractCodeBlocks(tree: Root): OmgBlock[] {
+function extractCodeBlocks(tree: Root, rawContent: string): OmgBlock[] {
   const blocks: OmgBlock[] = [];
+
+  // Build a map of code block start lines to preceding paragraph content
+  // for capturing example descriptions
+  const precedingContent = buildPrecedingContentMap(tree, rawContent);
 
   visit(tree, 'code', (node: Code) => {
     const lang = node.lang || '';
@@ -153,7 +160,39 @@ function extractCodeBlocks(tree: Root): OmgBlock[] {
       return;
     }
 
-    // Check for omg.* blocks
+    // Check for omg.example blocks with extended syntax first
+    const exampleMatch = lang.match(EXAMPLE_BLOCK_PATTERN);
+    if (exampleMatch) {
+      // Parse status code and name from extended pattern
+      // Groups: [1] = status code (optional), [2] = name (optional)
+      const statusCode = exampleMatch[1] ? parseInt(exampleMatch[1], 10) : undefined;
+      const exampleName = exampleMatch[2] || undefined;
+
+      // Get the preceding markdown content as description
+      const exampleDescription = precedingContent.get(line);
+
+      // Parse the JSON value
+      let exampleValue: unknown;
+      try {
+        exampleValue = JSON.parse(node.value);
+      } catch {
+        // If not valid JSON, store as-is (will be handled by resolver)
+        exampleValue = undefined;
+      }
+
+      blocks.push({
+        type: 'omg.example',
+        statusCode,
+        content: node.value,
+        line,
+        exampleName,
+        exampleDescription,
+        exampleValue,
+      });
+      return;
+    }
+
+    // Check for other omg.* blocks
     const match = lang.match(OMG_BLOCK_PATTERN);
     if (match) {
       const blockType = `omg.${match[1]}` as OmgBlockType;
@@ -183,6 +222,62 @@ function extractCodeBlocks(tree: Root): OmgBlock[] {
   });
 
   return blocks;
+}
+
+/**
+ * Build a map from code block start lines to preceding paragraph content.
+ * This captures markdown context before example blocks.
+ */
+function buildPrecedingContentMap(tree: Root, rawContent: string): Map<number, string> {
+  const precedingMap = new Map<number, string>();
+  const children = tree.children;
+
+  for (let i = 0; i < children.length; i++) {
+    const node = children[i];
+    if (node.type !== 'code') continue;
+
+    const codeNode = node as Code;
+    const lang = codeNode.lang || '';
+
+    // Only capture context for example blocks
+    if (!lang.startsWith('omg.example')) continue;
+
+    const codeLine = node.position?.start.line || 0;
+
+    // Collect preceding paragraph(s) until we hit another code block or heading
+    const descriptionParts: string[] = [];
+    for (let j = i - 1; j >= 0; j--) {
+      const prevNode = children[j];
+
+      // Stop at headings (they define sections, not example descriptions)
+      if (prevNode.type === 'heading') break;
+
+      // Stop at code blocks (examples shouldn't inherit descriptions from before other code)
+      if (prevNode.type === 'code') break;
+
+      // Collect paragraph content
+      if (prevNode.type === 'paragraph' && prevNode.position) {
+        const start = prevNode.position.start.offset!;
+        const end = prevNode.position.end.offset!;
+        const text = rawContent.slice(start, end).trim();
+
+        // Skip partial references
+        PARTIAL_PATTERN.lastIndex = 0;
+        AT_PARTIAL_PATTERN.lastIndex = 0;
+        if (PARTIAL_PATTERN.test(text) || AT_PARTIAL_PATTERN.test(text)) {
+          continue;
+        }
+
+        descriptionParts.unshift(text);
+      }
+    }
+
+    if (descriptionParts.length > 0) {
+      precedingMap.set(codeLine, descriptionParts.join('\n\n'));
+    }
+  }
+
+  return precedingMap;
 }
 
 /**

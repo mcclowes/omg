@@ -541,6 +541,7 @@ function buildSingleEndpoint(
   const responseBlocks = doc.resolvedBlocks.filter(
     (b) => b.type === 'omg.response' || b.type.startsWith('omg.response.')
   );
+  const exampleBlocks = doc.resolvedBlocks.filter((b) => b.type === 'omg.example');
 
   // Build responses map with conditions and descriptions
   const responses: Record<number, ParsedResponse> = {};
@@ -567,6 +568,59 @@ function buildSingleEndpoint(
         responses[statusCode] = {
           schema: block.parsed,
         };
+      }
+    }
+  }
+
+  // Process example blocks and associate them with responses
+  for (const exampleBlock of exampleBlocks) {
+    // Default to 200 if no status code specified
+    const statusCode = exampleBlock.statusCode || 200;
+
+    // Ensure the response exists (create placeholder if needed)
+    if (!responses[statusCode]) {
+      responses[statusCode] = {
+        schema: null,
+      };
+    }
+
+    const response = responses[statusCode];
+    const exampleValue = exampleBlock.exampleValue;
+
+    if (exampleValue === undefined) {
+      // Skip if we couldn't parse the JSON
+      continue;
+    }
+
+    if (exampleBlock.exampleName) {
+      // Named example - add to examples map
+      if (!response.examples) {
+        response.examples = {};
+      }
+      response.examples[exampleBlock.exampleName] = {
+        summary: exampleBlock.exampleName, // Use name as summary
+        description: exampleBlock.exampleDescription,
+        value: exampleValue,
+      };
+    } else {
+      // Unnamed example - use as the single example value
+      // If there's already an example, convert to named examples
+      if (response.example !== undefined) {
+        // Convert existing single example to named example
+        if (!response.examples) {
+          response.examples = {};
+        }
+        response.examples['default'] = {
+          value: response.example,
+        };
+        response.example = undefined;
+        // Add new example with auto-generated name
+        response.examples[`example-${Object.keys(response.examples).length + 1}`] = {
+          description: exampleBlock.exampleDescription,
+          value: exampleValue,
+        };
+      } else {
+        response.example = exampleValue;
       }
     }
   }
