@@ -191,7 +191,7 @@ export interface WhenCondition {
 // Parsed code block
 export interface OmgBlock {
   type: OmgBlockType;
-  statusCode?: number; // For omg.response.201, etc.
+  statusCode?: number; // For omg.response.201, omg.example.201, etc.
   content: string;
   parsed?: OmgSchema; // Parsed schema (after OMG parsing)
   parsedResponses?: ParsedReturnsBlock; // For omg.returns blocks
@@ -200,6 +200,12 @@ export interface OmgBlock {
   line: number;
   /** @when condition for variant expansion */
   whenCondition?: WhenCondition;
+  /** Example name for omg.example.{name} blocks */
+  exampleName?: string;
+  /** Markdown description captured from preceding paragraph(s) */
+  exampleDescription?: string;
+  /** Parsed JSON value for example blocks */
+  exampleValue?: unknown;
 }
 
 /**
