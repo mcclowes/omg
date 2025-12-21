@@ -37,12 +37,54 @@ const config: Config = {
         theme: {
           customCss: './src/css/custom.css',
         },
+        sitemap: {
+          lastmod: 'date',
+          changefreq: 'weekly',
+          priority: 0.5,
+          ignorePatterns: ['/tags/**'],
+          filename: 'sitemap.xml',
+        },
       } satisfies Preset.Options,
     ],
   ],
 
+  headTags: [
+    // Search engine verification (add your verification codes here)
+    // {
+    //   tagName: 'meta',
+    //   attributes: {
+    //     name: 'google-site-verification',
+    //     content: 'YOUR_GOOGLE_VERIFICATION_CODE',
+    //   },
+    // },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'robots',
+        content: 'index, follow',
+      },
+    },
+    {
+      tagName: 'meta',
+      attributes: {
+        name: 'googlebot',
+        content: 'index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1',
+      },
+    },
+  ],
+
   themeConfig: {
     image: 'img/omg-social-card.png',
+    metadata: [
+      { name: 'description', content: 'OMG (OpenAPI Markdown Grammar) - A human-first DSL for API specification that compiles to OpenAPI 3.1. Write APIs in Markdown, generate OpenAPI specs.' },
+      { name: 'keywords', content: 'OpenAPI, API, Markdown, DSL, API specification, OpenAPI 3.1, API documentation, REST API, omg-md' },
+      { property: 'og:title', content: 'OMG - OpenAPI Markdown Grammar' },
+      { property: 'og:description', content: 'A human-first DSL for API specification that compiles to OpenAPI 3.1' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: 'OMG - OpenAPI Markdown Grammar' },
+      { name: 'twitter:description', content: 'A human-first DSL for API specification that compiles to OpenAPI 3.1' },
+    ],
     colorMode: {
       respectPrefersColorScheme: true,
     },

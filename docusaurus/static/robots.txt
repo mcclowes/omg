@@ -1,0 +1,9 @@
+# Robots.txt for OMG Documentation
+# https://www.omg.gs
+
+# Allow all search engines to crawl all content
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.omg.gs/sitemap.xml
