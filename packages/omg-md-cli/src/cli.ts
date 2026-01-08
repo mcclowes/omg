@@ -18,6 +18,7 @@ import {
   registerDiffCommand,
   registerBreakingCommand,
   registerChangelogCommand,
+  registerTestCommand,
 } from './commands/index.js';
 
 const program = new Command();
@@ -35,6 +36,7 @@ registerFormatCommand(program);
 registerInitCommand(program);
 registerImportCommand(program);
 registerMockCommand(program);
+registerTestCommand(program);
 registerDiffCommand(program);
 registerBreakingCommand(program);
 registerChangelogCommand(program);

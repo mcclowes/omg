@@ -1,32 +1,30 @@
 {
-  "name": "omg-md-cli",
+  "name": "omg-test",
   "version": "0.2.0",
-  "description": "CLI for OMG (OpenAPI Markdown Grammar)",
+  "description": "Contract testing for OMG (OpenAPI Markdown Grammar) specifications against live APIs",
   "author": "mcclowes",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/mcclowes/omg.git",
-    "directory": "packages/omg-md-cli"
+    "directory": "packages/omg-test"
   },
   "bugs": {
     "url": "https://github.com/mcclowes/omg/issues"
   },
-  "homepage": "https://github.com/mcclowes/omg/tree/main/packages/omg-md-cli#readme",
+  "homepage": "https://github.com/mcclowes/omg/tree/main/packages/omg-test#readme",
   "keywords": [
     "openapi",
     "omg",
-    "cli",
-    "command-line",
+    "testing",
+    "contract-testing",
     "api",
     "specification",
-    "compiler"
+    "validation"
   ],
   "main": "dist/index.js",
-  "bin": {
-    "omg": "dist/cli.js"
-  },
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -39,19 +37,12 @@
   "dependencies": {
     "omg-parser": "^0.2.0",
     "omg-compiler": "^0.2.0",
-    "omg-linter": "^0.2.0",
-    "omg-importer": "^0.2.0",
-    "omg-mock-server": "^0.2.0",
-    "omg-test": "^0.2.0",
-    "commander": "^11.0.0",
-    "chalk": "^5.3.0",
-    "chokidar": "^3.6.0",
-    "yaml": "^2.3.4"
+    "ajv": "^8.17.0",
+    "ajv-formats": "^3.0.0"
   },
   "devDependencies": {
     "typescript": "^5.3.0",
     "vitest": "^1.0.0",
-    "@types/node": "^20.0.0",
-    "@types/js-yaml": "^4.0.9"
+    "@types/node": "^20.0.0"
   }
 }
