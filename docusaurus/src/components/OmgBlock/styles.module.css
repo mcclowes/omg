@@ -1,0 +1,285 @@
+/* Container */
+.container {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  margin: 1.25rem 0;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--ifm-color-emphasis-100);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.whenBadge {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Body */
+.body {
+  padding: 0;
+}
+
+/* Property table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.table thead th {
+  text-align: left;
+  padding: 0.5rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifm-color-emphasis-600);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background: transparent;
+}
+
+.table tbody tr {
+  transition: background 0.1s;
+}
+
+.table tbody tr:hover {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.table tbody td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Field cells */
+.fieldName code {
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ifm-color-emphasis-900);
+}
+
+.fieldType code {
+  font-size: 0.8rem;
+  background: var(--ifm-color-emphasis-200);
+  padding: 0.1rem 0.375rem;
+  border-radius: 3px;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.fieldRequired {
+  white-space: nowrap;
+}
+
+.requiredBadge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.1rem 0.375rem;
+  border-radius: 3px;
+  background: var(--ifm-color-emphasis-900);
+  color: var(--ifm-background-color);
+}
+
+.optionalBadge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.1rem 0.375rem;
+  border-radius: 3px;
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-600);
+}
+
+.fieldDescription {
+  font-size: 0.825rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Annotations */
+.annotations {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-left: 0.375rem;
+}
+
+.annotation {
+  font-size: 0.7rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-600);
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+/* Returns list */
+.returnsList {
+  padding: 0.5rem 0;
+}
+
+.returnEntry {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+}
+
+.returnEntry:last-child {
+  border-bottom: none;
+}
+
+.statusCode {
+  display: inline-block;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  min-width: 3rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.statusSuccess {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusRedirect {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusClientError {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.statusServerError {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+[data-theme='dark'] .statusSuccess {
+  background: #14532d;
+  color: #86efac;
+}
+
+[data-theme='dark'] .statusRedirect {
+  background: #78350f;
+  color: #fde68a;
+}
+
+[data-theme='dark'] .statusClientError {
+  background: #7c2d12;
+  color: #fdba74;
+}
+
+[data-theme='dark'] .statusServerError {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+.returnContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.returnType {
+  font-size: 0.85rem;
+  background: var(--ifm-color-emphasis-200);
+  padding: 0.1rem 0.375rem;
+  border-radius: 3px;
+}
+
+.condition {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-600);
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.conditionKeyword {
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.returnDescription {
+  margin-top: 0.2rem;
+  font-size: 0.825rem;
+  color: var(--ifm-color-emphasis-700);
+  font-style: italic;
+}
+
+/* Source view */
+.sourceBlock {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  font-size: 0.85rem;
+  background: var(--ifm-color-emphasis-100);
+}
+
+.sourceBlock code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Collapsible source */
+.sourceDetails {
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.sourceSummary {
+  padding: 0.4rem 1rem;
+  font-size: 0.75rem;
+  color: var(--ifm-color-emphasis-600);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.sourceSummary::-webkit-details-marker {
+  display: none;
+}
+
+.sourceSummary:hover {
+  color: var(--ifm-color-emphasis-800);
+  background: var(--ifm-color-emphasis-100);
+}
+
+.sourceDetails pre {
+  margin: 0;
+  border-radius: 0;
+  font-size: 0.8rem;
+  background: var(--ifm-color-emphasis-100);
+}

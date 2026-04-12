@@ -1,6 +1,7 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import remarkOmg from './plugins/remark-omg';
 
 const config: Config = {
   title: 'OMG',
@@ -32,6 +33,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl: 'https://github.com/mcclowes/omg/tree/main/docusaurus/',
+          remarkPlugins: [remarkOmg],
         },
         blog: false,
         theme: {
