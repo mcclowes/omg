@@ -368,6 +368,35 @@ class Parser {
     return annotations;
   }
 
+  /**
+   * Wrap a type in array(s) for each trailing `[]` suffix, then apply
+   * optional marker and annotations. Supports multi-dimensional arrays
+   * like `string[][]`.
+   */
+  private applyArrayAndModifiers(type: OmgType): OmgType {
+    while (this.check('LBRACKET')) {
+      this.advance();
+      this.expect('RBRACKET');
+      type = {
+        kind: 'array',
+        items: type,
+        annotations: [],
+      };
+    }
+
+    if (this.check('QUESTION')) {
+      this.advance();
+      (type as any).optional = true;
+    }
+
+    const annotations = this.parseAnnotations();
+    if (annotations.length > 0) {
+      type.annotations = [...(type.annotations || []), ...annotations];
+    }
+
+    return type;
+  }
+
   private parsePrimaryType(): OmgType {
     const token = this.currentToken;
 
@@ -570,9 +599,18 @@ class Parser {
       };
     }
 
-    // Object
+    // Object — supports `{...}`, `{...}[]`, `{...}?`, `{...} @annotation`.
     if (this.check('LBRACE')) {
-      return this.parseObject();
+      return this.applyArrayAndModifiers(this.parseObject());
+    }
+
+    // Parenthesised type expression: `( Type )` — supports `(A | B)[]`, `(A & B)[]`,
+    // and disambiguation in general.
+    if (this.check('LPAREN')) {
+      this.advance();
+      const inner = this.parseType();
+      this.expect('RPAREN');
+      return this.applyArrayAndModifiers(inner);
     }
 
     const suggestions = this.getSuggestions(token);
@@ -734,18 +772,10 @@ class Parser {
 
     this.expect('RBRACE');
 
-    const optional = this.check('QUESTION');
-    if (optional) {
-      this.advance();
-    }
-
-    const annotations = this.parseAnnotations();
-
     return {
       kind: 'object',
       properties,
-      optional,
-      annotations,
+      annotations: [],
     };
   }
 
