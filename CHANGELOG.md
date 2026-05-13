@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema parser supports inline-object array syntax: `{ id: string }[]` (#45)
 - Schema parser supports parenthesised type expressions: `(A | B)[]`, `(A & B)[]`, and parens for disambiguation (#46)
 
+### Fixed
+
+- `omg-parser`, `omg-compiler`, and `omg-mock-server` are now ESM packages, fixing `ERR_REQUIRE_ESM` when consumed on Node 18/20. The CLI and tests previously only worked on Node 22.12+ where `require(ESM)` is enabled by default. (#51)
+
 ## [1.2.0] - 2024-12-21
 
 ### Added
