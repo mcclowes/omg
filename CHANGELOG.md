@@ -12,9 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema parser supports inline-object array syntax: `{ id: string }[]` (#45)
 - Schema parser supports parenthesised type expressions: `(A | B)[]`, `(A & B)[]`, and parens for disambiguation (#46)
 
+### Changed
+
+- `omg-linter`, `omg-importer`, and `omg-mock-server` are now private internal packages. Their functionality ships bundled inside `omg-md-cli` (lint/import/mock commands) and `omg-lsp` (linter). Consumers should depend on `omg-md-cli` or `omg-lsp` directly.
+- `omg-md-cli` and `omg-lsp` now build via esbuild (`tsc --emitDeclarationOnly && node build.mjs`) so the bundled JavaScript published to npm is self-contained.
+
 ### Fixed
 
 - `omg-parser`, `omg-compiler`, and `omg-mock-server` are now ESM packages, fixing `ERR_REQUIRE_ESM` when consumed on Node 18/20. The CLI and tests previously only worked on Node 22.12+ where `require(ESM)` is enabled by default. (#51)
+- `omg-md-cli@0.3.0` and `omg-lsp@0.3.0` published with broken transitive references to `omg-linter@^0.3.0`, `omg-importer@^0.3.0`, and `omg-mock-server@^0.3.0` that were never published to npm. The next release (`0.3.1`) ships those packages bundled into the consumers, so `npm install omg-md-cli` resolves cleanly.
 
 ## [1.2.0] - 2024-12-21
 

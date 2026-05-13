@@ -1,6 +1,7 @@
 {
   "name": "omg-importer",
   "version": "0.3.0",
+  "private": true,
   "description": "Import OpenAPI specifications to OMG format",
   "author": "mcclowes",
   "license": "MIT",

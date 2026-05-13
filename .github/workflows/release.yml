@@ -41,8 +41,10 @@ jobs:
 
       # Order matters: dependents must publish after dependencies so the
       # version they pin actually exists on npm when consumers install.
-      # omg-parser is a leaf; everything else depends on it (directly or
-      # transitively). omg-md-cli depends on all the others.
+      # omg-parser is a leaf; omg-compiler/omg-lsp/omg-md-cli depend on it.
+      # The internal-only packages (omg-linter, omg-importer, omg-mock-server)
+      # are bundled into omg-md-cli and omg-lsp at build time and are not
+      # published to npm — they are marked private in their package.json.
 
       - name: Publish omg-parser
         run: npm publish --workspace=omg-parser --provenance --access public
@@ -50,18 +52,6 @@ jobs:
 
       - name: Publish omg-compiler
         run: npm publish --workspace=omg-compiler --provenance --access public
-        continue-on-error: true
-
-      - name: Publish omg-linter
-        run: npm publish --workspace=omg-linter --provenance --access public
-        continue-on-error: true
-
-      - name: Publish omg-importer
-        run: npm publish --workspace=omg-importer --provenance --access public
-        continue-on-error: true
-
-      - name: Publish omg-mock-server
-        run: npm publish --workspace=omg-mock-server --provenance --access public
         continue-on-error: true
 
       - name: Publish omg-lsp
