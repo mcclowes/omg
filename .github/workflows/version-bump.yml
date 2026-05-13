@@ -100,7 +100,7 @@ jobs:
           EOF
 
       - name: Refresh lockfile
-        run: npm install --package-lock-only
+        run: npm install --package-lock-only --ignore-scripts
 
       - name: Build and test
         run: |
