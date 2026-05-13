@@ -3,3 +3,10 @@ node_modules/
 *.md
 docusaurus/build/
 docusaurus/.docusaurus/
+
+# Tooling and local state
+.claude/
+.husky/_/
+.vercel/
+coverage/
+package-lock.json

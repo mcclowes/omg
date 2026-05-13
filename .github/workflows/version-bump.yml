@@ -1,0 +1,132 @@
+name: Version bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Semver bump type'
+        type: choice
+        required: true
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+permissions:
+  contents: write
+
+concurrency:
+  group: version-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Compute new version
+        id: version
+        run: |
+          OLD=$(node -p "require('./packages/omg-parser/package.json').version")
+          NEW=$(node -e "
+            const [maj, min, pat] = '$OLD'.split('.').map(Number);
+            const bump = '${{ inputs.bump }}';
+            if (bump === 'major') console.log(\`\${maj + 1}.0.0\`);
+            else if (bump === 'minor') console.log(\`\${maj}.\${min + 1}.0\`);
+            else console.log(\`\${maj}.\${min}.\${pat + 1}\`);
+          ")
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "Bumping $OLD -> $NEW"
+
+      - name: Bump workspace versions and cross-package deps
+        env:
+          NEW: ${{ steps.version.outputs.new }}
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const newVersion = process.env.NEW;
+          // Packages published to npm and kept in lockstep.
+          // omg-vscode is intentionally excluded (independent cadence).
+          const tracked = new Set([
+            'omg-parser', 'omg-compiler', 'omg-importer', 'omg-linter',
+            'omg-lsp', 'omg-mock-server', 'omg-md-cli',
+          ]);
+
+          for (const dir of fs.readdirSync('packages')) {
+            const pkgPath = path.join('packages', dir, 'package.json');
+            if (!fs.existsSync(pkgPath)) continue;
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+            let changed = false;
+
+            if (tracked.has(pkg.name)) {
+              pkg.version = newVersion;
+              changed = true;
+            }
+
+            for (const field of ['dependencies', 'peerDependencies', 'devDependencies']) {
+              const deps = pkg[field];
+              if (!deps) continue;
+              for (const name of Object.keys(deps)) {
+                if (tracked.has(name)) {
+                  deps[name] = `^${newVersion}`;
+                  changed = true;
+                }
+              }
+            }
+
+            if (changed) {
+              fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+              console.log('Updated', pkgPath);
+            }
+          }
+          EOF
+
+      - name: Refresh lockfile
+        run: npm install --package-lock-only
+
+      - name: Build and test
+        run: |
+          npm ci
+          npm run build
+          npm test
+
+      - name: Commit, tag, push
+        env:
+          NEW: ${{ steps.version.outputs.new }}
+        run: |
+          git add package-lock.json packages/*/package.json
+          git commit -m "chore: release v$NEW"
+          git tag "v$NEW"
+          git push origin HEAD:${{ github.ref_name }}
+          git push origin "v$NEW"
+
+      - name: Summary
+        env:
+          OLD: ${{ steps.version.outputs.old }}
+          NEW: ${{ steps.version.outputs.new }}
+        run: |
+          {
+            echo "### Version bumped: $OLD → $NEW"
+            echo ""
+            echo "Tag \`v$NEW\` pushed to \`${{ github.ref_name }}\`."
+            echo ""
+            echo "**Next step:** [Create a GitHub Release](${{ github.server_url }}/${{ github.repository }}/releases/new?tag=v$NEW) from this tag to trigger \`release.yml\` and publish to npm."
+          } >> "$GITHUB_STEP_SUMMARY"
