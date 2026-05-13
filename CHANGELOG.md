@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Schema parser supports inline-object array syntax: `{ id: string }[]` (#45)
+- Schema parser supports parenthesised type expressions: `(A | B)[]`, `(A & B)[]`, and parens for disambiguation (#46)
+
 ## [1.2.0] - 2024-12-21
 
 ### Added

@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { parseSchema } from './schema-parser.js';
-import type { OmgIntersection, OmgUnion, OmgReference, OmgPrimitive, OmgObject } from './types.js';
+import type {
+  OmgIntersection,
+  OmgUnion,
+  OmgReference,
+  OmgPrimitive,
+  OmgObject,
+  OmgArray,
+  OmgEnum,
+} from './types.js';
 
 describe('parseSchema - intersection types', () => {
   describe('basic intersection parsing', () => {
@@ -222,5 +230,99 @@ describe('parseSchema - existing functionality preserved', () => {
     expect(result.kind).toBe('object');
     const obj = result as OmgObject;
     expect(obj.properties.name.optional).toBe(true);
+  });
+});
+
+describe('parseSchema - inline-object arrays (#45)', () => {
+  it('should parse `{ id: string }[]` as array of object', () => {
+    const result = parseSchema('{ id: string, name: string }[]');
+
+    expect(result.kind).toBe('array');
+    const arr = result as OmgArray;
+    expect(arr.items.kind).toBe('object');
+    const obj = arr.items as OmgObject;
+    expect(obj.properties).toHaveProperty('id');
+    expect(obj.properties).toHaveProperty('name');
+  });
+
+  it('should parse inline-object array as property value', () => {
+    const result = parseSchema('{ items: { id: string, name: string }[] }');
+
+    expect(result.kind).toBe('object');
+    const outer = result as OmgObject;
+    expect(outer.properties.items.kind).toBe('array');
+
+    const itemsArray = outer.properties.items as OmgArray;
+    expect(itemsArray.items.kind).toBe('object');
+    expect((itemsArray.items as OmgObject).properties).toHaveProperty('id');
+  });
+
+  it('should parse envelope response shape with inline-object array', () => {
+    const result = parseSchema('{ items: { id: string }[], count: integer }');
+
+    expect(result.kind).toBe('object');
+    const outer = result as OmgObject;
+    expect(outer.properties.items.kind).toBe('array');
+    expect(outer.properties.count.kind).toBe('primitive');
+    expect((outer.properties.count as OmgPrimitive).type).toBe('integer');
+  });
+
+  it('should parse `{...}[]?` as optional array of object', () => {
+    const result = parseSchema('{ x: { id: string }[]? }');
+
+    const obj = result as OmgObject;
+    expect(obj.properties.x.kind).toBe('array');
+    expect(obj.properties.x.optional).toBe(true);
+  });
+});
+
+describe('parseSchema - parenthesised type expressions (#46)', () => {
+  it('should parse `(A | B)[]` as array of union', () => {
+    const result = parseSchema('("ACTIVE" | "BLOCKED" | "DESTROYED")[]');
+
+    expect(result.kind).toBe('array');
+    const arr = result as OmgArray;
+    expect(arr.items.kind).toBe('enum');
+    const enumType = arr.items as OmgEnum;
+    expect(enumType.values).toEqual(['ACTIVE', 'BLOCKED', 'DESTROYED']);
+  });
+
+  it('should parse parenthesised enum array as property value', () => {
+    const result = parseSchema('{ state?: ("ACTIVE" | "BLOCKED")[] }');
+
+    expect(result.kind).toBe('object');
+    const obj = result as OmgObject;
+    expect(obj.properties.state.kind).toBe('array');
+    expect(obj.properties.state.optional).toBe(true);
+
+    const arr = obj.properties.state as OmgArray;
+    expect(arr.items.kind).toBe('enum');
+    expect((arr.items as OmgEnum).values).toEqual(['ACTIVE', 'BLOCKED']);
+  });
+
+  it('should parse `(A & B)[]` as array of intersection', () => {
+    const result = parseSchema('(TypeA & TypeB)[]');
+
+    expect(result.kind).toBe('array');
+    const arr = result as OmgArray;
+    expect(arr.items.kind).toBe('intersection');
+    const intersection = arr.items as OmgIntersection;
+    expect(intersection.types).toHaveLength(2);
+  });
+
+  it('should parse parens for disambiguation: `(A | B) & C`', () => {
+    const result = parseSchema('(TypeA | TypeB) & TypeC');
+
+    expect(result.kind).toBe('intersection');
+    const intersection = result as OmgIntersection;
+    expect(intersection.types).toHaveLength(2);
+    expect(intersection.types[0].kind).toBe('union');
+    expect((intersection.types[1] as OmgReference).name).toBe('TypeC');
+  });
+
+  it('should parse simple parenthesised primitive', () => {
+    const result = parseSchema('(string)');
+    expect(result.kind).toBe('primitive');
+    expect((result as OmgPrimitive).type).toBe('string');
   });
 });
