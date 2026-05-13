@@ -40,10 +40,11 @@ Thanks for your interest in contributing to OMG (OpenAPI Markdown Grammar).
    - Tests pass: `npm test`
 
 3. Update documentation:
-   - `TODO.md` - Mark completed items, add new tasks
+   - `CHANGELOG.md` - Add user-visible changes under `[Unreleased]`
    - `CLAUDE.md` - Update if architecture changed
    - `docusaurus/docs/` - Update user-facing docs
    - `examples/` - Ensure examples work with your changes
+   - File or update [GitHub issues](https://github.com/mcclowes/omg/issues) for follow-up work
 
 ### Pre-commit Hooks
 

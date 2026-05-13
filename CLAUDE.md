@@ -37,6 +37,7 @@ omg/
 ├── packages/                    # Monorepo packages (npm workspaces)
 │   ├── omg-parser/             # omg-parser - Parses .omg.md files to AST
 │   │   ├── src/
+│   │   │   ├── index.ts             # Package exports
 │   │   │   ├── document-parser.ts   # Main document parsing
 │   │   │   ├── schema-parser.ts     # Schema/type parsing
 │   │   │   ├── returns-parser.ts    # Returns block parsing
@@ -49,12 +50,14 @@ omg/
 │   │
 │   ├── omg-compiler/           # omg-compiler - Compiles AST to OpenAPI 3.1
 │   │   ├── src/
+│   │   │   ├── index.ts             # Package exports
 │   │   │   ├── openapi.ts           # AST to OpenAPI transformation
 │   │   │   └── output.ts            # Serialization (YAML/JSON)
 │   │   └── dist/
 │   │
 │   ├── omg-importer/           # omg-importer - Import OpenAPI to OMG format
 │   │   ├── src/
+│   │   │   ├── index.ts             # Package exports
 │   │   │   ├── importer.ts          # Main import logic
 │   │   │   ├── generator.ts         # OMG file generation
 │   │   │   ├── schema-converter.ts  # OpenAPI schema to OMG type conversion
@@ -71,12 +74,16 @@ omg/
 │   │
 │   ├── omg-lsp/                # omg-lsp - Language Server Protocol server
 │   │   ├── src/
+│   │   │   ├── index.ts             # Package exports
 │   │   │   └── server.ts            # LSP server implementation
 │   │   └── dist/
 │   │
-│   ├── omg-md-cli/             # omg-md-cli - Command-line interface (npm: omg-md-cli)
+│   ├── omg-md-cli/             # omg-md-cli - Command-line interface (npm: omg-md-cli, binary: omg)
 │   │   ├── src/
-│   │   │   └── cli.ts               # Main CLI entry point
+│   │   │   ├── cli.ts               # Entry point (registers commands)
+│   │   │   ├── index.ts             # Package exports
+│   │   │   ├── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog)
+│   │   │   └── utils.ts             # Shared CLI utilities
 │   │   └── dist/
 │   │
 │   ├── omg-mock-server/        # omg-mock-server - Mock server generator
@@ -100,7 +107,6 @@ omg/
     ├── BEHAVIORS.md            # Behavioral extensions (state machines, events)
     ├── CHANGELOG.md            # Release history
     ├── LEGIBILITY.md           # Readability design decisions
-    ├── TODO.md                 # Project roadmap
     └── README.md               # Project overview
 ```
 
@@ -309,10 +315,12 @@ Husky is configured for pre-commit hooks in `.husky/`. The pre-commit hook runs:
 ## When Making Changes
 
 **IMPORTANT**: After implementing any changes, always update:
-- `TODO.md` - Mark items complete, add new tasks
+- `CHANGELOG.md` - Add user-visible changes under `[Unreleased]` using Keep a Changelog sections (Added / Changed / Fixed / Removed / Deprecated). On release, move entries under a new version heading.
 - `CLAUDE.md` - Update if architecture/commands/structure changed
 - `docusaurus/docs/` - Update user-facing documentation
 - `examples/` - Ensure examples still work and demonstrate new features
+
+Work is tracked in [GitHub issues](https://github.com/mcclowes/omg/issues), not in a TODO file. Open a new issue for new tasks; reference issues with `Fixes #N` in PR bodies.
 
 ### Code Changes
 
@@ -346,10 +354,18 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 
 ## Documentation Reference
 
+- **README.md**: Project overview and quick start
+- **DESIGN.md**: Vision, problem statement, and design principles
+- **SYNTAX.md**: Complete syntax reference
+- **COMPARISON.md**: OMG vs OpenAPI comparison
+- **TOOLCHAIN.md**: Compiler and tooling architecture
 - **BEHAVIORS.md**: Advanced features (state machines, webhooks, invariants)
 - **LEGIBILITY.md**: Readability design decisions
-- **TODO.md**: Project roadmap and open questions
-- **CHANGELOG.md**: Release history
+- **IMPORTS.md**: Partial/import resolution
+- **MCP-OMG.md**: MCP server integration notes
+- **CONTRIBUTING.md**: Contribution guide
+- **CHANGELOG.md**: Release history (keep `[Unreleased]` current with every user-visible change)
+- **docusaurus/**: Hosted documentation site (run `npm run docs:dev`)
 
 ## Common Tasks
 
@@ -367,8 +383,9 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 
 ### Add a new CLI command
 
-1. Add command definition in `packages/omg-md-cli/src/cli.ts`
-2. Use Commander.js `.command()` API
+1. Create a new file `packages/omg-md-cli/src/commands/<name>.ts` exporting `register<Name>Command(program)` using Commander.js `.command()` API
+2. Export it from `packages/omg-md-cli/src/commands/index.ts`
+3. Register it in `packages/omg-md-cli/src/cli.ts`
 
 ## Skills
 

@@ -22,7 +22,7 @@ This project is in the **MVP Implementation** phase. The core toolchain (parser,
 - [BEHAVIORS.md](BEHAVIORS.md) - Behavioral conventions and defaults
 - [TOOLCHAIN.md](TOOLCHAIN.md) - Compiler and tooling architecture
 - [LEGIBILITY.md](LEGIBILITY.md) - Legibility analysis
-- [TODO.md](TODO.md) - Project roadmap
+- [Open issues](https://github.com/mcclowes/omg/issues) - Roadmap and known work
 
 ## Repository Structure
 

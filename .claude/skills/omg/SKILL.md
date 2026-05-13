@@ -37,8 +37,8 @@ Returns details of a specific account.
 ## CLI
 
 ```bash
-node packages/omg-cli/dist/cli.js build api.omg.md -o output.yaml
-node packages/omg-cli/dist/cli.js parse endpoint.omg.md
+node packages/omg-md-cli/dist/cli.js build api.omg.md -o output.yaml
+node packages/omg-md-cli/dist/cli.js parse endpoint.omg.md
 ```
 
 ## Notes
