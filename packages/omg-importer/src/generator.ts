@@ -275,14 +275,21 @@ function generateObject(type: OmgObject, opts: GeneratorOptions, depth: number):
 function generateArray(type: OmgArray, opts: GeneratorOptions, depth: number): string {
   const itemsStr = generateSchema(type.items, opts, depth);
 
-  // Suffix form `T[]` is only safe when items are atomic. Unions and enums
-  // bind tighter than `[]` in the grammar (`"A" | "B"[]` parses as
-  // `"A" | Array<"B">`), so they must use the bracket form `[T]` instead.
+  // Suffix form `T[]` is only safe when items are atomic. Items with annotations
+  // are not atomic — the grammar parses `string @pattern("…")` as a complete type
+  // expression, then chokes on the trailing `[]`. Unions and enums bind tighter
+  // than `[]` so they have the same problem (`"A" | "B"[]` parses as
+  // `"A" | Array<"B">`). All three cases must use the bracket form `[T]`.
+  const itemsHaveAnnotations =
+    'annotations' in type.items &&
+    Array.isArray(type.items.annotations) &&
+    type.items.annotations.length > 0;
   const itemsAreAtomic =
     isSimpleType(type.items) &&
     !itemsStr.includes('\n') &&
     type.items.kind !== 'union' &&
-    type.items.kind !== 'enum';
+    type.items.kind !== 'enum' &&
+    !itemsHaveAnnotations;
 
   if (itemsAreAtomic) {
     let result = `${itemsStr}[]`;
@@ -384,6 +391,15 @@ function generateReference(type: OmgReference): string {
 }
 
 /**
+ * String args (most importantly regex patterns) routinely contain `"` and `\`
+ * — both must be escaped or the lexer terminates the string early and crashes
+ * on whatever follows.
+ */
+function escapeStringArg(arg: string): string {
+  return '"' + arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
+/**
  * Generate annotations string
  */
 function generateAnnotations(annotations: OmgAnnotation[]): string {
@@ -398,11 +414,7 @@ function generateAnnotations(annotations: OmgAnnotation[]): string {
 
     const args = ann.args.map((arg) => {
       if (typeof arg === 'string') {
-        // Check if it's a regex pattern
-        if (ann.name === 'pattern') {
-          return `"${arg}"`;
-        }
-        return `"${arg}"`;
+        return escapeStringArg(arg);
       }
       return String(arg);
     });

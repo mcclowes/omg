@@ -303,6 +303,46 @@ describe('generateSchema', () => {
 
       expect(generateSchema(schema, opts, 0)).toBe('[string | integer]');
     });
+
+    it('uses bracket form when item type has annotations', () => {
+      // `string @pattern("…")[]` doesn't parse: annotations close out the type
+      // expression, leaving `[]` in property-name position.
+      const schema: OmgSchema = {
+        kind: 'array',
+        items: {
+          kind: 'primitive',
+          type: 'string',
+          annotations: [{ name: 'pattern', args: ['^[A-Z]{2}$'] }],
+        },
+        annotations: [],
+      };
+
+      expect(generateSchema(schema, opts, 0)).toBe('[string @pattern("^[A-Z]{2}$")]');
+    });
+  });
+
+  describe('annotation string args', () => {
+    it('escapes embedded double quotes in pattern annotations', () => {
+      const schema: OmgSchema = {
+        kind: 'primitive',
+        type: 'string',
+        annotations: [{ name: 'pattern', args: ['^[a-zA-Z\\s"]*$'] }],
+      };
+
+      // Importantly, the embedded `"` is escaped so the lexer doesn't terminate
+      // the string early.
+      expect(generateSchema(schema, opts, 0)).toBe('string @pattern("^[a-zA-Z\\\\s\\"]*$")');
+    });
+
+    it('escapes embedded backslashes', () => {
+      const schema: OmgSchema = {
+        kind: 'primitive',
+        type: 'string',
+        annotations: [{ name: 'pattern', args: ['a\\.b'] }],
+      };
+
+      expect(generateSchema(schema, opts, 0)).toBe('string @pattern("a\\\\.b")');
+    });
   });
 
   describe('enums', () => {
