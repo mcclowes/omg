@@ -217,6 +217,16 @@ function quoteName(name: string): string {
 }
 
 /**
+ * Inline-object property descriptions must stay on a single line — newlines
+ * break the parser's brace tracking when subsequent lines start with characters
+ * like `-` (very common for hyphen-bulleted enum value docs).
+ */
+function sanitiseInlineDescription(desc: string | undefined): string {
+  if (!desc) return '';
+  return desc.replace(/\s+/g, ' ').trim();
+}
+
+/**
  * Generate object type
  */
 function generateObject(type: OmgObject, opts: GeneratorOptions, depth: number): string {
@@ -236,7 +246,8 @@ function generateObject(type: OmgObject, opts: GeneratorOptions, depth: number):
     const quotedName = quoteName(name);
     const optional = propType.optional ? '?' : '';
     const value = generateSchema(propType, opts, depth + 1);
-    const comment = propType.description ? `  // ${propType.description}` : '';
+    const sanitised = sanitiseInlineDescription(propType.description);
+    const comment = sanitised ? `  // ${sanitised}` : '';
 
     // For simple types, put on one line
     if (isSimpleType(propType)) {
@@ -264,8 +275,16 @@ function generateObject(type: OmgObject, opts: GeneratorOptions, depth: number):
 function generateArray(type: OmgArray, opts: GeneratorOptions, depth: number): string {
   const itemsStr = generateSchema(type.items, opts, depth);
 
-  // For simple item types, use suffix notation
-  if (isSimpleType(type.items) && !itemsStr.includes('\n')) {
+  // Suffix form `T[]` is only safe when items are atomic. Unions and enums
+  // bind tighter than `[]` in the grammar (`"A" | "B"[]` parses as
+  // `"A" | Array<"B">`), so they must use the bracket form `[T]` instead.
+  const itemsAreAtomic =
+    isSimpleType(type.items) &&
+    !itemsStr.includes('\n') &&
+    type.items.kind !== 'union' &&
+    type.items.kind !== 'enum';
+
+  if (itemsAreAtomic) {
     let result = `${itemsStr}[]`;
     result += generateAnnotations(type.annotations);
     if (type.nullable) {

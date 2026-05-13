@@ -224,6 +224,30 @@ describe('generateSchema', () => {
 
       expect(result).toContain('// Unique identifier');
     });
+
+    it('collapses newlines in property descriptions onto a single line', () => {
+      const schema: OmgSchema = {
+        kind: 'object',
+        properties: {
+          state: {
+            kind: 'primitive',
+            type: 'string',
+            annotations: [],
+            description:
+              'The reason the instrument was blocked:\n  - USER: blocked by the account owner\n  - SYSTEM: blocked by the platform',
+          },
+        },
+        annotations: [],
+      };
+
+      const result = generateSchema(schema, opts, 0);
+
+      // No raw newline followed by a hyphen — that pattern breaks the parser
+      expect(result).not.toMatch(/\n\s*-\s/);
+      expect(result).toContain(
+        '// The reason the instrument was blocked: - USER: blocked by the account owner - SYSTEM: blocked by the platform'
+      );
+    });
   });
 
   describe('arrays', () => {
@@ -245,6 +269,39 @@ describe('generateSchema', () => {
       };
 
       expect(generateSchema(schema, opts, 0)).toBe('string[] @minItems(1)');
+    });
+
+    it('uses bracket form for arrays of enums to avoid precedence bug', () => {
+      const schema: OmgSchema = {
+        kind: 'array',
+        items: {
+          kind: 'enum',
+          values: ['USER', 'SYSTEM', 'LOST'],
+          annotations: [],
+        },
+        annotations: [],
+      };
+
+      // `"USER" | "SYSTEM" | "LOST"[]` parses as `"USER" | "SYSTEM" | Array<"LOST">`.
+      // Bracket form `["USER" | "SYSTEM" | "LOST"]` is unambiguous.
+      expect(generateSchema(schema, opts, 0)).toBe('["USER" | "SYSTEM" | "LOST"]');
+    });
+
+    it('uses bracket form for arrays of unions to avoid precedence bug', () => {
+      const schema: OmgSchema = {
+        kind: 'array',
+        items: {
+          kind: 'union',
+          types: [
+            { kind: 'primitive', type: 'string', annotations: [] },
+            { kind: 'primitive', type: 'integer', annotations: [] },
+          ],
+          annotations: [],
+        },
+        annotations: [],
+      };
+
+      expect(generateSchema(schema, opts, 0)).toBe('[string | integer]');
     });
   });
 
