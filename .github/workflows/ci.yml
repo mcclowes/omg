@@ -33,11 +33,15 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
-      - name: Type check
-        run: npm run typecheck
-
+      # Build before typecheck: each workspace's package.json points `main`/`types`
+      # at `dist/`, so cross-workspace imports only resolve once every package
+      # has been compiled. `tsc --noEmit` against an unbuilt tree fails with
+      # TS2307 on every cross-package import.
       - name: Build
         run: npm run build
+
+      - name: Type check
+        run: npm run typecheck
 
       - name: Test
         run: npm test
