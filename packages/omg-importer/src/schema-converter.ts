@@ -28,6 +28,25 @@ export interface ConversionContext {
   resolving: Set<string>;
   /** Whether to inline referenced schemas or use references */
   inlineRefs: boolean;
+  /**
+   * Structural fingerprint -> named-schema name. Used to detect when an
+   * inline schema has the same shape as a named component (the case when
+   * the input OpenAPI spec has been fully dereferenced) so we can emit a
+   * reference instead of an inlined copy.
+   */
+  fingerprintMap: Map<string, string>;
+}
+
+/** Options for a single convertSchema call. */
+export interface ConvertSchemaOptions {
+  /**
+   * Suppress dedup matches against this named schema only, used at the
+   * top level of `components.schemas/<name>` conversion so a type
+   * definition doesn't collapse into a self-reference. Nested calls
+   * inside the conversion don't propagate this, so child schemas are
+   * still deduped normally.
+   */
+  skipNamedSchema?: string;
 }
 
 /**
@@ -37,11 +56,161 @@ export function createConversionContext(
   schemas: Record<string, SchemaObject | ReferenceObject> = {},
   options: { inlineRefs?: boolean } = {}
 ): ConversionContext {
+  const inlineRefs = options.inlineRefs ?? false;
   return {
     schemas,
     resolving: new Set(),
-    inlineRefs: options.inlineRefs ?? false,
+    inlineRefs,
+    // Skip the fingerprint pass entirely when the caller has asked us to
+    // inline everything — building a reference map would then defeat the
+    // intent of inlining.
+    fingerprintMap: inlineRefs ? new Map() : buildFingerprintMap(schemas),
   };
+}
+
+/**
+ * Build a structural-fingerprint map from named component schemas. Names are
+ * processed in sorted order so the choice between two named schemas with
+ * identical structure is deterministic.
+ */
+function buildFingerprintMap(
+  schemas: Record<string, SchemaObject | ReferenceObject>
+): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const name of Object.keys(schemas).sort()) {
+    const schema = schemas[name];
+    if (isReferenceObject(schema)) continue;
+    if (!isStructurallyNamed(schema)) continue;
+    const fp = computeSchemaFingerprint(schema);
+    if (!map.has(fp)) {
+      map.set(fp, name);
+    }
+  }
+  return map;
+}
+
+/**
+ * A schema is "structurally named" if it has enough shape to be worth
+ * matching against. Bare primitives without constraints (e.g., `type:
+ * string`) are excluded so we don't replace every string field with a
+ * reference to some `String` component.
+ */
+function isStructurallyNamed(schema: SchemaObject): boolean {
+  if (schema.allOf || schema.oneOf || schema.anyOf || schema.not) return true;
+  if (schema.properties && Object.keys(schema.properties).length > 0) return true;
+  if (schema.items) return true;
+  if (schema.enum && schema.enum.length > 0) return true;
+  if (schema.const !== undefined) return true;
+  return false;
+}
+
+/**
+ * Compute a canonical fingerprint for a schema's structural shape. Two
+ * schemas with the same shape produce the same fingerprint regardless of
+ * property ordering or non-structural metadata (descriptions, examples,
+ * titles, vendor extensions, etc).
+ */
+export function computeSchemaFingerprint(schema: SchemaObject | ReferenceObject): string {
+  return JSON.stringify(normalizeForFingerprint(schema));
+}
+
+function normalizeForFingerprint(schema: SchemaObject | ReferenceObject): unknown {
+  if (isReferenceObject(schema)) {
+    return { $ref: schema.$ref };
+  }
+
+  const norm: Record<string, unknown> = {};
+
+  if (schema.$ref !== undefined) norm.$ref = schema.$ref;
+
+  // Core type
+  if (schema.type !== undefined) {
+    norm.type = Array.isArray(schema.type) ? [...schema.type].sort() : schema.type;
+  }
+  if (schema.format !== undefined) norm.format = schema.format;
+  if (schema.nullable !== undefined) norm.nullable = schema.nullable;
+
+  // Numeric constraints
+  if (schema.minimum !== undefined) norm.minimum = schema.minimum;
+  if (schema.maximum !== undefined) norm.maximum = schema.maximum;
+  if (schema.exclusiveMinimum !== undefined) norm.exclusiveMinimum = schema.exclusiveMinimum;
+  if (schema.exclusiveMaximum !== undefined) norm.exclusiveMaximum = schema.exclusiveMaximum;
+  if (schema.multipleOf !== undefined) norm.multipleOf = schema.multipleOf;
+
+  // String constraints
+  if (schema.minLength !== undefined) norm.minLength = schema.minLength;
+  if (schema.maxLength !== undefined) norm.maxLength = schema.maxLength;
+  if (schema.pattern !== undefined) norm.pattern = schema.pattern;
+
+  // Array constraints
+  if (schema.minItems !== undefined) norm.minItems = schema.minItems;
+  if (schema.maxItems !== undefined) norm.maxItems = schema.maxItems;
+  if (schema.uniqueItems !== undefined) norm.uniqueItems = schema.uniqueItems;
+
+  // Object constraints
+  if (schema.minProperties !== undefined) norm.minProperties = schema.minProperties;
+  if (schema.maxProperties !== undefined) norm.maxProperties = schema.maxProperties;
+
+  // Enum: sort canonically so order doesn't affect matching
+  if (schema.enum !== undefined) {
+    norm.enum = sortByJson(schema.enum);
+  }
+  if (schema.const !== undefined) norm.const = schema.const;
+
+  // Items
+  if (schema.items !== undefined) {
+    norm.items = normalizeForFingerprint(schema.items);
+  }
+
+  // Properties: sort keys for canonical order
+  if (schema.properties !== undefined) {
+    const props: Record<string, unknown> = {};
+    for (const key of Object.keys(schema.properties).sort()) {
+      props[key] = normalizeForFingerprint(schema.properties[key]);
+    }
+    norm.properties = props;
+  }
+
+  // additionalProperties
+  if (schema.additionalProperties !== undefined) {
+    if (typeof schema.additionalProperties === 'boolean') {
+      norm.additionalProperties = schema.additionalProperties;
+    } else {
+      norm.additionalProperties = normalizeForFingerprint(schema.additionalProperties);
+    }
+  }
+
+  // required: sort canonically
+  if (schema.required !== undefined) {
+    norm.required = [...schema.required].sort();
+  }
+
+  // Compositions: oneOf / anyOf / allOf are unordered semantically, so sort
+  // by the canonicalized child JSON to make the fingerprint order-invariant.
+  if (schema.allOf !== undefined) norm.allOf = sortChildren(schema.allOf);
+  if (schema.oneOf !== undefined) norm.oneOf = sortChildren(schema.oneOf);
+  if (schema.anyOf !== undefined) norm.anyOf = sortChildren(schema.anyOf);
+  if (schema.not !== undefined) norm.not = normalizeForFingerprint(schema.not);
+
+  // Discriminator
+  if (schema.discriminator !== undefined) norm.discriminator = schema.discriminator;
+
+  return norm;
+}
+
+function sortChildren(children: (SchemaObject | ReferenceObject)[]): unknown[] {
+  const normalized = children.map((c) => normalizeForFingerprint(c));
+  const withKeys = normalized.map((n) => ({ key: JSON.stringify(n), value: n }));
+  withKeys.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  return withKeys.map((w) => w.value);
+}
+
+function sortByJson<T>(values: T[]): T[] {
+  return [...values].sort((a, b) => {
+    const aStr = JSON.stringify(a);
+    const bStr = JSON.stringify(b);
+    return aStr < bStr ? -1 : aStr > bStr ? 1 : 0;
+  });
 }
 
 /**
@@ -49,7 +218,8 @@ export function createConversionContext(
  */
 export function convertSchema(
   schema: SchemaObject | ReferenceObject,
-  ctx: ConversionContext
+  ctx: ConversionContext,
+  options: ConvertSchemaOptions = {}
 ): OmgType {
   // Handle reference
   if (isReferenceObject(schema)) {
@@ -59,6 +229,27 @@ export function convertSchema(
   // Handle inline $ref (some tools put $ref directly in SchemaObject)
   if (schema.$ref) {
     return convertReference({ $ref: schema.$ref }, ctx);
+  }
+
+  // Structural-dedup: if this inline schema has the same shape as a named
+  // component, emit a reference. This recovers ref relationships when the
+  // input spec was fully dereferenced (e.g., `swagger-cli bundle -r` or
+  // `redocly bundle --dereferenced`) but `components.schemas` is still
+  // populated. The top-level call from `convertNamedTypes` passes
+  // `skipNamedSchema` so a named type's own definition doesn't collapse
+  // into a self-reference; nested calls don't propagate that, so sub-
+  // schemas inside the named type are still deduped against other named
+  // components.
+  if (ctx.fingerprintMap.size > 0 && isStructurallyNamed(schema)) {
+    const fp = computeSchemaFingerprint(schema);
+    const matchedName = ctx.fingerprintMap.get(fp);
+    if (matchedName && matchedName !== options.skipNamedSchema) {
+      return {
+        kind: 'reference',
+        name: matchedName,
+        annotations: [],
+      } as OmgReference;
+    }
   }
 
   // Handle composition first (allOf, oneOf, anyOf)

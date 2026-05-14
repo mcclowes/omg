@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { importOpenApi } from './importer.js';
-import type { OpenApiSpec } from './types.js';
+import type { OpenApiSpec, SchemaObject } from './types.js';
 
 describe('importOpenApi', () => {
   const minimalSpec: OpenApiSpec = {
@@ -329,6 +329,169 @@ describe('importOpenApi', () => {
       expect(result.types.has('User')).toBe(true);
       const userType = result.types.get('User')!;
       expect(userType.schema.kind).toBe('object');
+    });
+  });
+
+  describe('dereferenced inputs', () => {
+    // Regression for #81: when the input spec has been fully dereferenced
+    // (so usage sites contain anonymous structural copies instead of $refs)
+    // but components.schemas is still populated, the importer should match
+    // inline shapes against named components and emit references.
+    const userSchema: SchemaObject = {
+      type: 'object',
+      properties: {
+        id: { type: 'string', format: 'uuid' },
+        name: { type: 'string' },
+      },
+      required: ['id', 'name'],
+    };
+
+    it('replaces inline body schemas matching a named component with a reference', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': {
+            post: {
+              operationId: 'create-user',
+              requestBody: {
+                content: {
+                  'application/json': {
+                    schema: structuredClone(userSchema),
+                  },
+                },
+              },
+            },
+          },
+        },
+        components: {
+          schemas: { User: structuredClone(userSchema) },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      const body = result.endpoints[0].blocks.find((b) => b.type === 'omg.body');
+      expect(body?.parsed?.kind).toBe('reference');
+      expect((body?.parsed as any).name).toBe('User');
+    });
+
+    it('replaces inline response schemas matching a named component with a reference', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users/{id}': {
+            get: {
+              operationId: 'get-user',
+              responses: {
+                '200': {
+                  description: 'OK',
+                  content: {
+                    'application/json': {
+                      schema: structuredClone(userSchema),
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        components: {
+          schemas: { User: structuredClone(userSchema) },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      const response = result.endpoints[0].blocks.find((b) => b.type === 'omg.response');
+      expect(response?.parsed?.kind).toBe('reference');
+      expect((response?.parsed as any).name).toBe('User');
+    });
+
+    it('replaces inline array items matching a named component', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': {
+            post: {
+              operationId: 'bulk-create-users',
+              requestBody: {
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        users: {
+                          type: 'array',
+                          items: structuredClone(userSchema),
+                        },
+                      },
+                      required: ['users'],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        components: {
+          schemas: { User: structuredClone(userSchema) },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      const body = result.endpoints[0].blocks.find((b) => b.type === 'omg.body');
+      const usersField = (body?.parsed as any).properties.users;
+      expect(usersField.kind).toBe('array');
+      expect(usersField.items.kind).toBe('reference');
+      expect(usersField.items.name).toBe('User');
+    });
+
+    it('preserves the named type definition itself instead of collapsing to a self-reference', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        components: {
+          schemas: { User: structuredClone(userSchema) },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      const userType = result.types.get('User');
+      expect(userType?.schema.kind).toBe('object');
+    });
+
+    it('replaces sub-schemas of a named type with references to other named types', () => {
+      const child: SchemaObject = {
+        type: 'object',
+        properties: { value: { type: 'string' } },
+        required: ['value'],
+      };
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        components: {
+          schemas: {
+            Child: structuredClone(child),
+            Parent: {
+              oneOf: [
+                structuredClone(child),
+                {
+                  type: 'object',
+                  properties: { extra: { type: 'integer' } },
+                  required: ['extra'],
+                },
+              ],
+            },
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      const parentType = result.types.get('Parent');
+      expect(parentType?.schema.kind).toBe('union');
+      const types = (parentType?.schema as any).types;
+      expect(types.some((t: any) => t.kind === 'reference' && t.name === 'Child')).toBe(true);
     });
   });
 

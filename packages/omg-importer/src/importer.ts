@@ -759,7 +759,7 @@ function convertNamedTypes(
     // Skip references (they point to other schemas)
     if (isReferenceObject(schemaOrRef)) continue;
 
-    const schema = convertSchema(schemaOrRef, ctx);
+    const schema = convertSchema(schemaOrRef, ctx, { skipNamedSchema: name });
 
     // Create a document for this type
     const doc: OmgDocument = {

@@ -274,4 +274,156 @@ describe('convertSchema', () => {
       expect(result.kind).toBe('object');
     });
   });
+
+  describe('structural dedup', () => {
+    const userSchema: SchemaObject = {
+      type: 'object',
+      properties: {
+        id: { type: 'string', format: 'uuid' },
+        name: { type: 'string' },
+      },
+      required: ['id', 'name'],
+    };
+
+    it('emits a reference when an inline schema matches a named component', () => {
+      const ctx = createConversionContext({ User: userSchema });
+
+      const inline: SchemaObject = {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          name: { type: 'string' },
+        },
+        required: ['id', 'name'],
+      };
+      const result = convertSchema(inline, ctx);
+
+      expect(result.kind).toBe('reference');
+      expect((result as any).name).toBe('User');
+    });
+
+    it('matches regardless of property order in the inline schema', () => {
+      const ctx = createConversionContext({ User: userSchema });
+
+      const inline: SchemaObject = {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          id: { type: 'string', format: 'uuid' },
+        },
+        required: ['name', 'id'],
+      };
+      const result = convertSchema(inline, ctx);
+
+      expect(result.kind).toBe('reference');
+      expect((result as any).name).toBe('User');
+    });
+
+    it('ignores descriptions and examples when matching', () => {
+      const ctx = createConversionContext({ User: userSchema });
+
+      const inline: SchemaObject = {
+        type: 'object',
+        description: 'A user provided at the usage site',
+        example: { id: 'abc', name: 'bob' },
+        properties: {
+          id: { type: 'string', format: 'uuid', description: 'inline desc' },
+          name: { type: 'string' },
+        },
+        required: ['id', 'name'],
+      };
+      const result = convertSchema(inline, ctx);
+
+      expect(result.kind).toBe('reference');
+      expect((result as any).name).toBe('User');
+    });
+
+    it('does not match a structurally different schema', () => {
+      const ctx = createConversionContext({ User: userSchema });
+
+      const inline: SchemaObject = {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          email: { type: 'string' },
+        },
+        required: ['id', 'email'],
+      };
+      const result = convertSchema(inline, ctx);
+
+      expect(result.kind).toBe('object');
+    });
+
+    it('does not collapse bare primitives into named-component references', () => {
+      const ctx = createConversionContext({
+        Plain: { type: 'string' },
+      });
+
+      const result = convertSchema({ type: 'string' }, ctx);
+
+      expect(result.kind).toBe('primitive');
+    });
+
+    it('does not collapse a named type into a self-reference', () => {
+      const ctx = createConversionContext({ User: userSchema });
+
+      const result = convertSchema(userSchema, ctx, { skipNamedSchema: 'User' });
+
+      expect(result.kind).toBe('object');
+    });
+
+    it('rewrites sub-schemas inside a named type to references when they match other components', () => {
+      const childSchema: SchemaObject = {
+        type: 'object',
+        properties: { value: { type: 'string' } },
+        required: ['value'],
+      };
+      const parentSchema: SchemaObject = {
+        oneOf: [childSchema, { type: 'object', properties: { extra: { type: 'integer' } } }],
+      };
+
+      const ctx = createConversionContext({
+        Parent: parentSchema,
+        Child: childSchema,
+      });
+
+      const result = convertSchema(parentSchema, ctx, { skipNamedSchema: 'Parent' });
+
+      expect(result.kind).toBe('union');
+      const types = (result as any).types as Array<{ kind: string; name?: string }>;
+      const childRef = types.find((t) => t.kind === 'reference' && t.name === 'Child');
+      expect(childRef).toBeDefined();
+    });
+
+    it('returns the alphabetically-first name when two components share a structure', () => {
+      const shared: SchemaObject = {
+        type: 'object',
+        properties: { id: { type: 'string' } },
+        required: ['id'],
+      };
+      const ctx = createConversionContext({
+        Zeta: shared,
+        Alpha: shared,
+      });
+
+      const result = convertSchema(shared, ctx);
+
+      expect(result.kind).toBe('reference');
+      expect((result as any).name).toBe('Alpha');
+    });
+
+    it('matches enums by membership, not order', () => {
+      const ctx = createConversionContext({
+        Currency: {
+          type: 'string',
+          enum: ['USD', 'EUR', 'GBP'],
+        },
+      });
+
+      const result = convertSchema({ type: 'string', enum: ['GBP', 'USD', 'EUR'] }, ctx);
+
+      expect(result.kind).toBe('reference');
+      expect((result as any).name).toBe('Currency');
+    });
+  });
 });

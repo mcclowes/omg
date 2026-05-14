@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `omg import` now structurally deduplicates inline schemas against `components.schemas`, so dereferenced OpenAPI inputs (the default output of `swagger-cli bundle -r`, `redocly bundle --dereferenced`, and most Java/dotnet bundlers) no longer emit a forest of dead named types with their structure duplicated at every usage site. Inline schemas whose canonical shape matches a named component are rewritten as references; sub-schemas inside a named type are also rewritten to references when they match other components. (#81)
 - `omg-parser`, `omg-compiler`, and `omg-mock-server` are now ESM packages, fixing `ERR_REQUIRE_ESM` when consumed on Node 18/20. The CLI and tests previously only worked on Node 22.12+ where `require(ESM)` is enabled by default. (#51)
 - `omg-md-cli@0.3.0` and `omg-lsp@0.3.0` published with broken transitive references to `omg-linter@^0.3.0`, `omg-importer@^0.3.0`, and `omg-mock-server@^0.3.0` that were never published to npm. The next release (`0.3.1`) ships those packages bundled into the consumers, so `npm install omg-md-cli` resolves cleanly.
 
