@@ -82,8 +82,8 @@ omg/
 │   │   ├── src/
 │   │   │   ├── cli.ts               # Entry point (registers commands)
 │   │   │   ├── index.ts             # Package exports
-│   │   │   ├── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog)
-│   │   │   └── utils.ts             # Shared CLI utilities
+│   │   │   └── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog) + shared utils.ts
+│   │   ├── build.mjs                # esbuild config for bundling private workspace deps
 │   │   └── dist/
 │   │
 │   ├── omg-mock-server/        # private/internal - bundled into omg-md-cli at publish time
@@ -94,20 +94,27 @@ omg/
 │   │   │   └── server.ts            # Express HTTP server
 │   │   └── dist/
 │   │
-│   └── omg-vscode/             # VS Code extension for syntax highlighting
-│       ├── syntaxes/              # TextMate grammar files
-│       └── package.json           # Extension manifest
+│   └── omg-vscode/             # VS Code extension for syntax highlighting + LSP client
+│       ├── src/extension.ts         # Extension entry point
+│       ├── syntaxes/                # TextMate grammar files (omg, omg-md, omg-codeblock)
+│       ├── snippets/                # Snippet definitions
+│       ├── language-configuration*.json  # Language configuration
+│       └── package.json             # Extension manifest
 │
 ├── .claude/                    # Claude Code configuration
-│   └── skills/                 # Claude Code skills
+│   └── skills/                 # Claude Code skills (see "Skills" section below)
 │
-├── docusaurus/                 # Documentation site
+├── docusaurus/                 # Hosted documentation site (Docusaurus)
+├── examples/                   # Example OMG projects (fpl-api, mcp, payments-api, pokeapi, todo-api, xero)
+├── docs/                       # Internal engineering notes (e.g. TEST_COVERAGE_ANALYSIS.md)
+├── tools/                      # Standalone tooling (e.g. omg-linting-functions)
 │
-└── Documentation files:
-    ├── BEHAVIORS.md            # Behavioral extensions (state machines, events)
-    ├── CHANGELOG.md            # Release history
-    ├── LEGIBILITY.md           # Readability design decisions
-    └── README.md               # Project overview
+└── Documentation files:        # Top-level project docs (see "Documentation Reference" for full list)
+    ├── README.md
+    ├── CHANGELOG.md
+    ├── DESIGN.md
+    ├── SYNTAX.md
+    └── ... (BEHAVIORS, COMPARISON, TOOLCHAIN, IMPORTS, LEGIBILITY, MCP-OMG, CONTRIBUTING)
 ```
 
 ## Key Concepts
@@ -270,7 +277,7 @@ omg-importer    → bundled into omg-md-cli
 omg-mock-server → bundled into omg-md-cli
 ```
 
-Packages use semver references (e.g., `^0.1.0`) for npm dependencies.
+Packages use semver references (e.g., `^0.4.2`) for npm dependencies — all published packages currently share a single version line, bumped together at release time.
 
 ### Schema Type System
 
@@ -333,11 +340,11 @@ Work is tracked in [GitHub issues](https://github.com/mcclowes/omg/issues), not 
 
 2. **New output features** (`omg-compiler`): Modify `openapi.ts` to handle new AST structures
 
-3. **New CLI commands** (`omg-md-cli`): Add command in `cli.ts` using Commander.js
+3. **New CLI commands** (`omg-md-cli`): Add `packages/omg-md-cli/src/commands/<name>.ts` exporting `register<Name>Command`, export it from `commands/index.ts`, and register it in `cli.ts` (see the "Add a new CLI command" section below)
 
 4. **New syntax features**: Implement in parser/compiler, update documentation as needed
 
-5. **New linting rules**: Add to `omg-linter/src/index.ts` following the existing pattern
+5. **New linting rules**: Add to `omg-linter/src/linter.ts` (rules and built-in rule list); `index.ts` only re-exports the public API
 
 ## Testing Changes
 
