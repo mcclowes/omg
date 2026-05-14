@@ -479,7 +479,9 @@ function compileEndpointWithContext(
     ParsedResponse,
   ][]) {
     const ctx = { ...parentCtx, path: [baseName, `Response${statusCode}`], depth: 0 };
-    const description = response.description || getStatusDescription(parseInt(statusCode));
+    const description =
+      response.description ||
+      (statusCode === 'default' ? 'Default response' : getStatusDescription(parseInt(statusCode)));
 
     const oasResponse: ResponseObject = { description };
 

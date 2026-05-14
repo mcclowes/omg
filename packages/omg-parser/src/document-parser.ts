@@ -24,9 +24,9 @@ import type {
 } from './types.js';
 
 // Block type patterns
-// Matches: omg.body, omg.response.201
+// Matches: omg.body, omg.response.201, omg.response.default
 const OMG_BLOCK_PATTERN =
-  /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+))?$/;
+  /^omg\.(path|query|headers|body|response|returns|example|type|errors|config)(\.(\d+|default))?$/;
 // Extended pattern for example blocks with optional name
 // Matches: omg.example, omg.example.201, omg.example.success, omg.example.201.success
 const EXAMPLE_BLOCK_PATTERN = /^omg\.example(?:\.(\d+))?(?:\.([a-zA-Z][a-zA-Z0-9_-]*))?$/;
@@ -196,7 +196,9 @@ function extractCodeBlocks(tree: Root, rawContent: string): OmgBlock[] {
     const match = lang.match(OMG_BLOCK_PATTERN);
     if (match) {
       const blockType = `omg.${match[1]}` as OmgBlockType;
-      const statusCode = match[3] ? parseInt(match[3], 10) : undefined;
+      const codeRaw = match[3];
+      const statusCode: number | 'default' | undefined =
+        codeRaw === 'default' ? 'default' : codeRaw ? parseInt(codeRaw, 10) : undefined;
 
       // Parse @when condition from meta if present
       // remark-parse puts everything after the language tag in node.meta
