@@ -13,6 +13,7 @@ import { parseReturnsBlock } from './returns-parser.js';
 import type {
   OmgDocument,
   OmgBlock,
+  OmgObject,
   ParsedEndpoint,
   ParsedApi,
   ParsedResponse,
@@ -22,6 +23,31 @@ import type {
   ApiFrontMatter,
   ParseWarning,
 } from './types.js';
+
+/**
+ * Merge multiple parameter blocks (omg.query, omg.headers) into a single
+ * object schema. Critical for partial support — the importer extracts shared
+ * params into partials/ and emits one `{{> query/<name> }}` reference per
+ * param, so a typical endpoint has 5+ omg.query blocks after partial
+ * resolution. `find()` would drop all but the first; this merges their
+ * properties.
+ */
+function mergeObjectBlocks(blocks: OmgBlock[]): OmgObject | null {
+  const objects = blocks
+    .map((b) => b.parsed)
+    .filter((p): p is OmgObject => !!p && p.kind === 'object');
+  if (objects.length === 0) return null;
+  if (objects.length === 1) return objects[0];
+  const merged: OmgObject = {
+    kind: 'object',
+    properties: {},
+    annotations: [],
+  };
+  for (const obj of objects) {
+    Object.assign(merged.properties, obj.properties);
+  }
+  return merged;
+}
 
 /**
  * Document cache entry with content hash for invalidation
@@ -458,8 +484,8 @@ function buildExpandedEndpoints(
 
     // Collect blocks by type (from filtered variant blocks)
     const pathBlock = variantBlocks.find((b) => b.type === 'omg.path');
-    const queryBlock = variantBlocks.find((b) => b.type === 'omg.query');
-    const headersBlock = variantBlocks.find((b) => b.type === 'omg.headers');
+    const queryBlocks = variantBlocks.filter((b) => b.type === 'omg.query');
+    const headersBlocks = variantBlocks.filter((b) => b.type === 'omg.headers');
     const bodyBlock = variantBlocks.find((b) => b.type === 'omg.body');
     const returnsBlocks = variantBlocks.filter((b) => b.type === 'omg.returns');
     const responseBlocks = variantBlocks.filter(
@@ -483,12 +509,14 @@ function buildExpandedEndpoints(
 
     for (const block of responseBlocks) {
       const statusCode = block.statusCode || 200;
-      if (block.parsed) {
-        if (!responses[statusCode]) {
-          responses[statusCode] = {
-            schema: block.parsed,
-          };
-        }
+      // Empty response blocks (e.g. `omg.response.401` with no body) declare
+      // a bodyless response — emit them with schema=null rather than drop
+      // silently. The compiler will source the description from the standard
+      // HTTP status text.
+      if (!responses[statusCode]) {
+        responses[statusCode] = {
+          schema: block.parsed ?? null,
+        };
       }
     }
 
@@ -504,8 +532,8 @@ function buildExpandedEndpoints(
       webhooks: frontMatter?.webhooks || {},
       parameters: {
         path: pathBlock?.parsed || null,
-        query: queryBlock?.parsed || null,
-        headers: headersBlock?.parsed || null,
+        query: mergeObjectBlocks(queryBlocks),
+        headers: mergeObjectBlocks(headersBlocks),
       },
       requestBody: bodyBlock?.parsed || null,
       responses,
@@ -534,8 +562,8 @@ function buildSingleEndpoint(
 
   // Collect blocks by type
   const pathBlock = doc.resolvedBlocks.find((b) => b.type === 'omg.path');
-  const queryBlock = doc.resolvedBlocks.find((b) => b.type === 'omg.query');
-  const headersBlock = doc.resolvedBlocks.find((b) => b.type === 'omg.headers');
+  const queryBlocks = doc.resolvedBlocks.filter((b) => b.type === 'omg.query');
+  const headersBlocks = doc.resolvedBlocks.filter((b) => b.type === 'omg.headers');
   const bodyBlock = doc.resolvedBlocks.find((b) => b.type === 'omg.body');
   const returnsBlocks = doc.resolvedBlocks.filter((b) => b.type === 'omg.returns');
   const responseBlocks = doc.resolvedBlocks.filter(
@@ -559,16 +587,16 @@ function buildSingleEndpoint(
     }
   }
 
-  // Then, process legacy omg.response.XXX blocks (without conditions)
+  // Then, process legacy omg.response.XXX blocks (without conditions).
+  // Empty blocks (e.g. `omg.response.401` with no body) declare a bodyless
+  // response and must be emitted with schema=null rather than dropped — the
+  // compiler sources the description from the standard HTTP status text.
   for (const block of responseBlocks) {
     const statusCode = block.statusCode || 200;
-    if (block.parsed) {
-      // Only add if not already defined by omg.returns block
-      if (!responses[statusCode]) {
-        responses[statusCode] = {
-          schema: block.parsed,
-        };
-      }
+    if (!responses[statusCode]) {
+      responses[statusCode] = {
+        schema: block.parsed ?? null,
+      };
     }
   }
 
@@ -637,8 +665,8 @@ function buildSingleEndpoint(
     webhooks: frontMatter?.webhooks || {},
     parameters: {
       path: pathBlock?.parsed || null,
-      query: queryBlock?.parsed || null,
-      headers: headersBlock?.parsed || null,
+      query: mergeObjectBlocks(queryBlocks),
+      headers: mergeObjectBlocks(headersBlocks),
     },
     requestBody: bodyBlock?.parsed || null,
     responses,
