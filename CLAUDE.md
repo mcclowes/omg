@@ -55,7 +55,7 @@ omg/
 │   │   │   └── output.ts            # Serialization (YAML/JSON)
 │   │   └── dist/
 │   │
-│   ├── omg-importer/           # omg-importer - Import OpenAPI to OMG format
+│   ├── omg-importer/           # private/internal - bundled into omg-md-cli at publish time
 │   │   ├── src/
 │   │   │   ├── index.ts             # Package exports
 │   │   │   ├── importer.ts          # Main import logic
@@ -66,7 +66,7 @@ omg/
 │   │   │   └── types.ts             # TypeScript type definitions
 │   │   └── dist/
 │   │
-│   ├── omg-linter/             # omg-linter - Linting for OMG files
+│   ├── omg-linter/             # private/internal - bundled into omg-md-cli and omg-lsp at publish time
 │   │   ├── src/
 │   │   │   ├── index.ts             # Package exports
 │   │   │   └── linter.ts            # Linting rules and utilities
@@ -86,7 +86,7 @@ omg/
 │   │   │   └── utils.ts             # Shared CLI utilities
 │   │   └── dist/
 │   │
-│   ├── omg-mock-server/        # omg-mock-server - Mock server generator
+│   ├── omg-mock-server/        # private/internal - bundled into omg-md-cli at publish time
 │   │   ├── src/
 │   │   │   ├── index.ts             # Main exports
 │   │   │   ├── mock-generator.ts    # Mock data generation from schemas
@@ -250,19 +250,24 @@ node packages/omg-md-cli/dist/cli.js import openapi.yaml -o my-api/
 
 ### Package Dependencies
 
+Published to npm:
+
 ```
 omg-md-cli
   ├── omg-compiler
   │     └── omg-parser
-  ├── omg-importer
-  │     └── omg-parser
-  ├── omg-linter
-  └── omg-mock-server
-        └── omg-parser
+  └── omg-parser
 
 omg-lsp
-  ├── omg-parser
-  └── omg-linter
+  └── omg-parser
+```
+
+Private workspace packages, bundled into the published ones at build time via `esbuild` (see `packages/*/build.mjs`):
+
+```
+omg-linter      → bundled into omg-md-cli and omg-lsp
+omg-importer    → bundled into omg-md-cli
+omg-mock-server → bundled into omg-md-cli
 ```
 
 Packages use semver references (e.g., `^0.1.0`) for npm dependencies.

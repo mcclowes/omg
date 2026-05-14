@@ -67,9 +67,12 @@ jobs:
           const newVersion = process.env.NEW;
           // Packages published to npm and kept in lockstep.
           // omg-vscode is intentionally excluded (independent cadence).
+          // omg-linter, omg-importer, omg-mock-server are private internal
+          // packages bundled into omg-md-cli / omg-lsp — not published, but
+          // kept in lockstep so cross-package devDependency pins stay valid.
           const tracked = new Set([
-            'omg-parser', 'omg-compiler', 'omg-importer', 'omg-linter',
-            'omg-lsp', 'omg-mock-server', 'omg-md-cli',
+            'omg-parser', 'omg-compiler', 'omg-lsp', 'omg-md-cli',
+            'omg-linter', 'omg-importer', 'omg-mock-server',
           ]);
 
           for (const dir of fs.readdirSync('packages')) {
