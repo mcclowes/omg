@@ -493,7 +493,7 @@ function buildExpandedEndpoints(
     );
 
     // Build responses map
-    const responses: Record<number, ParsedResponse> = {};
+    const responses: Record<string, ParsedResponse> = {};
 
     for (const returnsBlock of returnsBlocks) {
       if (returnsBlock.parsedResponses) {
@@ -572,7 +572,7 @@ function buildSingleEndpoint(
   const exampleBlocks = doc.resolvedBlocks.filter((b) => b.type === 'omg.example');
 
   // Build responses map with conditions and descriptions
-  const responses: Record<number, ParsedResponse> = {};
+  const responses: Record<string, ParsedResponse> = {};
 
   // First, process omg.returns blocks (new conditional syntax)
   for (const returnsBlock of returnsBlocks) {

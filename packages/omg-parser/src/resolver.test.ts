@@ -1210,6 +1210,40 @@ operationId: thingsCreate
   });
 });
 
+describe('buildEndpoints — `default` response key', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+  });
+
+  it('parses omg.response.default and stores it under the string key "default"', () => {
+    const content = `---
+method: GET
+path: /things
+operationId: thingsList
+---
+
+# List things
+
+\`\`\`omg.response.200
+{ items: string[] }
+\`\`\`
+
+\`\`\`omg.response.default
+{ errorCode: string, message: string }
+\`\`\`
+`;
+
+    const doc = parseDocument(content, 'test.omg.md');
+    const resolved = resolveDocument(doc, { basePath: '/tmp' });
+    const endpoints = buildEndpoints(resolved);
+
+    const responses = endpoints[0].responses;
+    expect(Object.keys(responses).sort()).toEqual(['200', 'default']);
+    expect(responses['default'].schema).toBeTruthy();
+  });
+});
+
 describe('buildEndpoints — empty response blocks', () => {
   beforeEach(() => {
     vi.resetAllMocks();

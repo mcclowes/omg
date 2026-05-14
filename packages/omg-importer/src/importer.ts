@@ -491,19 +491,28 @@ function convertOperation(
   if (operation.responses) {
     for (const [statusCode, response] of Object.entries(operation.responses)) {
       const parsedResponse = convertResponseFull(response, spec, ctx, warnings);
-      const code = parseInt(statusCode, 10);
 
-      if (!isNaN(code)) {
-        const blockType: OmgBlockType = code === 200 ? 'omg.response' : 'omg.response';
-        blocks.push({
-          type: blockType,
-          statusCode: code === 200 ? undefined : code,
-          content: '',
-          parsed: parsedResponse.schema || undefined,
-          parsedResponse, // Store full response metadata
-          line: 0,
-        });
+      // Resolve the OMG statusCode field: numeric codes parse as numbers,
+      // 'default' (OpenAPI's catch-all) is passed through as a string literal,
+      // anything else is unknown and skipped.
+      let omgStatusCode: number | 'default' | undefined;
+      if (statusCode === 'default') {
+        omgStatusCode = 'default';
+      } else {
+        const code = parseInt(statusCode, 10);
+        if (isNaN(code)) continue;
+        // 200 is the implicit default for `omg.response` with no suffix.
+        omgStatusCode = code === 200 ? undefined : code;
       }
+
+      blocks.push({
+        type: 'omg.response',
+        statusCode: omgStatusCode,
+        content: '',
+        parsed: parsedResponse.schema || undefined,
+        parsedResponse, // Store full response metadata
+        line: 0,
+      });
     }
   }
 

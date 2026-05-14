@@ -191,7 +191,10 @@ export interface WhenCondition {
 // Parsed code block
 export interface OmgBlock {
   type: OmgBlockType;
-  statusCode?: number; // For omg.response.201, omg.example.201, etc.
+  // For omg.response.201, omg.example.201, etc. The string literal 'default'
+  // is the OpenAPI catch-all (omg.response.default), preserved through the
+  // pipeline as a non-numeric status code.
+  statusCode?: number | 'default';
   content: string;
   parsed?: OmgSchema; // Parsed schema (after OMG parsing)
   parsedResponses?: ParsedReturnsBlock; // For omg.returns blocks
@@ -382,7 +385,10 @@ export interface ParsedEndpoint {
     headers: OmgSchema | null;
   };
   requestBody: OmgSchema | null;
-  responses: Record<number, ParsedResponse>;
+  // Keyed by status code as a string ('200', '404') or 'default' for the
+  // OpenAPI catch-all. Stringly typed because OpenAPI's responses map uses
+  // string keys and 'default' is a valid OpenAPI key alongside numerics.
+  responses: Record<string, ParsedResponse>;
   /** Operation-level security requirements */
   security?: OmgSecurityRequirement[];
   /** External documentation */
