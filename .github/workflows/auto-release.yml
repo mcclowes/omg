@@ -31,11 +31,19 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if gh release view "v$VERSION" >/dev/null 2>&1; then
-            echo "Release v$VERSION already exists, skipping"
-            exit 0
-          fi
-          gh release create "v$VERSION" \
-            --target "$GITHUB_SHA" \
-            --title "v$VERSION" \
-            --generate-notes
+          for attempt in 1 2 3; do
+            if gh release view "v$VERSION" >/dev/null 2>&1; then
+              echo "Release v$VERSION already exists, nothing to do"
+              exit 0
+            fi
+            if gh release create "v$VERSION" \
+                --target "$GITHUB_SHA" \
+                --title "v$VERSION" \
+                --generate-notes; then
+              exit 0
+            fi
+            echo "Attempt $attempt failed, retrying in 15s..."
+            sleep 15
+          done
+          echo "Failed to create release v$VERSION after 3 attempts" >&2
+          exit 1

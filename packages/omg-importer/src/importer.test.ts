@@ -628,4 +628,35 @@ describe('importOpenApi', () => {
       expect(result2.partials.size).toBe(1);
     });
   });
+
+  describe('endpoint filename collisions', () => {
+    it('POST and PATCH on the same path produce distinct filenames', () => {
+      // Regression: previously POST mapped to `update` when the path had an
+      // id param, colliding with PATCH on the same path. The collision
+      // silently overwrote one of the generated files (saw this on Weavr's
+      // Multi API where POST and PATCH /managed_cards/{id}/spend_rules both
+      // produced spend-rule-update.omg.md).
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/accounts/{id}/rules': {
+            get: { operationId: 'rules-get' },
+            post: { operationId: 'rules-create' },
+            patch: { operationId: 'rules-update' },
+            delete: { operationId: 'rules-delete' },
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+      const paths = result.endpoints.map((e) => e.filePath).sort();
+
+      // All four methods must produce distinct file paths
+      expect(new Set(paths).size).toBe(4);
+      expect(paths.some((p) => p.endsWith('rule-create.omg.md'))).toBe(true);
+      expect(paths.some((p) => p.endsWith('rule-update.omg.md'))).toBe(true);
+      expect(paths.some((p) => p.endsWith('rule-get.omg.md'))).toBe(true);
+      expect(paths.some((p) => p.endsWith('rule-delete.omg.md'))).toBe(true);
+    });
+  });
 });

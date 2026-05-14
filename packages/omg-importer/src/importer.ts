@@ -807,8 +807,9 @@ function generateOperationId(method: string, path: string): string {
  * Examples:
  * - GET /Accounts -> accounts/accounts-list.omg.md
  * - GET /Accounts/{AccountID} -> accounts/account-get.omg.md
- * - PUT /Accounts -> accounts/account-create.omg.md
- * - POST /Accounts/{AccountID} -> accounts/account-update.omg.md
+ * - POST /Accounts -> accounts/account-create.omg.md
+ * - POST /Accounts/{AccountID}/SubResource -> accounts/sub-resource/sub-resource-create.omg.md
+ * - PATCH /Accounts/{AccountID} -> accounts/account-update.omg.md
  * - DELETE /Accounts/{AccountID} -> accounts/account-delete.omg.md
  * - GET /Accounts/{AccountID}/Attachments -> accounts/attachments/attachments-list.omg.md
  * - GET /Accounts/{AccountID}/Attachments/{AttachmentID} -> accounts/attachments/attachment-get.omg.md
@@ -860,8 +861,12 @@ function generateEndpointFilePath(
       }
       break;
     case 'POST':
+      // POST is always 'create' — REST convention. Previously `POST` on a
+      // path with an id was mapped to 'update', which collided with PATCH on
+      // the same path and produced silently-overwritten endpoint files. Keep
+      // POST distinct from PATCH so both survive importing.
       resourceName = singularResource;
-      action = hasIdParam ? 'update' : 'create';
+      action = 'create';
       break;
     case 'PUT':
       resourceName = singularResource;
