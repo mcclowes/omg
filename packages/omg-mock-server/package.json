@@ -1,6 +1,6 @@
 {
   "name": "omg-mock-server",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Mock server generator for OMG (OpenAPI Markdown Grammar) specifications",
   "author": "mcclowes",
@@ -36,7 +36,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "omg-parser": "^0.4.1",
+    "omg-parser": "^0.4.2",
     "vague-lang": "^3.2.0",
     "express": "^4.21.0",
     "cors": "^2.8.5"
