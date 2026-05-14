@@ -1143,3 +1143,112 @@ path: /users
     expect(getDocumentCacheSize()).toBe(0);
   });
 });
+
+describe('buildEndpoints — multi-block partial merge', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+  });
+
+  it('merges properties from multiple omg.query blocks into a single parameter set', () => {
+    const content = `---
+method: GET
+path: /things
+operationId: thingsList
+---
+
+# List things
+
+\`\`\`omg.query
+{ search?: string }
+\`\`\`
+
+\`\`\`omg.query
+{ offset?: integer @min(0) }
+\`\`\`
+
+\`\`\`omg.query
+{ limit?: integer @min(1) @max(100) }
+\`\`\`
+`;
+
+    const doc = parseDocument(content, 'test.omg.md');
+    const resolved = resolveDocument(doc, { basePath: '/tmp' });
+    const endpoints = buildEndpoints(resolved);
+
+    expect(endpoints).toHaveLength(1);
+    const query = endpoints[0].parameters.query as { properties: Record<string, unknown> };
+    expect(query).toBeTruthy();
+    expect(Object.keys(query.properties).sort()).toEqual(['limit', 'offset', 'search']);
+  });
+
+  it('merges properties from multiple omg.headers blocks too', () => {
+    const content = `---
+method: POST
+path: /things
+operationId: thingsCreate
+---
+
+# Create thing
+
+\`\`\`omg.headers
+{ "X-Trace-Id"?: string }
+\`\`\`
+
+\`\`\`omg.headers
+{ "Idempotency-Key"?: string }
+\`\`\`
+`;
+
+    const doc = parseDocument(content, 'test.omg.md');
+    const resolved = resolveDocument(doc, { basePath: '/tmp' });
+    const endpoints = buildEndpoints(resolved);
+
+    const headers = endpoints[0].parameters.headers as { properties: Record<string, unknown> };
+    expect(headers).toBeTruthy();
+    expect(Object.keys(headers.properties).sort()).toEqual(['Idempotency-Key', 'X-Trace-Id']);
+  });
+});
+
+describe('buildEndpoints — empty response blocks', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+  });
+
+  it('emits bodyless responses for empty omg.response.<code> blocks', () => {
+    const content = `---
+method: GET
+path: /things
+operationId: thingsList
+---
+
+# List things
+
+\`\`\`omg.response.200
+{ items: string[] }
+\`\`\`
+
+\`\`\`omg.response.401
+
+\`\`\`
+
+\`\`\`omg.response.500
+
+\`\`\`
+`;
+
+    const doc = parseDocument(content, 'test.omg.md');
+    const resolved = resolveDocument(doc, { basePath: '/tmp' });
+    const endpoints = buildEndpoints(resolved);
+
+    const responses = endpoints[0].responses;
+    // The bodyless responses must be present — previously they were dropped
+    // because the parser left `block.parsed` undefined and buildEndpoint
+    // guarded on it.
+    expect(Object.keys(responses).sort()).toEqual(['200', '401', '500']);
+    expect(responses[200].schema).toBeTruthy();
+    expect(responses[401].schema).toBeNull();
+    expect(responses[500].schema).toBeNull();
+  });
+});
