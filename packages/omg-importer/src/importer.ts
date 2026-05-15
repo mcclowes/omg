@@ -41,6 +41,7 @@ import { isReferenceObject } from './types.js';
 import {
   convertSchema,
   createConversionContext,
+  isStructurallyNamed,
   type ConversionContext,
 } from './schema-converter.js';
 import {
@@ -109,9 +110,21 @@ export function importOpenApi(spec: OpenApiSpec, options: ImportOptions = {}): I
   const partialThreshold = options.partialThreshold ?? 3;
   const partialCategories = options.partialCategories ?? ['header', 'query'];
 
+  const inlineRefs = options.inlineRefs ?? false;
   const ctx = createConversionContext(spec.components?.schemas || {}, {
-    inlineRefs: options.inlineRefs ?? false,
+    inlineRefs,
   });
+
+  // Warn when the input looks fully dereferenced: components.schemas is
+  // populated with reusable shapes, yet not a single $ref appears anywhere.
+  // The structural-dedup pass recovers most references, but bundling the
+  // spec (instead of dereferencing it) avoids relying on that heuristic.
+  if (!inlineRefs) {
+    const dereferenceWarning = detectDereferencedInput(spec);
+    if (dereferenceWarning) {
+      warnings.push({ message: dereferenceWarning });
+    }
+  }
 
   // Phase 1: Detect patterns (if extraction enabled)
   let detectedPatterns = new Map<string, DetectedPattern>();
@@ -164,6 +177,48 @@ export function importOpenApi(spec: OpenApiSpec, options: ImportOptions = {}): I
     partials: partialsMap,
     patternToPartial,
   };
+}
+
+/**
+ * Detect whether the input spec appears to have been fully dereferenced.
+ *
+ * A dereferenced spec (the default output of `swagger-cli bundle -r`,
+ * `redocly bundle --dereferenced`, and most Java/dotnet bundlers) inlines a
+ * structural copy of every schema at each usage site while still leaving
+ * `components.schemas` populated for browsability. The tell-tale signs are:
+ * `components.schemas` defines reusable shapes, yet not a single `$ref`
+ * appears anywhere in the document.
+ *
+ * Returns a one-line warning message recommending a bundle (not a
+ * dereference) of the input, or `null` if the spec looks fine.
+ */
+function detectDereferencedInput(spec: OpenApiSpec): string | null {
+  const schemas = spec.components?.schemas || {};
+  const namedShapes = Object.values(schemas).filter(
+    (s) => !isReferenceObject(s) && isStructurallyNamed(s)
+  ).length;
+
+  if (namedShapes === 0) return null;
+  if (containsRef(spec)) return null;
+
+  return (
+    `Input appears to be fully dereferenced: components.schemas defines ${namedShapes} ` +
+    `reusable schema(s) but no $ref is used anywhere. Inline schemas matching a named ` +
+    `component were recovered as references automatically; for a cleaner import, bundle ` +
+    `the spec without dereferencing it (e.g. \`redocly bundle\` instead of ` +
+    `\`redocly bundle --dereferenced\`, or \`swagger-cli bundle\` without \`-r\`).`
+  );
+}
+
+/**
+ * Recursively check whether a value contains any `$ref` property.
+ */
+function containsRef(value: unknown): boolean {
+  if (value === null || typeof value !== 'object') return false;
+  if (Array.isArray(value)) return value.some(containsRef);
+  const obj = value as Record<string, unknown>;
+  if (typeof obj.$ref === 'string') return true;
+  return Object.values(obj).some(containsRef);
 }
 
 /**

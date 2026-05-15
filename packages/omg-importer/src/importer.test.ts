@@ -493,6 +493,83 @@ describe('importOpenApi', () => {
       const types = (parentType?.schema as any).types;
       expect(types.some((t: any) => t.kind === 'reference' && t.name === 'Child')).toBe(true);
     });
+
+    describe('dereferenced-input warning', () => {
+      // #81 fix #2: detect a fully dereferenced input (components.schemas
+      // populated but zero $ref anywhere) and recommend bundling instead.
+      it('warns when components.schemas is populated but no $ref is used', () => {
+        const spec: OpenApiSpec = {
+          ...minimalSpec,
+          paths: {
+            '/users': {
+              post: {
+                operationId: 'create-user',
+                requestBody: {
+                  content: {
+                    'application/json': { schema: structuredClone(userSchema) },
+                  },
+                },
+              },
+            },
+          },
+          components: {
+            schemas: { User: structuredClone(userSchema) },
+          },
+        };
+
+        const result = importOpenApi(spec);
+
+        const warning = result.warnings.find((w) => w.message.includes('fully dereferenced'));
+        expect(warning).toBeDefined();
+        expect(warning?.message).toContain('redocly bundle');
+      });
+
+      it('does not warn when the spec uses $ref (a bundled input)', () => {
+        const spec: OpenApiSpec = {
+          ...minimalSpec,
+          paths: {
+            '/users': {
+              post: {
+                operationId: 'create-user',
+                requestBody: {
+                  content: {
+                    'application/json': {
+                      schema: { $ref: '#/components/schemas/User' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          components: {
+            schemas: { User: structuredClone(userSchema) },
+          },
+        };
+
+        const result = importOpenApi(spec);
+
+        expect(result.warnings.some((w) => w.message.includes('fully dereferenced'))).toBe(false);
+      });
+
+      it('does not warn when there are no component schemas', () => {
+        const result = importOpenApi(minimalSpec);
+
+        expect(result.warnings.some((w) => w.message.includes('fully dereferenced'))).toBe(false);
+      });
+
+      it('does not warn when inlineRefs is requested', () => {
+        const spec: OpenApiSpec = {
+          ...minimalSpec,
+          components: {
+            schemas: { User: structuredClone(userSchema) },
+          },
+        };
+
+        const result = importOpenApi(spec, { inlineRefs: true });
+
+        expect(result.warnings.some((w) => w.message.includes('fully dereferenced'))).toBe(false);
+      });
+    });
   });
 
   describe('warnings', () => {

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `omg import` now warns when the input OpenAPI spec appears to be fully dereferenced — `components.schemas` is populated but no `$ref` is used anywhere. The warning recommends bundling the spec (e.g. `redocly bundle`, `swagger-cli bundle` without `-r`) instead of dereferencing it, since references are then preserved natively rather than recovered by structural matching. (#81)
+
 ## [0.4.2] - 2026-05-14
 
 ### Fixed
