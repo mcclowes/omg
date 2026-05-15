@@ -86,6 +86,21 @@ Specific status code response (replace `[code]` with status code):
 // Empty response
 ```
 
+### omg.response.default
+
+Catch-all response for any status not otherwise listed — compiles to OpenAPI's `responses.default`. Use this for a single error shape that covers everything you haven't enumerated:
+
+```omg.response.default
+{
+  type: string,
+  title: string,
+  detail: string,
+  status: integer
+}
+```
+
+`omg import` round-trips `responses.default` into and out of this block.
+
 ### omg.returns
 
 Conditional responses with status codes:

@@ -162,6 +162,7 @@ Returns details of a specific account.
 | `omg.body` | Request body schema |
 | `omg.response` | Default (200) response |
 | `omg.response.{code}` | Specific status code response |
+| `omg.response.default` | Catch-all response for any status not otherwise listed (OpenAPI `responses.default`) |
 | `omg.returns` | Conditional responses with status codes |
 | `omg.example` | Example data |
 | `omg.type` | Reusable type definitions |
