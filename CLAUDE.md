@@ -82,7 +82,7 @@ omg/
 │   │   ├── src/
 │   │   │   ├── cli.ts               # Entry point (registers commands)
 │   │   │   ├── index.ts             # Package exports
-│   │   │   └── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog) + shared utils.ts
+│   │   │   └── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog, test) + shared utils.ts
 │   │   ├── build.mjs                # esbuild config for bundling private workspace deps
 │   │   └── dist/
 │   │
@@ -92,6 +92,16 @@ omg/
 │   │   │   ├── mock-generator.ts    # Mock data generation from schemas
 │   │   │   ├── vague-generator.ts   # Vague-based data generation
 │   │   │   └── server.ts            # Express HTTP server
+│   │   └── dist/
+│   │
+│   ├── omg-test/               # private/internal - bundled into omg-md-cli at publish time
+│   │   ├── src/
+│   │   │   ├── index.ts             # Package exports
+│   │   │   ├── runner.ts            # Contract test orchestration
+│   │   │   ├── request-builder.ts   # Builds HTTP requests from endpoint specs
+│   │   │   ├── validator.ts         # Response validation via ajv (JSON Schema)
+│   │   │   ├── reporter.ts          # Output formatting (console / json / junit)
+│   │   │   └── types.ts             # TypeScript type definitions
 │   │   └── dist/
 │   │
 │   └── omg-vscode/             # VS Code extension for syntax highlighting + LSP client
@@ -244,6 +254,12 @@ node packages/omg-md-cli/dist/cli.js changelog v1/api.omg.md v2/api.omg.md
 
 # Import OpenAPI to OMG format
 node packages/omg-md-cli/dist/cli.js import openapi.yaml -o my-api/
+
+# Run contract tests against a live API
+node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://api.example.com --auth "$TOKEN"
+
+# Contract tests with a JUnit report for CI
+node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://api.example.com --report junit -o results.xml
 ```
 
 ## Code Conventions
@@ -276,6 +292,7 @@ Private workspace packages, bundled into the published ones at build time via `e
 omg-linter      → bundled into omg-md-cli and omg-lsp
 omg-importer    → bundled into omg-md-cli
 omg-mock-server → bundled into omg-md-cli
+omg-test        → bundled into omg-md-cli (depends on omg-parser, omg-compiler, ajv)
 ```
 
 Packages use semver references (e.g., `^0.4.2`) for npm dependencies — all published packages currently share a single version line, bumped together at release time.
