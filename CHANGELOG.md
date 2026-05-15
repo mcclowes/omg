@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `omg test` command — contract testing that validates a live API against its OMG spec. For every endpoint it builds a request (resolving path/query/header parameters from `--env` files, declared examples, or generated placeholders), sends it to the `--against` base URL, and checks the response status code and body against the declared responses (JSON Schema validation via `ajv`, including `#/components/schemas` `$ref` resolution). Supports bearer / basic / custom-header auth, endpoint filtering (`-e`), retries and timeouts, and `console` / `json` / `junit` report formats (`--report`, `-o`) for CI. Exits non-zero when any test fails. Ships in the new private `omg-test` package, bundled into `omg-md-cli`. (#86)
 - `omg import` now warns when the input OpenAPI spec appears to be fully dereferenced — `components.schemas` is populated but no `$ref` is used anywhere. The warning recommends bundling the spec (e.g. `redocly bundle`, `swagger-cli bundle` without `-r`) instead of dereferencing it, since references are then preserved natively rather than recovered by structural matching. (#81)
 
 ## [0.4.2] - 2026-05-14

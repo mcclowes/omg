@@ -58,6 +58,7 @@
     "esbuild": "^0.24.0",
     "omg-linter": "^0.4.2",
     "omg-importer": "^0.4.2",
-    "omg-mock-server": "^0.4.2"
+    "omg-mock-server": "^0.4.2",
+    "omg-test": "^0.4.2"
   }
 }
