@@ -95,7 +95,7 @@ function buildFingerprintMap(
  * string`) are excluded so we don't replace every string field with a
  * reference to some `String` component.
  */
-function isStructurallyNamed(schema: SchemaObject): boolean {
+export function isStructurallyNamed(schema: SchemaObject): boolean {
   if (schema.allOf || schema.oneOf || schema.anyOf || schema.not) return true;
   if (schema.properties && Object.keys(schema.properties).length > 0) return true;
   if (schema.items) return true;
