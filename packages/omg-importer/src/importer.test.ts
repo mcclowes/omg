@@ -736,4 +736,66 @@ describe('importOpenApi', () => {
       expect(paths.some((p) => p.endsWith('rule-delete.omg.md'))).toBe(true);
     });
   });
+
+  describe('per-endpoint security deduplication', () => {
+    const securedSpec = (operationSecurity?: unknown): OpenApiSpec => ({
+      ...minimalSpec,
+      security: [{ 'api-key': [], auth_token: [] }],
+      paths: {
+        '/users': {
+          get: {
+            operationId: 'list-users',
+            ...(operationSecurity !== undefined ? { security: operationSecurity } : {}),
+          } as any,
+        },
+      },
+    });
+
+    it('omits per-endpoint security identical to global security', () => {
+      const result = importOpenApi(securedSpec([{ 'api-key': [], auth_token: [] }]));
+      expect((result.endpoints[0].frontMatter as any).security).toBeUndefined();
+    });
+
+    it('omits per-endpoint security identical to global despite key/scope order', () => {
+      const result = importOpenApi(securedSpec([{ auth_token: [], 'api-key': [] }]));
+      expect((result.endpoints[0].frontMatter as any).security).toBeUndefined();
+    });
+
+    it('keeps per-endpoint security when it differs from global', () => {
+      const override = [{ 'admin-key': ['write'] }];
+      const result = importOpenApi(securedSpec(override));
+      expect((result.endpoints[0].frontMatter as any).security).toEqual(override);
+    });
+
+    it('keeps an explicit empty security override against non-empty global', () => {
+      const result = importOpenApi(securedSpec([]));
+      expect((result.endpoints[0].frontMatter as any).security).toEqual([]);
+    });
+
+    it('omits an empty security array when there is no global security', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': {
+            get: { operationId: 'list-users', security: [] } as any,
+          },
+        },
+      };
+      const result = importOpenApi(spec);
+      expect((result.endpoints[0].frontMatter as any).security).toBeUndefined();
+    });
+
+    it('keeps per-endpoint security when there is no global security', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': {
+            get: { operationId: 'list-users', security: [{ 'api-key': [] }] } as any,
+          },
+        },
+      };
+      const result = importOpenApi(spec);
+      expect((result.endpoints[0].frontMatter as any).security).toEqual([{ 'api-key': [] }]);
+    });
+  });
 });
