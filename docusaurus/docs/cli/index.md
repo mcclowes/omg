@@ -31,6 +31,7 @@ npx omg-md-cli <command>
 | [`diff`](/docs/cli/change-management#diff) | Compare two API specifications |
 | [`breaking`](/docs/cli/change-management#breaking) | Detect breaking changes |
 | [`changelog`](/docs/cli/change-management#changelog) | Generate API changelog |
+| [`test`](/docs/cli/test) | Contract-test a live API against its spec |
 
 ## Quick reference
 
@@ -61,6 +62,9 @@ omg breaking old.omg.md new.omg.md --fail-on-diff
 
 # Generate changelog
 omg changelog v1/api.omg.md v2/api.omg.md
+
+# Contract-test a live API against its spec
+omg test api.omg.md --against https://api.example.com
 ```
 
 ## Global options
