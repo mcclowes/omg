@@ -42,6 +42,7 @@ import {
   convertSchema,
   createConversionContext,
   isStructurallyNamed,
+  getReferencedSchemas,
   type ConversionContext,
 } from './schema-converter.js';
 import {
@@ -190,6 +191,10 @@ export function importOpenApi(spec: OpenApiSpec, options: ImportOptions = {}): I
       partialsMap.set(partialPath, document);
     }
   }
+
+  // Drop trivial type files (bare aliases and bare scalars) that nothing
+  // references — they only add noise to the output.
+  pruneTrivialUnreferencedTypes(types, endpoints, partialsMap);
 
   return {
     api,
@@ -901,6 +906,86 @@ function convertNamedTypes(
   }
 
   return types;
+}
+
+/**
+ * Remove trivial type files that nothing references.
+ *
+ * The importer emits a file for every `components.schemas` entry, but two
+ * kinds of those files are pure noise when unreferenced:
+ *
+ *  - bare aliases (`type Iban = IBANDetails`) — a same-shape pass-through,
+ *    typically minted when two source schemas resolved to the same shape;
+ *  - bare scalars (`type UserId = string @pattern("…")`) — when the input
+ *    was dereferenced, every call site inlines the equivalent constrained
+ *    primitive instead of referencing the named type, orphaning it.
+ *
+ * Object / array / enum / union / intersection types are never pruned even
+ * when unreferenced — they carry structure worth keeping. Pruning runs to a
+ * fixpoint so an alias chain (`A = B`, `B = string`) collapses fully.
+ */
+function pruneTrivialUnreferencedTypes(
+  types: Map<string, { schema: OmgSchema; document: OmgDocument }>,
+  endpoints: OmgDocument[],
+  partials: Map<string, OmgDocument>
+): void {
+  let pruned = true;
+  while (pruned) {
+    pruned = false;
+    const referenced = collectReferencedTypeNames(endpoints, partials, types);
+    const deletable: string[] = [];
+    for (const [name, { schema }] of types) {
+      if (!referenced.has(name) && isTrivialType(schema)) {
+        deletable.push(name);
+      }
+    }
+    for (const name of deletable) {
+      types.delete(name);
+      pruned = true;
+    }
+  }
+}
+
+/** A type is "trivial" if it is a bare reference alias or a bare scalar. */
+function isTrivialType(schema: OmgSchema): boolean {
+  return schema.kind === 'reference' || schema.kind === 'primitive';
+}
+
+/**
+ * Collect every named-type reference reachable from endpoints, partials, and
+ * the surviving type definitions themselves (a type may reference another).
+ */
+function collectReferencedTypeNames(
+  endpoints: OmgDocument[],
+  partials: Map<string, OmgDocument>,
+  types: Map<string, { schema: OmgSchema; document: OmgDocument }>
+): Set<string> {
+  const referenced = new Set<string>();
+
+  const addFrom = (schema: OmgSchema | null | undefined): void => {
+    if (!schema) return;
+    for (const name of getReferencedSchemas(schema)) {
+      referenced.add(name);
+    }
+  };
+
+  const addFromDocument = (doc: OmgDocument): void => {
+    for (const block of doc.blocks) {
+      addFrom(block.parsed);
+      const headers = block.parsedResponse?.headers;
+      if (headers) {
+        for (const header of Object.values(headers)) {
+          addFrom(header.schema);
+        }
+      }
+    }
+  };
+
+  for (const endpoint of endpoints) addFromDocument(endpoint);
+  for (const partial of partials.values()) addFromDocument(partial);
+  for (const { schema } of types.values()) addFrom(schema);
+
+  return referenced;
 }
 
 /**
