@@ -454,9 +454,18 @@ function convertOperation(
     }
   }
 
-  // Add security requirements
-  if (operation.security && operation.security.length > 0) {
-    frontMatter.security = operation.security as OmgSecurityRequirement[];
+  // Add security requirements — but only when they actually differ from the
+  // resolved global security. A spec that declares global `security` otherwise
+  // repeats an identical block into every endpoint's frontmatter; omitting it
+  // keeps endpoints minimal and makes genuine per-endpoint overrides visible.
+  // An explicit empty `security: []` (the "this endpoint needs no auth"
+  // override) is preserved whenever it differs from the global requirement.
+  if (operation.security !== undefined) {
+    const operationSecurity = operation.security as OmgSecurityRequirement[];
+    const globalSecurity = (spec.security as OmgSecurityRequirement[] | undefined) ?? [];
+    if (!securityRequirementsEqual(operationSecurity, globalSecurity)) {
+      frontMatter.security = operationSecurity;
+    }
   }
 
   // Add external docs
@@ -1095,6 +1104,35 @@ function convertSecuritySchemes(
     };
   }
   return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
+ * Canonicalize a security requirements array for order-insensitive comparison.
+ *
+ * OpenAPI treats the `security` array as a set of alternative requirement
+ * objects, and the scopes within each requirement as a set, so neither
+ * ordering is semantically meaningful.
+ */
+function canonicalizeSecurity(security: OmgSecurityRequirement[]): string {
+  const requirements = security.map((req) => {
+    const canonical: Record<string, string[]> = {};
+    for (const key of Object.keys(req).sort()) {
+      canonical[key] = [...(req[key] ?? [])].sort();
+    }
+    return JSON.stringify(canonical);
+  });
+  requirements.sort();
+  return JSON.stringify(requirements);
+}
+
+/**
+ * Whether two security requirement arrays express the same requirement.
+ */
+function securityRequirementsEqual(
+  a: OmgSecurityRequirement[],
+  b: OmgSecurityRequirement[]
+): boolean {
+  return canonicalizeSecurity(a) === canonicalizeSecurity(b);
 }
 
 /**
