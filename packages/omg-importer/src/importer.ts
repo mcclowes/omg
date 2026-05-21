@@ -55,6 +55,7 @@ import {
   buildPatternToPartialMap,
   type GeneratedPartial,
 } from './partial-generator.js';
+import { extractRepeatedResponses } from './response-extractor.js';
 
 /**
  * Result of importing an OpenAPI spec
@@ -175,6 +176,19 @@ export function importOpenApi(spec: OpenApiSpec, options: ImportOptions = {}): I
   const partialsMap = new Map<string, OmgDocument>();
   for (const partial of generatedPartials) {
     partialsMap.set(partial.path, partial.document);
+  }
+
+  // Lift response blocks repeated verbatim across endpoints into shared
+  // `partials/responses/*` files. Endpoints are rewritten in place to
+  // reference the partials instead of restating each block inline.
+  if (extractPartials) {
+    const responsePartials = extractRepeatedResponses(endpoints, {
+      baseDir: options.baseDir || '.',
+      threshold: partialThreshold,
+    });
+    for (const [partialPath, document] of responsePartials) {
+      partialsMap.set(partialPath, document);
+    }
   }
 
   return {

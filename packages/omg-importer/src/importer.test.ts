@@ -848,4 +848,63 @@ describe('importOpenApi', () => {
       expect(managedCard?.schema.kind).toBe('union');
     });
   });
+
+  describe('repeated response extraction', () => {
+    const errorResponse = { description: 'Unauthorized' };
+
+    const specWithSharedErrors = (count: number): OpenApiSpec => {
+      const paths: OpenApiSpec['paths'] = {};
+      for (let i = 0; i < count; i++) {
+        paths[`/resource-${i}`] = {
+          get: {
+            operationId: `get-resource-${i}`,
+            responses: {
+              '200': {
+                description: 'OK',
+                content: {
+                  'application/json': {
+                    schema: { type: 'object', properties: { [`field${i}`]: { type: 'string' } } },
+                  },
+                },
+              },
+              '401': errorResponse,
+            },
+          },
+        };
+      }
+      return { ...minimalSpec, paths };
+    };
+
+    it('lifts an error response repeated across endpoints into a partial', () => {
+      const result = importOpenApi(specWithSharedErrors(4));
+
+      expect(result.partials.has('responses/401')).toBe(true);
+      for (const endpoint of result.endpoints) {
+        // The shared 401 block is gone; the unique 200 stays inline.
+        const responseBlocks = endpoint.blocks.filter((b) => b.type === 'omg.response');
+        expect(responseBlocks.every((b) => b.statusCode !== 401)).toBe(true);
+        expect(endpoint.partials.some((p) => p.path === 'responses/401')).toBe(true);
+      }
+    });
+
+    it('keeps responses inline when extraction is disabled', () => {
+      const result = importOpenApi(specWithSharedErrors(4), { extractPartials: false });
+
+      expect(result.partials.has('responses/401')).toBe(false);
+      const has401 = result.endpoints[0].blocks.some(
+        (b) => b.type === 'omg.response' && b.statusCode === 401
+      );
+      expect(has401).toBe(true);
+    });
+
+    it('leaves responses inline when they do not meet the threshold', () => {
+      const result = importOpenApi(specWithSharedErrors(2), { partialThreshold: 3 });
+
+      expect(result.partials.has('responses/401')).toBe(false);
+      const has401 = result.endpoints[0].blocks.some(
+        (b) => b.type === 'omg.response' && b.statusCode === 401
+      );
+      expect(has401).toBe(true);
+    });
+  });
 });
