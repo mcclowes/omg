@@ -466,7 +466,7 @@ function compileEndpointWithContext(
     operation.requestBody = {
       required: true,
       content: {
-        'application/json': {
+        [mediaTypeForBody(endpoint.requestBody)]: {
           schema: compileSchemaWithContext(endpoint.requestBody, ctx),
         },
       },
@@ -504,7 +504,7 @@ function compileEndpointWithContext(
         mediaType.examples = response.examples as Record<string, ExampleObject>;
       }
 
-      oasResponse.content = { 'application/json': mediaType };
+      oasResponse.content = { [mediaTypeForBody(response.schema)]: mediaType };
     }
 
     // Add response headers
@@ -893,6 +893,26 @@ function applyAnnotations(schema: SchemaObject, annotations: OmgAnnotation[]): v
         break;
     }
   }
+}
+
+/**
+ * Choose the OpenAPI media type for a request or response body.
+ *
+ * A bare binary string (`string @format("binary")`) is a raw file payload, so
+ * it is emitted under `application/octet-stream` — serving a binary download
+ * or accepting a binary upload as `application/json` produces invalid
+ * OpenAPI. Every other body stays `application/json`.
+ */
+function mediaTypeForBody(schema: OmgType | null | undefined): string {
+  if (
+    schema &&
+    schema.kind === 'primitive' &&
+    schema.type === 'string' &&
+    schema.annotations.some((a) => a.name === 'format' && a.args[0] === 'binary')
+  ) {
+    return 'application/octet-stream';
+  }
+  return 'application/json';
 }
 
 /**

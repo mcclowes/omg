@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `omg build` now emits binary request/response bodies under `application/octet-stream` instead of `application/json`. A body whose schema is a `string @format("binary")` is a raw file payload; serving a binary download (or accepting a binary upload) as `application/json` produced invalid OpenAPI. (#56)
 - `omg import` no longer repeats a per-endpoint `security:` block into every endpoint when it is identical to the resolved global `security`. Per-endpoint security is emitted only when it genuinely differs from the global requirement (comparison is order-insensitive for both alternative requirements and scopes), keeping endpoint frontmatter minimal and making real overrides visible. An explicit empty `security: []` override is still preserved when it differs from a non-empty global. (#96)
 
 ## [0.4.2] - 2026-05-14
