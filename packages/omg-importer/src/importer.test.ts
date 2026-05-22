@@ -798,4 +798,54 @@ describe('importOpenApi', () => {
       expect((result.endpoints[0].frontMatter as any).security).toEqual([{ 'api-key': [] }]);
     });
   });
+
+  describe('dropped discriminator warning', () => {
+    const cardSchema = (): OpenApiSpec['components'] => ({
+      schemas: {
+        ManagedCard: {
+          oneOf: [
+            { $ref: '#/components/schemas/DebitCard' },
+            { $ref: '#/components/schemas/PrepaidCard' },
+          ],
+          discriminator: {
+            propertyName: 'mode',
+            mapping: {
+              DEBIT: '#/components/schemas/DebitCard',
+              PREPAID: '#/components/schemas/PrepaidCard',
+            },
+          },
+        },
+        DebitCard: { type: 'object', properties: { mode: { type: 'string' } } },
+        PrepaidCard: { type: 'object', properties: { mode: { type: 'string' } } },
+      },
+    });
+
+    it('warns when a component schema declares a discriminator', () => {
+      const result = importOpenApi({ ...minimalSpec, components: cardSchema() });
+
+      const warning = result.warnings.find((w) => w.message.includes('discriminator'));
+      expect(warning).toBeDefined();
+      expect(warning!.message).toContain('ManagedCard');
+    });
+
+    it('does not warn when no schema declares a discriminator', () => {
+      const result = importOpenApi({
+        ...minimalSpec,
+        components: {
+          schemas: {
+            Plain: { type: 'object', properties: { id: { type: 'string' } } },
+          },
+        },
+      });
+
+      expect(result.warnings.some((w) => w.message.includes('discriminator'))).toBe(false);
+    });
+
+    it('still imports the oneOf as a union despite the dropped discriminator', () => {
+      const result = importOpenApi({ ...minimalSpec, components: cardSchema() });
+
+      const managedCard = result.types.get('ManagedCard');
+      expect(managedCard?.schema.kind).toBe('union');
+    });
+  });
 });
