@@ -1,0 +1,429 @@
+// =============================================================================
+// OMG (OpenAPI Markdown Grammar) — formal grammar
+// =============================================================================
+//
+// A Peggy (https://peggyjs.org) PEG grammar for the OMG language. It is the
+// formal counterpart to the hand-written parser in `packages/omg-parser` and is
+// derived directly from it:
+//
+//   * document structure   <-  document-parser.ts
+//   * schema expressions   <-  schema-parser.ts  (Lexer + Parser)
+//   * omg.returns blocks   <-  returns-parser.ts
+//
+// The hand-written parser is authoritative: where this grammar and `SYNTAX.md`
+// disagree, this file follows the parser. Known divergences are listed at the
+// bottom of this file.
+//
+// This grammar is a *recognizer* — it carries no semantic actions. Its purpose
+// is to make the language self-describing, to be embedded in documentation, and
+// to bootstrap alternative parsers (Tree-sitter, IDE tooling, syntax checkers).
+//
+// -----------------------------------------------------------------------------
+// Entry points (Peggy `allowedStartRules`)
+// -----------------------------------------------------------------------------
+//   Document      — a complete `.omg.md` file.
+//   Schema        — a type expression: the body of an `omg.path` / `omg.query` /
+//                   `omg.headers` / `omg.body` / `omg.response.*` / `omg.type` /
+//                   `omg.errors` code block.
+//   ReturnsBlock  — the body of an `omg.returns` code block.
+//
+// Validate / generate a parser:
+//   npx peggy --allowed-start-rules Document,Schema,ReturnsBlock grammar/omg.peg
+//
+// -----------------------------------------------------------------------------
+// Two layers
+// -----------------------------------------------------------------------------
+// 1. DOCUMENT layer — the `.omg.md` file: YAML frontmatter, Markdown prose,
+//    fenced code blocks and partial references. Markdown prose itself follows
+//    CommonMark and is parsed by `remark` in the reference implementation; this
+//    grammar formalises only the OMG-specific structure and treats the body of
+//    each code block as raw lines. The block body then conforms to the `Schema`
+//    or `ReturnsBlock` rule (or, for `omg.example`, to JSON).
+//
+// 2. SCHEMA layer — the type-expression language, fully specified here as the
+//    `Schema` rule, with `omg.returns` specified as `ReturnsBlock`.
+// =============================================================================
+
+
+// =============================================================================
+// DOCUMENT LAYER
+// =============================================================================
+
+Document
+  = FrontMatter? DocElement*
+
+// --- YAML frontmatter ---------------------------------------------------------
+// Delimited by `---` lines at the very top of the file. The content between the
+// fences is YAML, parsed by `gray-matter`; its structure is not specified here.
+FrontMatter
+  = "---" InlineSpace* LineEnd
+    FrontMatterLine*
+    "---" InlineSpace* LineEnd
+
+FrontMatterLine
+  = !("---" InlineSpace* LineEnd) RawLine
+
+// --- Document body ------------------------------------------------------------
+DocElement
+  = CodeBlock
+  / GenericCodeBlock
+  / Heading
+  / PartialLine
+  / BlankLine
+  / ProseLine
+
+// The first depth-1 heading (`# Title`) supplies the document title; deeper
+// headings and remaining prose form the description.
+Heading
+  = "#"+ " " RawLine
+
+// A line that contains only a partial reference. Two interchangeable syntaxes:
+//   {{> path/to/partial }}   (Handlebars style)
+//   @path/to/partial         (OMG style — recommended)
+PartialLine
+  = InlineSpace* PartialRef InlineSpace* LineEnd
+
+PartialRef
+  = HandlebarsPartial
+  / AtPartial
+
+HandlebarsPartial
+  = "{{>" InlineSpace* PartialPath InlineSpace* "}}"
+
+AtPartial
+  = "@" PartialPath
+
+PartialPath
+  = [a-zA-Z] [a-zA-Z0-9_/-]*
+
+// A blank or whitespace-only line. Consumes the newline, so it is non-empty.
+BlankLine
+  = InlineSpace* NewLine
+
+// Markdown prose. Follows CommonMark; only its OMG roles (title / description /
+// partial host) are meaningful to OMG.
+ProseLine
+  = !CodeFence RawLine
+
+
+// --- Fenced code blocks -------------------------------------------------------
+
+CodeFence
+  = "```"
+
+// A code block whose info string is an OMG language tag. The body is captured
+// as raw lines; per its tag it conforms to `Schema`, `ReturnsBlock`, or JSON.
+CodeBlock
+  = CodeFence InfoString BlockMeta? InlineSpace* LineEnd
+    CodeBlockBody
+    CodeFence InlineSpace* LineEnd?
+
+CodeBlockBody
+  = (!(CodeFence) RawLine)*
+
+// Any other fenced code block — a non-OMG info string (`bash`, `yaml`, …) or
+// none at all. OMG ignores these; they carry illustrative prose only.
+GenericCodeBlock
+  = CodeFence (!LineEnd .)* LineEnd
+    CodeBlockBody
+    CodeFence InlineSpace* LineEnd?
+
+// Info strings recognised by the document parser.
+InfoString
+  = OmgExampleTag      // omg.example, omg.example.<code>, omg.example.<name>
+  / OmgResponseTag     // omg.response, omg.response.<code>, omg.response.default
+  / OmgBlockTag        // omg.path | omg.query | omg.headers | omg.body |
+                       // omg.returns | omg.type | omg.errors | omg.config
+  / "http"             // a raw HTTP request line
+
+OmgBlockTag
+  = "omg." ("path" / "query" / "headers" / "body" / "returns" / "type" / "errors" / "config")
+
+OmgResponseTag
+  = "omg.response" ("." (StatusCode / "default"))?
+
+// `omg.example` may carry an optional status code and/or an optional name:
+//   omg.example  |  omg.example.201  |  omg.example.success  |  omg.example.201.success
+OmgExampleTag
+  = "omg.example" ("." StatusCode)? ("." ExampleName)?
+
+ExampleName
+  = [a-zA-Z] [a-zA-Z0-9_-]*
+
+StatusCode
+  = [0-9]+
+
+// Optional block metadata after the info string. Recognised form:
+//   @when(field = "value")   — a conditional-variant guard.
+BlockMeta
+  = InlineSpace+ WhenMeta
+
+WhenMeta
+  = "@when(" InlineSpace* Identifier InlineSpace* "=" InlineSpace* StringLiteral InlineSpace* ")"
+
+
+// =============================================================================
+// SCHEMA LAYER  —  the type-expression language inside omg.* code blocks
+// =============================================================================
+//
+// Precedence, loosest to tightest:
+//   1. union          A | B          (also `| null` -> nullable)
+//   2. intersection   A & B
+//   3. postfix        []  ?  @annotation
+//   4. primary        primitive / reference / object / array / paren / literal
+//
+// A string-literal enum (`"a" | "b" | "c"`) is recognised as a primary type and
+// is NOT treated as a union by rule (1).
+// =============================================================================
+
+Schema
+  = _ Type _
+
+Type
+  = UnionType
+
+// Union: intersection terms separated by `|`. A `null` term marks the whole
+// type nullable rather than adding a member.
+UnionType
+  = IntersectionType (_ "|" _ UnionTerm)*
+
+UnionTerm
+  = NullKeyword
+  / IntersectionType
+
+// Intersection binds tighter than union.
+IntersectionType
+  = PrimaryType (_ "&" _ PrimaryType)*
+
+PrimaryType
+  = EnumType
+  / ObjectType    ArraySuffix* OptionalMark? Annotation*
+  / ParenType     ArraySuffix* OptionalMark? Annotation*
+  / BracketArray
+  / NamedType
+  / Literal
+
+// --- Enum ---------------------------------------------------------------------
+// Two or more `|`-separated members, led by a string literal. Members may be
+// string literals or bare identifiers; a `null` member makes the enum nullable.
+EnumType
+  = StringLiteral (_ "|" _ EnumMember)+ Annotation*
+
+EnumMember
+  = StringLiteral
+  / NullKeyword
+  / Identifier
+
+// --- Object -------------------------------------------------------------------
+// `{ key: Type, key?: Type, ... }` — the trailing comma is optional and commas
+// between properties are required by this grammar (the reference parser also
+// tolerates their omission, see divergences).
+ObjectType
+  = "{" _ ObjectMembers? _ "}"
+
+ObjectMembers
+  = ObjectProperty (_ "," _ ObjectProperty)* (_ ",")?
+
+ObjectProperty
+  = PropertyKey OptionalMark? _ ":" _ Type
+
+PropertyKey
+  = Identifier
+  / StringLiteral
+
+// --- Parenthesised type -------------------------------------------------------
+ParenType
+  = "(" _ Type _ ")"
+
+// --- Arrays -------------------------------------------------------------------
+// Bracket form `[ Type ]`. The suffix form `Type[]` is handled per primary
+// type below.
+BracketArray
+  = "[" _ Type _ "]" OptionalMark? Annotation*
+
+// One `[]` postfix. Object and parenthesised types accept any number of these
+// (`{...}[][]`); a named type / primitive accepts at most one (see divergences).
+ArraySuffix
+  = _ "[" _ "]"
+
+// --- Named types & primitives -------------------------------------------------
+// An identifier is a primitive keyword (string, integer, number, decimal,
+// boolean, date, datetime, uuid, any — plus the aliases `int`, `bool`) or a
+// reference to a named type. Either may carry a single `[]` suffix.
+NamedType
+  = Identifier ArraySuffix? OptionalMark? Annotation*
+
+OptionalMark
+  = _ "?"
+
+// --- Literals -----------------------------------------------------------------
+// Bare literals are accepted (example-style values): a string literal not
+// followed by `|` becomes a string; a number becomes integer or number; a
+// boolean becomes boolean; `null` becomes a nullable `any`.
+Literal
+  = StringLiteral
+  / NumberLiteral
+  / BooleanLiteral
+  / NullKeyword
+
+
+// =============================================================================
+// ANNOTATIONS
+// =============================================================================
+// `@name` or `@name(arg, arg, ...)`. Arguments are string / number / boolean /
+// bare-identifier values; commas between them are optional in the reference
+// parser, and a trailing comma is permitted.
+
+Annotation
+  = _ "@" Identifier AnnotationArgs?
+
+AnnotationArgs
+  = "(" _ (AnnotationArg (_ ","? _ AnnotationArg)* (_ ",")?)? _ ")"
+
+AnnotationArg
+  = StringLiteral
+  / NumberLiteral
+  / BooleanLiteral
+  / Identifier
+
+
+// =============================================================================
+// omg.returns BLOCK
+// =============================================================================
+// The reference implementation (returns-parser.ts) is line-oriented: each line
+// is classified independently. This grammar mirrors that line classification.
+//
+//   <code>: <type>          starts an entry (type may continue on later lines)
+//   when <condition>        a guard for the current entry (may span lines)
+//   "<text>" / '<text>'     a human-readable description for the entry
+//   { and }                 optional wrapping braces, ignored
+//
+// A type of `void` (or an empty type) denotes a bodyless response.
+
+ReturnsBlock
+  = ReturnsLine*
+
+ReturnsLine
+  = InlineSpace* "{" InlineSpace* LineEnd
+  / InlineSpace* "}" InlineSpace* LineEnd
+  / StatusLine
+  / WhenLine
+  / DescriptionLine
+  / BlankLine
+  / RawLine                      // continuation of a type or condition
+
+StatusLine
+  = InlineSpace* StatusCode InlineSpace* ":" RawLine
+
+WhenLine
+  = InlineSpace* "when" InlineSpace+ RawLine
+
+DescriptionLine
+  = InlineSpace* ( '"' (!'"' !LineEnd .)* '"'
+                 / "'" (!"'" !LineEnd .)* "'" ) InlineSpace* LineEnd
+
+
+// =============================================================================
+// LEXICAL TOKENS
+// =============================================================================
+
+// Identifier — keywords (`true`, `false`, `null`) are excluded.
+Identifier
+  = !(Keyword !IdentChar) IdentStart IdentChar*
+
+IdentStart
+  = [a-zA-Z_]
+
+IdentChar
+  = [a-zA-Z0-9_]
+
+Keyword
+  = "true" / "false" / "null"
+
+BooleanLiteral
+  = ("true" / "false") !IdentChar
+
+NullKeyword
+  = "null" !IdentChar
+
+// String literal — single- or double-quoted, with C-style escape sequences.
+StringLiteral
+  = '"' DoubleStringChar* '"'
+  / "'" SingleStringChar* "'"
+
+DoubleStringChar
+  = EscapeSequence
+  / !'"' !"\\" .
+
+SingleStringChar
+  = EscapeSequence
+  / !"'" !"\\" .
+
+EscapeSequence
+  = "\\" .
+
+// Number — optional sign, integer part, optional fraction, optional exponent.
+NumberLiteral
+  = "-"? [0-9]+ ("." [0-9]+)? ([eE] [+-]? [0-9]+)?
+
+
+// =============================================================================
+// WHITESPACE, COMMENTS, LINE STRUCTURE
+// =============================================================================
+
+// `_` — insignificant whitespace inside the schema layer: spaces, tabs,
+// newlines and `//` line comments are all skipped between tokens.
+_
+  = (WhiteSpace / LineComment)*
+
+WhiteSpace
+  = [ \t\r\n]
+
+LineComment
+  = "//" (!LineEnd .)*
+
+InlineSpace
+  = [ \t]
+
+// A line of arbitrary content. Always consumes at least one character: either
+// some content (with an optional trailing newline at end of file) or a bare
+// newline for an empty line. It never matches the empty string, so it is safe
+// inside `*` repetitions.
+RawLine
+  = (!NewLine .)+ NewLine?
+  / NewLine
+
+NewLine
+  = "\r\n"
+  / "\n"
+  / "\r"
+
+// A line terminator, treating end of input as a final implicit line ending.
+// Only used after a rule has already consumed input, never on its own in a
+// repetition.
+LineEnd
+  = NewLine
+  / !.
+
+// =============================================================================
+// DIVERGENCES between this grammar / the parser and SYNTAX.md
+// =============================================================================
+//
+// * `= value` default syntax — `SYNTAX.md` and the annotations documentation
+//   show `field: integer = 1`. The schema lexer has no `=` token and rejects
+//   it; defaults are instead expressed with the `@default(...)` annotation.
+//   This grammar therefore does not include `= value`.
+//
+// * Array suffix on references/primitives — the reference parser accepts only a
+//   single `[]` after an identifier (`Foo[]`), but any number after an object
+//   or parenthesised type (`{...}[][]`, `(A|B)[]`). This grammar reflects that
+//   asymmetry (`ArraySuffix?` vs `ArraySuffix*`).
+//
+// * Property separators — this grammar requires `,` between object properties
+//   for clarity; the reference parser treats the comma as optional (it consumes
+//   one if present but does not require it).
+//
+// * The legacy `body { ... }` / `returns Account` / `## heading` style shown in
+//   parts of `SYNTAX.md` is an earlier design and is not implemented. The
+//   `.omg.md` document format specified above is the implemented language.
+// =============================================================================
