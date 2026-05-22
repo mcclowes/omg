@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
         'cli/lint',
         'cli/fmt',
         'cli/change-management',
+        'cli/docs',
       ],
     },
     'grammar',

@@ -82,7 +82,8 @@ omg/
 │   │   ├── src/
 │   │   │   ├── cli.ts               # Entry point (registers commands)
 │   │   │   ├── index.ts             # Package exports
-│   │   │   └── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog, test) + shared utils.ts
+│   │   │   ├── html-docs.ts         # Static HTML documentation renderer (omg docs)
+│   │   │   └── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog, test, docs) + shared utils.ts
 │   │   ├── build.mjs                # esbuild config for bundling private workspace deps
 │   │   └── dist/
 │   │
@@ -261,6 +262,9 @@ node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://ap
 
 # Contract tests with a JUnit report for CI
 node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://api.example.com --report junit -o results.xml
+
+# Render browsable HTML documentation
+node packages/omg-md-cli/dist/cli.js docs my-api/api.omg.md -o api-docs.html
 ```
 
 ## Code Conventions
