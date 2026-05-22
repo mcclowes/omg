@@ -1,6 +1,6 @@
 {
   "name": "omg-compiler",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Compiles OMG to OpenAPI 3.1",
   "author": "mcclowes",
   "license": "MIT",
@@ -35,7 +35,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "omg-parser": "^0.4.2",
+    "omg-parser": "^0.5.0",
     "yaml": "^2.9.0"
   },
   "devDependencies": {
