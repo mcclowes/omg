@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-22
+
 ### Added
 
 - `omg test` command — contract testing that validates a live API against its OMG spec. For every endpoint it builds a request (resolving path/query/header parameters from `--env` files, declared examples, or generated placeholders), sends it to the `--against` base URL, and checks the response status code and body against the declared responses (JSON Schema validation via `ajv`, including `#/components/schemas` `$ref` resolution). Supports bearer / basic / custom-header auth, endpoint filtering (`-e`), retries and timeouts, and `console` / `json` / `junit` report formats (`--report`, `-o`) for CI. Exits non-zero when any test fails. Ships in the new private `omg-test` package, bundled into `omg-md-cli`. (#86)
@@ -76,7 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `omg import` collapses multi-line descriptions and uses bracket form for enum/union arrays. (#50)
 
-[Unreleased]: https://github.com/mcclowes/omg/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/mcclowes/omg/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/mcclowes/omg/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/mcclowes/omg/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/mcclowes/omg/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/mcclowes/omg/compare/v0.3.0...v0.4.0
