@@ -63,6 +63,7 @@ omg/
 │   │   │   ├── schema-converter.ts  # OpenAPI schema to OMG type conversion
 │   │   │   ├── pattern-detector.ts  # Detect common API patterns
 │   │   │   ├── partial-generator.ts # Generate partial files for reuse
+│   │   │   ├── response-extractor.ts # Lift repeated responses into partials
 │   │   │   └── types.ts             # TypeScript type definitions
 │   │   └── dist/
 │   │

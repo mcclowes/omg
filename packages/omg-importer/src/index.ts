@@ -29,6 +29,10 @@ export type {
 export { generatePartials, buildPatternToPartialMap } from './partial-generator.js';
 export type { GeneratedPartial, PartialGeneratorOptions } from './partial-generator.js';
 
+// Response-partial extraction
+export { extractRepeatedResponses } from './response-extractor.js';
+export type { ResponseExtractionOptions } from './response-extractor.js';
+
 // Generator
 export { generateDocument, generateSchema, generateFiles } from './generator.js';
 export type { GeneratorOptions, GeneratedFiles } from './generator.js';
