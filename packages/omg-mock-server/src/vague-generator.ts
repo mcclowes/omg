@@ -184,6 +184,14 @@ function typeToVague(
   typeDefs: string[],
   fieldName: string = 'field'
 ): string {
+  // An explicit `@vague("<expr>")` annotation is the author's override: its
+  // argument is used verbatim as the Vague type expression for this field,
+  // bypassing the field-name heuristics and constraint inference below.
+  const vagueOverride = getVagueExpression(schema.annotations);
+  if (vagueOverride !== undefined) {
+    return vagueOverride;
+  }
+
   const constraints = parseAnnotations(schema.annotations);
 
   switch (schema.kind) {
@@ -319,6 +327,25 @@ interface ParsedConstraints {
   maxItems?: number;
   pattern?: string;
   format?: string;
+}
+
+/**
+ * Extract the expression from a `@vague("<expr>")` annotation, if present.
+ *
+ * The argument is a raw Vague type expression — e.g.
+ * `@vague("0.7: \"paid\" | 0.3: \"overdue\"")` or
+ * `@vague("decimal in 100..10000")` — and is substituted directly into the
+ * generated Vague schema. Returns `undefined` when the field has no `@vague`
+ * annotation, or when the annotation has no (or an empty) argument.
+ */
+function getVagueExpression(annotations: OmgAnnotation[]): string | undefined {
+  for (const ann of annotations) {
+    if (ann.name === 'vague' && ann.args.length > 0) {
+      const expr = String(ann.args[0]).trim();
+      if (expr.length > 0) return expr;
+    }
+  }
+  return undefined;
 }
 
 /**
