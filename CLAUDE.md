@@ -117,6 +117,7 @@ omg/
 ├── docusaurus/                 # Hosted documentation site (Docusaurus)
 ├── examples/                   # Example OMG projects (fpl-api, mcp, payments-api, pokeapi, todo-api, xero)
 ├── docs/                       # Internal engineering notes (e.g. TEST_COVERAGE_ANALYSIS.md)
+├── grammar/                    # Formal PEG grammar (omg.peg) — mirrors omg-parser
 ├── tools/                      # Standalone tooling (e.g. omg-linting-functions)
 │
 └── Documentation files:        # Top-level project docs (see "Documentation Reference" for full list)

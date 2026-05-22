@@ -29,6 +29,7 @@ const sidebars: SidebarsConfig = {
         'cli/change-management',
       ],
     },
+    'grammar',
     'edge-cases',
     'examples',
   ],
