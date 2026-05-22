@@ -103,15 +103,21 @@ fields) are **not** yet supported — see below.
 The following OpenAPI patterns have no OMG syntax yet. Each is tracked by its
 own issue:
 
-- **Callbacks** — OpenAPI's `callbacks` object (out-of-band requests the API
-  makes back to the caller). OMG has no syntax for it; the importer passes
-  callbacks through when reading existing specs but cannot author them.
-- **Streaming / server-sent events** — `text/event-stream` responses and
-  chunked transfer. The compiler currently emits every non-binary body as
-  `application/json`; there is no way to declare an alternative media type.
-- **`multipart/form-data`** — a request body mixing a file part with regular
-  form fields. Raw single-payload binary upload works (above), but multi-part
-  bodies need a media-type-per-field construct that OMG does not have.
+- **Callbacks**
+  ([#103](https://github.com/mcclowes/omg/issues/103)) — OpenAPI's `callbacks`
+  object (out-of-band requests the API makes back to the caller). OMG has no
+  syntax for it; the importer passes callbacks through when reading existing
+  specs but cannot author them.
+- **Streaming / server-sent events**
+  ([#104](https://github.com/mcclowes/omg/issues/104)) — `text/event-stream`
+  responses and chunked transfer. The compiler currently emits every
+  non-binary body as `application/json`; there is no way to declare an
+  alternative media type.
+- **`multipart/form-data`**
+  ([#105](https://github.com/mcclowes/omg/issues/105)) — a request body mixing
+  a file part with regular form fields. Raw single-payload binary upload works
+  (above), but multi-part bodies need a media-type-per-field construct that OMG
+  does not have.
 
 If you need one of these, follow or open an issue on
 [GitHub](https://github.com/mcclowes/omg/issues).
