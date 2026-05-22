@@ -126,6 +126,14 @@ export function importOpenApi(spec: OpenApiSpec, options: ImportOptions = {}): I
     }
   }
 
+  // Warn when the spec uses OpenAPI `discriminator` constructs: OMG has no
+  // discriminator, so the propertyName/mapping is dropped on import. Surface
+  // it rather than losing the polymorphic dispatch silently.
+  const discriminatorWarning = detectDroppedDiscriminators(spec);
+  if (discriminatorWarning) {
+    warnings.push({ message: discriminatorWarning });
+  }
+
   // Phase 1: Detect patterns (if extraction enabled)
   let detectedPatterns = new Map<string, DetectedPattern>();
   let generatedPartials: GeneratedPartial[] = [];
@@ -207,6 +215,39 @@ function detectDereferencedInput(spec: OpenApiSpec): string | null {
     `component were recovered as references automatically; for a cleaner import, bundle ` +
     `the spec without dereferencing it (e.g. \`redocly bundle\` instead of ` +
     `\`redocly bundle --dereferenced\`, or \`swagger-cli bundle\` without \`-r\`).`
+  );
+}
+
+/**
+ * Detect OpenAPI `discriminator` declarations the importer cannot represent.
+ *
+ * OMG has no discriminator construct: a `oneOf` / `anyOf` is imported as a
+ * plain union of its variants, but the discriminator's `propertyName` and
+ * `mapping` — the polymorphic dispatch wiring — are dropped. Without a
+ * warning that loss is silent.
+ *
+ * Returns a one-line warning naming the affected component schemas, or `null`
+ * if the spec declares no discriminators.
+ */
+function detectDroppedDiscriminators(spec: OpenApiSpec): string | null {
+  const schemas = spec.components?.schemas || {};
+  const named: string[] = [];
+  for (const [name, schema] of Object.entries(schemas)) {
+    if (!isReferenceObject(schema) && schema.discriminator) {
+      named.push(name);
+    }
+  }
+
+  if (named.length === 0) return null;
+
+  const shown = named.slice(0, 8).join(', ');
+  const list = named.length > 8 ? `${shown}, …` : shown;
+  return (
+    `${named.length} component schema(s) declare an OpenAPI \`discriminator\` ` +
+    `(${list}). OMG has no discriminator construct, so the discriminator's ` +
+    `propertyName and mapping are dropped on import — the oneOf/anyOf variant ` +
+    `list is still preserved as a union, but polymorphic dispatch by ` +
+    `discriminator value will not survive the round-trip.`
   );
 }
 
