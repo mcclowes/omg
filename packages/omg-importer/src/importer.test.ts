@@ -1050,4 +1050,86 @@ describe('importOpenApi', () => {
       expect(result.types.has('ShippingAddress')).toBe(false);
     });
   });
+
+  describe('root tag reconciliation', () => {
+    it('populates the root tags list from tags used by operations', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users': { get: { operationId: 'list-users', tags: ['Users'] } },
+          '/orders': { get: { operationId: 'list-orders', tags: ['Orders'] } },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect((result.api.frontMatter as any).tags).toEqual([{ name: 'Users' }, { name: 'Orders' }]);
+    });
+
+    it('preserves root tag descriptions and ordering, appending undeclared tags', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        tags: [{ name: 'Users', description: 'User management' }],
+        paths: {
+          '/users': { get: { operationId: 'list-users', tags: ['Users'] } },
+          '/orders': { get: { operationId: 'list-orders', tags: ['Orders'] } },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect((result.api.frontMatter as any).tags).toEqual([
+        { name: 'Users', description: 'User management' },
+        { name: 'Orders' },
+      ]);
+    });
+
+    it('warns once for each operation tag missing a root definition', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        tags: [{ name: 'Users', description: 'User management' }],
+        paths: {
+          '/orders': { get: { operationId: 'list-orders', tags: ['Orders'] } },
+          '/orders/{id}': { get: { operationId: 'get-order', tags: ['Orders'] } },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      const tagWarnings = result.warnings.filter((w) => w.message.includes('"Orders"'));
+      expect(tagWarnings).toHaveLength(1);
+      expect(tagWarnings[0].message).toContain('no definition in the root tags list');
+    });
+
+    it('does not warn when every operation tag is already declared', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        tags: [{ name: 'Users', description: 'User management' }],
+        paths: {
+          '/users': { get: { operationId: 'list-users', tags: ['Users'] } },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect(result.warnings.some((w) => w.message.includes('root tags list'))).toBe(false);
+    });
+
+    it('keeps root tags that no operation references', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        tags: [{ name: 'Legacy', description: 'Deprecated surface' }],
+        paths: {
+          '/users': { get: { operationId: 'list-users', tags: ['Users'] } },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect((result.api.frontMatter as any).tags).toEqual([
+        { name: 'Legacy', description: 'Deprecated surface' },
+        { name: 'Users' },
+      ]);
+    });
+  });
 });

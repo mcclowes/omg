@@ -170,6 +170,9 @@ export function importOpenApi(spec: OpenApiSpec, options: ImportOptions = {}): I
     patternToPartial
   );
 
+  // Reconcile the root tags list against the tags operations actually use.
+  reconcileTags(spec, api, warnings);
+
   // Convert named types
   const types = convertNamedTypes(spec, ctx, options);
 
@@ -1244,6 +1247,59 @@ function convertSecuritySchemes(
     };
   }
   return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/** HTTP methods that can carry an operation on a path item. */
+const OPERATION_METHOD_KEYS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch'] as const;
+
+/**
+ * Reconcile the root `tags:` list against the tags operations actually use.
+ *
+ * The source's root `tags` block frequently omits tags that operations
+ * reference (or declares differently-named ones); without reconciliation the
+ * compiled spec carries operations tagged with undeclared, undescribed tags.
+ * Every operation tag with no root definition is appended as a bare entry —
+ * preserving root-declared order and descriptions — and reported as a warning
+ * so the missing description can be filled in.
+ */
+function reconcileTags(spec: OpenApiSpec, api: OmgDocument, warnings: ImportWarning[]): void {
+  // Collect every tag referenced by an operation, in first-seen order.
+  const usedTags: string[] = [];
+  const seenTags = new Set<string>();
+  for (const pathItem of Object.values(spec.paths || {})) {
+    if (!pathItem) continue;
+    for (const methodKey of OPERATION_METHOD_KEYS) {
+      const operation = pathItem[methodKey];
+      if (!operation?.tags) continue;
+      for (const tag of operation.tags) {
+        if (!seenTags.has(tag)) {
+          seenTags.add(tag);
+          usedTags.push(tag);
+        }
+      }
+    }
+  }
+
+  if (usedTags.length === 0) return;
+
+  const frontMatter = api.frontMatter as ApiFrontMatter;
+  const rootTags: OmgTag[] = frontMatter.tags ? [...frontMatter.tags] : [];
+  const declared = new Set(rootTags.map((t) => t.name));
+
+  for (const tag of usedTags) {
+    if (declared.has(tag)) continue;
+    rootTags.push({ name: tag });
+    declared.add(tag);
+    warnings.push({
+      message:
+        `Operation tag "${tag}" has no definition in the root tags list; ` +
+        `added a bare entry — add a description for it in api.omg.md.`,
+    });
+  }
+
+  if (rootTags.length > 0) {
+    frontMatter.tags = rootTags;
+  }
 }
 
 /**
