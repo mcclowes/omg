@@ -907,4 +907,147 @@ describe('importOpenApi', () => {
       expect(has401).toBe(true);
     });
   });
+
+  describe('pruning trivial unreferenced types', () => {
+    const ibanShape: SchemaObject = {
+      type: 'object',
+      properties: { iban: { type: 'string' }, bic: { type: 'string' } },
+      required: ['iban'],
+    };
+
+    it('prunes an unreferenced bare type alias (#93)', () => {
+      // Two structurally identical component schemas: the importer dedups
+      // `Iban` into a `reference IBANDetails` alias. Nothing references it.
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        components: {
+          schemas: {
+            IBANDetails: structuredClone(ibanShape),
+            Iban: structuredClone(ibanShape),
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect(result.types.has('Iban')).toBe(false);
+      expect(result.types.has('IBANDetails')).toBe(true);
+    });
+
+    it('keeps a bare type alias that is referenced', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/accounts': {
+            get: {
+              operationId: 'get-account',
+              responses: {
+                '200': {
+                  description: 'OK',
+                  content: {
+                    'application/json': {
+                      schema: { $ref: '#/components/schemas/Iban' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        components: {
+          schemas: {
+            IBANDetails: structuredClone(ibanShape),
+            Iban: structuredClone(ibanShape),
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect(result.types.has('Iban')).toBe(true);
+    });
+
+    it('prunes an unreferenced named scalar type (#94)', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        components: {
+          schemas: {
+            UserId: { type: 'string', pattern: '^[0-9]+$' },
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect(result.types.has('UserId')).toBe(false);
+    });
+
+    it('keeps a named scalar type that is referenced via $ref', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        paths: {
+          '/users/{id}': {
+            get: {
+              operationId: 'get-user',
+              parameters: [
+                {
+                  name: 'id',
+                  in: 'path',
+                  required: true,
+                  schema: { $ref: '#/components/schemas/UserId' },
+                },
+              ],
+            },
+          },
+        },
+        components: {
+          schemas: {
+            UserId: { type: 'string', pattern: '^[0-9]+$' },
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect(result.types.has('UserId')).toBe(true);
+    });
+
+    it('keeps an unreferenced structural (object) type', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        components: {
+          schemas: {
+            Widget: {
+              type: 'object',
+              properties: { id: { type: 'string' }, label: { type: 'string' } },
+            },
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      expect(result.types.has('Widget')).toBe(true);
+    });
+
+    it('prunes every alias when several schemas share one shape', () => {
+      const spec: OpenApiSpec = {
+        ...minimalSpec,
+        components: {
+          schemas: {
+            Address: structuredClone(ibanShape),
+            BillingAddress: structuredClone(ibanShape),
+            ShippingAddress: structuredClone(ibanShape),
+          },
+        },
+      };
+
+      const result = importOpenApi(spec);
+
+      // Exactly one canonical structural type survives; the aliases are gone.
+      expect(result.types.has('Address')).toBe(true);
+      expect(result.types.has('BillingAddress')).toBe(false);
+      expect(result.types.has('ShippingAddress')).toBe(false);
+    });
+  });
 });
