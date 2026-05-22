@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
     },
     'grammar',
     'edge-cases',
+    'github-action',
     'examples',
   ],
 };

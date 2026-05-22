@@ -1,0 +1,133 @@
+# Reusable GitHub Action for OMG (OpenAPI Markdown Grammar).
+#
+# Use it in a consumer workflow:
+#
+#   - uses: mcclowes/omg@v1
+#     with:
+#       command: build
+#       input: api/api.omg.md
+#       output: openapi.yaml
+#
+# A ready-to-copy workflow lives at examples/github-workflow.yml.
+
+name: 'OMG — OpenAPI Markdown Grammar'
+description: 'Build, lint, and check OpenAPI Markdown Grammar (OMG) specs in CI/CD.'
+author: 'mcclowes'
+
+branding:
+  icon: 'file-text'
+  color: 'purple'
+
+inputs:
+  command:
+    description: 'Command to run: build | lint | breaking | changelog'
+    required: false
+    default: 'build'
+  input:
+    description: 'Path to the OMG spec (e.g. api/api.omg.md) or project directory'
+    required: true
+  base:
+    description: 'Baseline spec to compare against — required for `breaking` and `changelog`'
+    required: false
+    default: ''
+  output:
+    description: 'Output file path — used by `build` and `changelog`'
+    required: false
+    default: ''
+  format:
+    description: 'Output format for `build`: yaml | json'
+    required: false
+    default: 'yaml'
+  fail-on-breaking:
+    description: 'For `breaking`: fail the job when breaking changes are found'
+    required: false
+    default: 'true'
+  cli-version:
+    description: 'npm dist-tag or version of omg-md-cli to use'
+    required: false
+    default: 'latest'
+  node-version:
+    description: 'Node.js version to set up'
+    required: false
+    default: '20'
+  working-directory:
+    description: 'Directory to run the command in'
+    required: false
+    default: '.'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    # oasdiff is required by the `breaking` and `changelog` commands only.
+    # Install it into a guaranteed-writable directory and add that to PATH for
+    # the run step below.
+    - name: Install oasdiff
+      if: ${{ inputs.command == 'breaking' || inputs.command == 'changelog' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "$HOME/.local/bin"
+        curl -fsSL https://raw.githubusercontent.com/oasdiff/oasdiff/main/install.sh \
+          | INSTALL_DIR="$HOME/.local/bin" sh
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Run omg
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      # Inputs are passed through the environment (never interpolated straight
+      # into the script) to avoid shell-injection from untrusted input values.
+      env:
+        OMG_COMMAND: ${{ inputs.command }}
+        OMG_INPUT: ${{ inputs.input }}
+        OMG_BASE: ${{ inputs.base }}
+        OMG_OUTPUT: ${{ inputs.output }}
+        OMG_FORMAT: ${{ inputs.format }}
+        OMG_FAIL_ON_BREAKING: ${{ inputs.fail-on-breaking }}
+        OMG_CLI_VERSION: ${{ inputs.cli-version }}
+      run: |
+        set -euo pipefail
+        CLI=(npx --yes "omg-md-cli@${OMG_CLI_VERSION}")
+
+        case "$OMG_COMMAND" in
+          build)
+            ARGS=(build "$OMG_INPUT" -f "$OMG_FORMAT")
+            if [ -n "$OMG_OUTPUT" ]; then
+              ARGS+=(-o "$OMG_OUTPUT")
+            fi
+            "${CLI[@]}" "${ARGS[@]}"
+            ;;
+          lint)
+            "${CLI[@]}" lint "$OMG_INPUT"
+            ;;
+          breaking)
+            if [ -z "$OMG_BASE" ]; then
+              echo "::error::The 'base' input is required for the 'breaking' command."
+              exit 1
+            fi
+            ARGS=(breaking "$OMG_BASE" "$OMG_INPUT")
+            if [ "$OMG_FAIL_ON_BREAKING" = "true" ]; then
+              ARGS+=(--fail-on-diff)
+            fi
+            "${CLI[@]}" "${ARGS[@]}"
+            ;;
+          changelog)
+            if [ -z "$OMG_BASE" ]; then
+              echo "::error::The 'base' input is required for the 'changelog' command."
+              exit 1
+            fi
+            ARGS=(changelog "$OMG_BASE" "$OMG_INPUT")
+            if [ -n "$OMG_OUTPUT" ]; then
+              ARGS+=(-o "$OMG_OUTPUT")
+            fi
+            "${CLI[@]}" "${ARGS[@]}"
+            ;;
+          *)
+            echo "::error::Unknown command '$OMG_COMMAND'. Use: build | lint | breaking | changelog."
+            exit 1
+            ;;
+        esac
