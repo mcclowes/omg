@@ -335,6 +335,13 @@ Husky is configured for pre-commit hooks in `.husky/`. The pre-commit hook runs:
 2. `npm run typecheck` - TypeScript type checking
 3. `npm run test` - Run all tests
 
+### Reusable GitHub Action
+
+`action.yml` at the repo root is a composite GitHub Action (`mcclowes/omg@v1`)
+that consumers drop into their own workflows to `build` / `lint` / `breaking` /
+`changelog` OMG specs via `npx omg-md-cli`. A ready-to-copy example workflow is
+at `examples/github-workflow.yml`.
+
 ## Important Files
 
 | File | Purpose |

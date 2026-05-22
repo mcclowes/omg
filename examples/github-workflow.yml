@@ -1,0 +1,65 @@
+# Example GitHub Actions workflow using the OMG action.
+#
+# Copy this file to `.github/workflows/omg.yml` in your own repository and
+# adjust the `input` / `base` paths to match your project layout.
+#
+# It does two things:
+#   * on every push and pull request — lint the spec and compile it to OpenAPI;
+#   * on pull requests — fail the check if the change is breaking.
+
+name: OMG
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint the OMG spec
+        uses: mcclowes/omg@v1
+        with:
+          command: lint
+          input: api
+
+      - name: Compile to OpenAPI
+        uses: mcclowes/omg@v1
+        with:
+          command: build
+          input: api/api.omg.md
+          output: openapi.yaml
+
+      - name: Upload the compiled spec
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi
+          path: openapi.yaml
+
+  breaking-changes:
+    name: Breaking-change check
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the pull request
+        uses: actions/checkout@v4
+        with:
+          path: head
+
+      - name: Check out the base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base
+
+      - name: Fail on breaking changes
+        uses: mcclowes/omg@v1
+        with:
+          command: breaking
+          base: base/api/api.omg.md
+          input: head/api/api.omg.md
+          fail-on-breaking: 'true'
