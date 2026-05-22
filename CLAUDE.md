@@ -83,7 +83,8 @@ omg/
 │   │   ├── src/
 │   │   │   ├── cli.ts               # Entry point (registers commands)
 │   │   │   ├── index.ts             # Package exports
-│   │   │   └── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog, test) + shared utils.ts
+│   │   │   ├── html-docs.ts         # Static HTML documentation renderer (omg docs)
+│   │   │   └── commands/            # One file per command (build, parse, lint, fmt, init, import, mock, diff, breaking, changelog, test, docs) + shared utils.ts
 │   │   ├── build.mjs                # esbuild config for bundling private workspace deps
 │   │   └── dist/
 │   │
@@ -262,6 +263,9 @@ node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://ap
 
 # Contract tests with a JUnit report for CI
 node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://api.example.com --report junit -o results.xml
+
+# Render browsable HTML documentation
+node packages/omg-md-cli/dist/cli.js docs my-api/api.omg.md -o api-docs.html
 ```
 
 ## Code Conventions
@@ -331,6 +335,13 @@ Husky is configured for pre-commit hooks in `.husky/`. The pre-commit hook runs:
 1. `npm run format:check` - Verify code is formatted
 2. `npm run typecheck` - TypeScript type checking
 3. `npm run test` - Run all tests
+
+### Reusable GitHub Action
+
+`action.yml` at the repo root is a composite GitHub Action (`mcclowes/omg@v1`)
+that consumers drop into their own workflows to `build` / `lint` / `breaking` /
+`changelog` OMG specs via `npx omg-md-cli`. A ready-to-copy example workflow is
+at `examples/github-workflow.yml`.
 
 ## Important Files
 
