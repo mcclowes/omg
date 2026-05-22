@@ -35,13 +35,13 @@
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "unified": "^11.0.4",
     "remark-parse": "^11.0.0",
+    "unified": "^11.0.4",
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.0.0",
-    "@types/node": "^20.0.0"
+    "vitest": "^4.1.7"
   }
 }
