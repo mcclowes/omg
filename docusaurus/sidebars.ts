@@ -30,6 +30,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'grammar',
+    'edge-cases',
     'examples',
   ],
 };

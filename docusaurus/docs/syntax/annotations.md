@@ -53,6 +53,40 @@ Annotations add constraints and metadata to fields using the `@` prefix.
 | `@minItems(n)` | Minimum array length |
 | `@maxItems(n)` | Maximum array length |
 
+## Mock data: `@vague`
+
+The `@vague("...")` annotation controls how the mock server
+([`omg mock`](../cli/index.md)) generates a value for a field. Its argument is
+a Vague type expression that is used **verbatim** — it overrides the
+field-name heuristics and constraint inference the mock server applies by
+default.
+
+```
+{
+  status: string @vague("0.7: \"paid\" | 0.2: \"sent\" | 0.1: \"overdue\""),
+  amount: decimal @vague("decimal in 100..10000"),
+  score: integer @vague("int in 0..100")
+}
+```
+
+| Annotation | Description |
+|------------|-------------|
+| `@vague("expr")` | Vague expression used verbatim by the mock server |
+
+Notes:
+
+- `@vague` affects **mock generation only**. It is ignored by `omg build` — it
+  never appears in the compiled OpenAPI output.
+- Without `@vague`, the mock server still generates realistic data from the
+  field name, `@format`, and numeric/length constraints. Use `@vague` only when
+  you need to override that — e.g. a weighted distribution of statuses or a
+  value within a specific range.
+- A declared example (an `omg.example` block, or an `example` / `examples`
+  value on the schema) takes precedence over generated data: `@vague` drives
+  the values for fields that have **no** explicit example.
+- Escape the inner `"` quotes with `\"`, since the expression is itself a
+  quoted string argument.
+
 ## Default values
 
 Use `= value` syntax for defaults:

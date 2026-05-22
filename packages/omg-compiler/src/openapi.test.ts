@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { compileToOpenApi } from './openapi.js';
-import type { ParsedApi, OmgIntersection, OmgReference, OmgObject } from 'omg-parser';
+import type { ParsedApi, OmgIntersection, OmgReference, OmgObject, OmgPrimitive } from 'omg-parser';
 
 function createMinimalApi(types: ParsedApi['types'] = {}): ParsedApi {
   return {
@@ -178,6 +178,67 @@ describe('compileToOpenApi - intersection types', () => {
       result.paths['/test']?.get?.responses?.['200']?.content?.['application/json']?.schema;
     expect(responseSchema?.allOf).toBeDefined();
     expect(responseSchema?.allOf).toHaveLength(2);
+  });
+});
+
+describe('compileToOpenApi - binary body media types', () => {
+  const binaryString: OmgPrimitive = {
+    kind: 'primitive',
+    type: 'string',
+    annotations: [{ name: 'format', args: ['binary'] }],
+  };
+
+  const endpointApi = (overrides: Partial<ParsedApi['endpoints'][number]>): ParsedApi => ({
+    ...createMinimalApi(),
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/file',
+        operationId: 'get-file',
+        tags: [],
+        summary: 'Get file',
+        description: '',
+        deprecated: false,
+        follows: [],
+        webhooks: {},
+        parameters: { path: null, query: null, headers: null },
+        requestBody: null,
+        responses: {},
+        ...overrides,
+      },
+    ],
+  });
+
+  it('emits a binary response under application/octet-stream', () => {
+    const api = endpointApi({ responses: { 200: { schema: binaryString } } });
+    const result = compileToOpenApi(api);
+
+    const content = result.paths['/file']?.get?.responses?.['200']?.content;
+    expect(content?.['application/octet-stream']).toBeDefined();
+    expect(content?.['application/json']).toBeUndefined();
+  });
+
+  it('emits a binary request body under application/octet-stream', () => {
+    const api = endpointApi({ method: 'POST', requestBody: binaryString });
+    const result = compileToOpenApi(api);
+
+    const content = result.paths['/file']?.post?.requestBody?.content;
+    expect(content?.['application/octet-stream']).toBeDefined();
+    expect(content?.['application/json']).toBeUndefined();
+  });
+
+  it('keeps a regular object response under application/json', () => {
+    const objectSchema: OmgObject = {
+      kind: 'object',
+      properties: { id: { kind: 'primitive', type: 'string', annotations: [] } },
+      annotations: [],
+    };
+    const api = endpointApi({ responses: { 200: { schema: objectSchema } } });
+    const result = compileToOpenApi(api);
+
+    const content = result.paths['/file']?.get?.responses?.['200']?.content;
+    expect(content?.['application/json']).toBeDefined();
+    expect(content?.['application/octet-stream']).toBeUndefined();
   });
 });
 
