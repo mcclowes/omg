@@ -221,18 +221,30 @@ export function resolveDocument(
 
   // Resolve each partial
   for (const partial of doc.partials) {
-    const partialPath = resolvePartialPath(partial.path, options.basePath);
+    // `path` partials are markdown links resolved relative to the referencing
+    // document; `logical` partials are names resolved via the partials/ dir.
+    const partialPath =
+      partial.kind === 'path'
+        ? path.resolve(path.dirname(docPath), partial.path)
+        : resolvePartialPath(partial.path, options.basePath);
 
     if (!fs.existsSync(partialPath)) {
-      throw new Error(
-        `Partial not found: '${partial.path}' at line ${partial.line}.\n` +
-          `Searched: ${partialPath}\n` +
-          `Make sure the file exists in your partials/ directory.\n` +
-          `Expected: partials/${partial.path}.omg.md`
-      );
+      const hint =
+        partial.kind === 'path'
+          ? `Searched: ${partialPath}\n` +
+            `The link destination is resolved relative to the referencing document.`
+          : `Searched: ${partialPath}\n` +
+            `Make sure the file exists in your partials/ directory.\n` +
+            `Expected: partials/${partial.path}.omg.md`;
+      throw new Error(`Partial not found: '${partial.path}' at line ${partial.line}.\n` + hint);
     }
 
     const partialContent = fs.readFileSync(partialPath, 'utf-8');
+
+    // The nested document's filePath must let resolveDocument recompute the
+    // same absolute path, so its own relative links resolve correctly.
+    const nestedFilePath =
+      partial.kind === 'path' ? path.relative(options.basePath, partialPath) : partial.path;
 
     // Try to get cached document, or parse and cache it
     let partialDoc: OmgDocument;
@@ -241,11 +253,11 @@ export function resolveDocument(
       if (cached) {
         partialDoc = cached;
       } else {
-        partialDoc = parseDocument(partialContent, partial.path);
+        partialDoc = parseDocument(partialContent, nestedFilePath);
         documentCache.set(partialPath, partialContent, partialDoc);
       }
     } else {
-      partialDoc = parseDocument(partialContent, partial.path);
+      partialDoc = parseDocument(partialContent, nestedFilePath);
     }
 
     // Recursively resolve the partial

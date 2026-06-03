@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Markdown-link partial includes — a partial can now be referenced with a plain Markdown link whose destination ends in `.omg.md` (e.g. `[idempotency-ref](../partials/headers/idempotency-ref.omg.md)`), in addition to the existing `@name` and `{{> name }}` forms. Unlike the logical-name forms (resolved under `partials/`), a link partial is resolved relative to the referencing document, so the same reference also renders as a **clickable link** in GitHub's rendered Markdown view instead of showing literal `{{> ... }}` / `@...` text. (#121)
+
+### Changed
+
+- `omg fmt` now inserts a `// no response body` comment into empty response blocks (`omg.response`, `omg.response.{code}`, `omg.response.default`). A bodyless response otherwise renders as an empty grey box in GitHub's rendered Markdown view, which reads as a mistake; the comment makes the intent explicit. Compiled output is unchanged (an empty body and a comment-only body both mean no response schema), and formatting is idempotent. (#122)
+
 ## [0.5.0] - 2026-05-22
 
 ### Added

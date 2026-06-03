@@ -834,6 +834,93 @@ path: /test
       // The @format annotation should NOT be parsed as a partial
       expect(doc.partials).toHaveLength(0);
     });
+
+    it('parses markdown-link partials pointing at .omg.md files', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+[idempotency-ref](../../partials/headers/idempotency-ref.omg.md)
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(1);
+      expect(doc.partials[0].path).toBe('../../partials/headers/idempotency-ref.omg.md');
+      expect(doc.partials[0].kind).toBe('path');
+    });
+
+    it('tags {{>}} and @ partials as logical', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+{{> params/company }}
+@responses/errors
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials.every((p) => p.kind === 'logical')).toBe(true);
+    });
+
+    it('ignores ordinary markdown links that are not .omg.md', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+See the [docs](https://example.com/docs) and the [readme](../README.md).
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(0);
+    });
+
+    it('does not treat .omg.md links inside code blocks as partials', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+\`\`\`omg.example
+{ "link": "[x](foo.omg.md)" }
+\`\`\`
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.partials).toHaveLength(0);
+    });
+
+    it('excludes markdown-link partials from the description', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+A real description.
+
+[idempotency-ref](../partials/headers/idempotency-ref.omg.md)
+`;
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(doc.description).toBe('A real description.');
+    });
   });
 
   describe('file path handling', () => {

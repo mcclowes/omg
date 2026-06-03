@@ -579,7 +579,7 @@ function convertOperation(
       if (partialPath) {
         // Avoid duplicate partial references
         if (!partialRefs.some((p) => p.path === partialPath)) {
-          partialRefs.push({ path: partialPath, line: 0 });
+          partialRefs.push({ path: partialPath, line: 0, kind: 'logical' });
         }
       }
     }

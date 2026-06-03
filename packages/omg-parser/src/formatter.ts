@@ -163,6 +163,18 @@ function formatBody(body: string, indent: number): string {
 
     // Check for code block end
     if (line.trim() === '```' && inCodeBlock) {
+      // An empty response block declares a bodyless (e.g. 204-style) response.
+      // Emit a `// no response body` comment so it doesn't render as an empty
+      // grey box in GitHub's rendered markdown view, which reads as a mistake.
+      if (isResponseBlock(codeBlockType) && codeBlockContent.join('\n').trim() === '') {
+        result.push('// no response body');
+        result.push('```');
+        inCodeBlock = false;
+        codeBlockType = '';
+        codeBlockContent = [];
+        continue;
+      }
+
       // Format the code block content if it's an OMG block
       if (isOmgSchemaBlock(codeBlockType)) {
         const formatted = formatOmgSchema(codeBlockContent.join('\n'), indent);
@@ -198,6 +210,14 @@ function formatBody(body: string, indent: number): string {
  */
 function isOmgSchemaBlock(type: string): boolean {
   return type.startsWith('omg.') && type !== 'omg.example' && type !== 'omg.config';
+}
+
+/**
+ * Check if a code block type is a response block
+ * (omg.response, omg.response.{code}, omg.response.default)
+ */
+function isResponseBlock(type: string): boolean {
+  return type === 'omg.response' || type.startsWith('omg.response.');
 }
 
 /**
