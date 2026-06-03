@@ -32,7 +32,7 @@ Returns details of a specific account.
 - **Code blocks**: `omg.path`, `omg.query`, `omg.body`, `omg.response`, `omg.response.{code}`, `omg.returns`, `omg.type`
 - **Types**: `string`, `integer`, `decimal`, `boolean`, `date`, `datetime`, `uuid`, `any`
 - **Syntax**: `field?: type` (optional), `type[]` (array), `"a"|"b"` (enum), `@min(0)` (constraints)
-- **Partials**: `@path/to/partial` or `{{> path/to/partial }}` for reuse
+- **Partials**: `@path/to/partial`, `{{> path/to/partial }}`, or a Markdown link to a `.omg.md` file (`[label](../partials/x.omg.md)`, resolved relative to the document and clickable in GitHub) for reuse
 
 ## CLI
 

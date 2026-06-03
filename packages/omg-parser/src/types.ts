@@ -230,8 +230,21 @@ export interface ParsedReturnsBlock {
 
 // Partial reference
 export interface PartialRef {
+  /**
+   * The partial reference. For `logical` partials this is a logical name
+   * resolved via the `partials/` directory (e.g. `headers/idempotency-ref`).
+   * For `path` partials this is a markdown-link destination resolved relative
+   * to the referencing document (e.g. `../partials/headers/x.omg.md`).
+   */
   path: string;
   line: number;
+  /**
+   * How the reference was written:
+   * - `logical` — `{{> name }}` or `@name`, resolved via the partials/ dir
+   * - `path` — a markdown link `[label](dest.omg.md)`, resolved relative to
+   *   the document so the link is also clickable in GitHub's rendered view
+   */
+  kind: 'logical' | 'path';
 }
 
 // Parsed document

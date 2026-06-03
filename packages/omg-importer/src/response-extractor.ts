@@ -96,7 +96,7 @@ export function extractRepeatedResponses(
       if (!isResponseBlock(block)) return true;
       const partialPath = fingerprintToPath.get(responseFingerprint(block));
       if (!partialPath) return true;
-      newRefs.push({ path: partialPath, line: 0 });
+      newRefs.push({ path: partialPath, line: 0, kind: 'logical' });
       return false;
     });
     newRefs.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));

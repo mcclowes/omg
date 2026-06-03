@@ -37,6 +37,10 @@ const WHEN_PATTERN = /@when\((\w+)\s*=\s*"([^"]+)"\)/;
 // - OMG style: @path/to/partial
 const PARTIAL_PATTERN = /\{\{>\s*([^}\s]+)\s*\}\}/g;
 const AT_PARTIAL_PATTERN = /(?:^|\s)@([a-zA-Z][a-zA-Z0-9_/-]*)(?:\s|$)/g;
+// Markdown-link partials: [label](path/to/partial.omg.md) — renders as a
+// clickable link in GitHub's UI and resolves as an include. The destination
+// must end in `.omg.md` (or `.omg`) to be treated as a partial.
+const LINK_PARTIAL_PATTERN = /\[[^\]]*\]\(\s*([^)\s]+\.omg(?:\.md)?)\s*\)/g;
 
 /**
  * Parse a .omg.md file into an OmgDocument
@@ -101,13 +105,18 @@ function extractDescription(tree: Root, rawContent: string): string {
       continue;
     }
 
-    // Skip partial references ({{> ... }} or @path)
+    // Skip partial references ({{> ... }}, @path, or [label](x.omg.md))
     if (node.type === 'paragraph') {
       const text = extractTextFromNode(node);
       // Reset lastIndex for global regex patterns
       PARTIAL_PATTERN.lastIndex = 0;
       AT_PARTIAL_PATTERN.lastIndex = 0;
       if (PARTIAL_PATTERN.test(text) || AT_PARTIAL_PATTERN.test(text)) {
+        continue;
+      }
+      // Link-partials show up as mdast link nodes; their destination (not the
+      // visible label) carries the `.omg.md` marker.
+      if (paragraphHasLinkPartial(node)) {
         continue;
       }
     }
@@ -121,6 +130,20 @@ function extractDescription(tree: Root, rawContent: string): string {
   }
 
   return descriptionParts.join('\n\n').trim();
+}
+
+/**
+ * Whether a paragraph node contains a markdown-link partial — a link whose
+ * destination ends in `.omg.md` (or `.omg`).
+ */
+function paragraphHasLinkPartial(node: any): boolean {
+  if (node.type === 'link' && typeof node.url === 'string' && /\.omg(\.md)?$/.test(node.url)) {
+    return true;
+  }
+  if (node.children) {
+    return node.children.some(paragraphHasLinkPartial);
+  }
+  return false;
 }
 
 /**
@@ -291,7 +314,19 @@ function extractPartials(content: string): PartialRef[] {
   const partials: PartialRef[] = [];
   const lines = content.split('\n');
 
+  // Track fenced code blocks so references inside them (e.g. a `.omg.md` link
+  // in a JSON example) are not mistaken for partials.
+  let inFence = false;
+
   lines.forEach((line, index) => {
+    if (/^```/.test(line.trim())) {
+      inFence = !inFence;
+      return;
+    }
+    if (inFence) {
+      return;
+    }
+
     let match;
 
     // Check Handlebars-style partials: {{> path }}
@@ -300,6 +335,7 @@ function extractPartials(content: string): PartialRef[] {
       partials.push({
         path: match[1],
         line: index + 1,
+        kind: 'logical',
       });
     }
 
@@ -309,6 +345,17 @@ function extractPartials(content: string): PartialRef[] {
       partials.push({
         path: match[1],
         line: index + 1,
+        kind: 'logical',
+      });
+    }
+
+    // Check markdown-link partials: [label](path.omg.md)
+    LINK_PARTIAL_PATTERN.lastIndex = 0;
+    while ((match = LINK_PARTIAL_PATTERN.exec(line)) !== null) {
+      partials.push({
+        path: match[1],
+        line: index + 1,
+        kind: 'path',
       });
     }
   });

@@ -77,15 +77,19 @@ DocElement
 Heading
   = "#"+ " " RawLine
 
-// A line that contains only a partial reference. Two interchangeable syntaxes:
-//   {{> path/to/partial }}   (Handlebars style)
-//   @path/to/partial         (OMG style — recommended)
+// A line that contains only a partial reference. Three interchangeable syntaxes:
+//   {{> path/to/partial }}                (Handlebars style)
+//   @path/to/partial                      (OMG style — recommended)
+//   [label](path/to/partial.omg.md)       (Markdown link — clickable in GitHub)
+// The @/{{>}} forms resolve a logical name under partials/; the Markdown-link
+// form resolves its destination relative to the referencing document.
 PartialLine
   = InlineSpace* PartialRef InlineSpace* LineEnd
 
 PartialRef
   = HandlebarsPartial
   / AtPartial
+  / LinkPartial
 
 HandlebarsPartial
   = "{{>" InlineSpace* PartialPath InlineSpace* "}}"
@@ -93,8 +97,15 @@ HandlebarsPartial
 AtPartial
   = "@" PartialPath
 
+LinkPartial
+  = "[" [^\]]* "]" "(" InlineSpace* LinkPartialPath InlineSpace* ")"
+
 PartialPath
   = [a-zA-Z] [a-zA-Z0-9_/-]*
+
+// A Markdown-link partial destination: any path ending in .omg or .omg.md
+LinkPartialPath
+  = [^)\t ]+ ".omg" ".md"?
 
 // A blank or whitespace-only line. Consumes the newline, so it is non-empty.
 BlankLine

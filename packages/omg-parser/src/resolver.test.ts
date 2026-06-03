@@ -75,6 +75,66 @@ path: /users
       expect(resolved.resolvedBlocks.length).toBeGreaterThan(0);
     });
 
+    it('resolves markdown-link partials relative to the document directory', () => {
+      const mainContent = `---
+method: GET
+path: /users
+---
+
+# Get Users
+
+[errors](../partials/responses/errors.omg.md)
+`;
+
+      const partialContent = `# Standard Errors
+
+\`\`\`omg.response.400
+{
+  error: string
+}
+\`\`\`
+`;
+
+      const resolvedPartialPath = path.resolve(
+        '/project/endpoints',
+        '../partials/responses/errors.omg.md'
+      );
+
+      vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => {
+        return p.toString() === resolvedPartialPath;
+      });
+      vi.mocked(fs.readFileSync).mockImplementation((p: fs.PathOrFileDescriptor) => {
+        return p.toString() === resolvedPartialPath ? partialContent : '';
+      });
+
+      const doc = parseDocument(mainContent, 'endpoints/users.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/project', noCache: true });
+
+      expect(
+        resolved.resolvedBlocks.some((b) => b.type === 'omg.response' && b.statusCode === 400)
+      ).toBe(true);
+    });
+
+    it('throws a path-aware error for a missing markdown-link partial', () => {
+      const content = `---
+method: GET
+path: /test
+---
+
+# Test
+
+[missing](./partials/missing.omg.md)
+`;
+
+      vi.mocked(fs.existsSync).mockReturnValue(false);
+
+      const doc = parseDocument(content, 'test.omg.md');
+
+      expect(() => resolveDocument(doc, { basePath: '/project', noCache: true })).toThrow(
+        /Partial not found/
+      );
+    });
+
     it('throws error for missing partial', () => {
       const content = `---
 method: GET
