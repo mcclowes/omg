@@ -326,3 +326,61 @@ describe('parseSchema - parenthesised type expressions (#46)', () => {
     expect((result as OmgPrimitive).type).toBe('string');
   });
 });
+
+describe('parseSchema - inline comments as descriptions', () => {
+  it('captures a trailing // comment as the field description', () => {
+    const result = parseSchema(`{
+      id: string  // The unique identifier
+    }`);
+    const obj = result as OmgObject;
+    expect(obj.properties.id.description).toBe('The unique identifier');
+  });
+
+  it('captures descriptions on optional and annotated fields', () => {
+    const result = parseSchema(`{
+      email?: string @format("email")  // The user email address
+    }`);
+    const obj = result as OmgObject;
+    expect(obj.properties.email.description).toBe('The user email address');
+    expect(obj.properties.email.optional).toBe(true);
+  });
+
+  it('captures descriptions when a trailing comma precedes the comment', () => {
+    const result = parseSchema(`{
+      a: string, // first field
+      b: integer // second field
+    }`);
+    const obj = result as OmgObject;
+    expect(obj.properties.a.description).toBe('first field');
+    expect(obj.properties.b.description).toBe('second field');
+  });
+
+  it('does not attach standalone (own-line) comments to a field', () => {
+    const result = parseSchema(`{
+      // a section header, not a field description
+      a: string
+    }`);
+    const obj = result as OmgObject;
+    expect(obj.properties.a.description).toBeUndefined();
+  });
+
+  it('attaches the trailing comment after a nested object to that field', () => {
+    const result = parseSchema(`{
+      addr: {
+        line1: string // street
+      } // the address
+    }`);
+    const obj = result as OmgObject;
+    expect(obj.properties.addr.description).toBe('the address');
+    const addr = obj.properties.addr as OmgObject;
+    expect(addr.properties.line1.description).toBe('street');
+  });
+
+  it('captures descriptions on array fields', () => {
+    const result = parseSchema(`{
+      tags: string[]  // list of tags
+    }`);
+    const obj = result as OmgObject;
+    expect(obj.properties.tags.description).toBe('list of tags');
+  });
+});

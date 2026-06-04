@@ -426,4 +426,30 @@ describe('convertSchema', () => {
       expect((result as any).name).toBe('Currency');
     });
   });
+
+  describe('metadata preserved as annotations (round-trip safe)', () => {
+    it('emits @deprecated for deprecated schemas', () => {
+      const result = convertSchema({ type: 'string', deprecated: true }, ctx);
+      expect(result.deprecated).toBe(true);
+      expect(result.annotations).toContainEqual({ name: 'deprecated', args: [] });
+    });
+
+    it('emits @readOnly / @writeOnly', () => {
+      const ro = convertSchema({ type: 'string', readOnly: true }, ctx);
+      expect(ro.annotations).toContainEqual({ name: 'readOnly', args: [] });
+      const wo = convertSchema({ type: 'string', writeOnly: true }, ctx);
+      expect(wo.annotations).toContainEqual({ name: 'writeOnly', args: [] });
+    });
+
+    it('emits @example for scalar examples', () => {
+      const result = convertSchema({ type: 'string', example: 'ABC123' }, ctx);
+      expect(result.annotations).toContainEqual({ name: 'example', args: ['ABC123'] });
+    });
+
+    it('does not emit @example for non-scalar examples (kept as metadata only)', () => {
+      const result = convertSchema({ type: 'object', example: { a: 1 } }, ctx);
+      expect(result.annotations.find((a) => a.name === 'example')).toBeUndefined();
+      expect(result.example).toEqual({ a: 1 });
+    });
+  });
 });

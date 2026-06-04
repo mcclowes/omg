@@ -264,3 +264,69 @@ describe('compileToOpenApi - unions still work', () => {
     expect(schema?.oneOf).toHaveLength(2);
   });
 });
+
+describe('compileToOpenApi - metadata annotations', () => {
+  function compileField(annotations: { name: string; args: (string | number | boolean)[] }[]) {
+    const api = createMinimalApi({
+      T: {
+        kind: 'object',
+        properties: { f: { kind: 'primitive', type: 'string', annotations } },
+        annotations: [],
+      },
+    });
+    return compileToOpenApi(api).components?.schemas?.T?.properties?.f as Record<string, unknown>;
+  }
+
+  it('@deprecated marks the field deprecated', () => {
+    expect(compileField([{ name: 'deprecated', args: [] }]).deprecated).toBe(true);
+  });
+
+  it('@example sets an example', () => {
+    expect(compileField([{ name: 'example', args: ['ABC123'] }]).example).toBe('ABC123');
+  });
+
+  it('@title sets a title', () => {
+    expect(compileField([{ name: 'title', args: ['Friendly Name'] }]).title).toBe('Friendly Name');
+  });
+
+  it('@readOnly / @writeOnly set the flags', () => {
+    expect(compileField([{ name: 'readOnly', args: [] }]).readOnly).toBe(true);
+    expect(compileField([{ name: 'writeOnly', args: [] }]).writeOnly).toBe(true);
+  });
+
+  it('@discriminator sets the OpenAPI discriminator on a union', () => {
+    const api = createMinimalApi({
+      Pet: {
+        kind: 'union',
+        types: [
+          { kind: 'reference', name: 'Cat', annotations: [] },
+          { kind: 'reference', name: 'Dog', annotations: [] },
+        ],
+        annotations: [{ name: 'discriminator', args: ['petType'] }],
+      },
+      Cat: { kind: 'object', properties: {}, annotations: [] },
+      Dog: { kind: 'object', properties: {}, annotations: [] },
+    });
+    const schema = compileToOpenApi(api).components?.schemas?.Pet as Record<string, unknown>;
+    expect(schema.discriminator).toEqual({ propertyName: 'petType' });
+    expect(schema.oneOf).toBeDefined();
+  });
+
+  it('@anyOf compiles a union to anyOf instead of oneOf', () => {
+    const api = createMinimalApi({
+      U: {
+        kind: 'union',
+        types: [
+          { kind: 'reference', name: 'A', annotations: [] },
+          { kind: 'reference', name: 'B', annotations: [] },
+        ],
+        annotations: [{ name: 'anyOf', args: [] }],
+      },
+      A: { kind: 'object', properties: {}, annotations: [] },
+      B: { kind: 'object', properties: {}, annotations: [] },
+    });
+    const schema = compileToOpenApi(api).components?.schemas?.U as Record<string, unknown>;
+    expect(schema.anyOf).toBeDefined();
+    expect(schema.oneOf).toBeUndefined();
+  });
+});

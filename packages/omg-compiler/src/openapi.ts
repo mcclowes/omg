@@ -806,7 +806,7 @@ function compileUnionWithContext(
   schema: SchemaObject,
   ctx: CompilerContext
 ): SchemaObject {
-  schema.oneOf = type.types.map((unionType: OmgType, index: number) => {
+  const variants = type.types.map((unionType: OmgType, index: number) => {
     const childCtx: CompilerContext = {
       ...ctx,
       path: [...ctx.path, `Variant${index + 1}`],
@@ -814,6 +814,14 @@ function compileUnionWithContext(
     };
     return compileSchemaWithContext(unionType, childCtx);
   });
+  // `@anyOf` opts a union into OpenAPI `anyOf` (any-of-many) semantics; the
+  // default is `oneOf` (exactly-one). applyAnnotations() has already run, so an
+  // `@anyOf` annotation would otherwise be a no-op.
+  if (type.annotations?.some((a) => a.name === 'anyOf')) {
+    schema.anyOf = variants;
+  } else {
+    schema.oneOf = variants;
+  }
   return schema;
 }
 
@@ -890,6 +898,29 @@ function applyAnnotations(schema: SchemaObject, annotations: OmgAnnotation[]): v
         break;
       case 'default':
         schema.default = annotation.args[0];
+        break;
+      case 'deprecated':
+        schema.deprecated = true;
+        break;
+      case 'example':
+        if (annotation.args.length > 0) {
+          schema.example = annotation.args[0];
+        }
+        break;
+      case 'title':
+        schema.title = annotation.args[0] as string;
+        break;
+      case 'readOnly':
+        schema.readOnly = true;
+        break;
+      case 'writeOnly':
+        schema.writeOnly = true;
+        break;
+      case 'discriminator':
+        // @discriminator("propertyName") — pairs with a oneOf/anyOf union.
+        if (annotation.args.length > 0) {
+          schema.discriminator = { propertyName: annotation.args[0] as string };
+        }
         break;
     }
   }
