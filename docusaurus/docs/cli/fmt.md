@@ -70,6 +70,7 @@ The formatter normalizes:
 - **YAML frontmatter**: Consistent key ordering and formatting
 - **OMG schema blocks**: Consistent indentation and line breaks
 - **JSON example blocks**: Pretty-printed with consistent indentation
+- **Empty response blocks**: A `// no response body` comment is inserted so a bodyless response doesn't read as a mistake (compiled output is unchanged)
 
 Markdown prose and other code blocks are preserved as-is.
 

@@ -5,7 +5,7 @@ description: Reuse content across OMG files using partials for errors, paginatio
 
 # Partials
 
-Partials allow you to reuse content across multiple OMG files. OMG supports two syntaxes for including partials.
+Partials allow you to reuse content across multiple OMG files. OMG supports three syntaxes for including partials.
 
 ## Syntax options
 

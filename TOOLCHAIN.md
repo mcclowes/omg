@@ -2,6 +2,8 @@
 
 This document outlines the tools needed to make OMG a production-ready specification language.
 
+> Historical note: this is the original vision document. The working CLI name used here (`oal`) and the `.omg` extension predate the implementation — the shipped CLI is `omg` (npm package `omg-md-cli`) and files use `.omg.md`. For the commands that actually exist, see `docusaurus/docs/cli/` or `CLAUDE.md`.
+
 ---
 
 ## Core Components

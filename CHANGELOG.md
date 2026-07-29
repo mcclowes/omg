@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `omg fmt` now inserts a `// no response body` comment into empty response blocks (`omg.response`, `omg.response.{code}`, `omg.response.default`). A bodyless response otherwise renders as an empty grey box in GitHub's rendered Markdown view, which reads as a mistake; the comment makes the intent explicit. Compiled output is unchanged (an empty body and a comment-only body both mean no response schema), and formatting is idempotent. (#122)
 
+### Fixed
+
+- Documentation drift: the partials docs (site and `SYNTAX.md`) now cover all three include syntaxes, the CLI overview lists the shipped `import`, `mock`, and `docs` commands, the `omg fmt` docs mention the `// no response body` insertion, and `SYNTAX.md` / `TOOLCHAIN.md` flag their proposal-era content (`import` statements, the `oal` CLI name) as not implemented.
+
 ## [0.5.0] - 2026-05-22
 
 ### Added

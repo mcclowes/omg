@@ -28,10 +28,13 @@ npx omg-md-cli <command>
 | [`parse`](/docs/cli/parse) | Parse and inspect AST |
 | [`lint`](/docs/cli/lint) | Lint OMG files |
 | [`fmt`](/docs/cli/fmt) | Format OMG files |
+| `import` | Import an OpenAPI spec into OMG format |
+| `mock` | Start a mock server from an OMG spec |
 | [`diff`](/docs/cli/change-management#diff) | Compare two API specifications |
 | [`breaking`](/docs/cli/change-management#breaking) | Detect breaking changes |
 | [`changelog`](/docs/cli/change-management#changelog) | Generate API changelog |
 | [`test`](/docs/cli/test) | Contract-test a live API against its spec |
+| [`docs`](/docs/cli/docs) | Render browsable HTML documentation |
 
 ## Quick reference
 
@@ -54,6 +57,12 @@ omg lint my-api/
 # Format files
 omg fmt my-api/ --write
 
+# Import an existing OpenAPI spec
+omg import openapi.yaml -o my-api/
+
+# Start a mock server
+omg mock api.omg.md
+
 # Compare API versions (requires oasdiff)
 omg diff v1/api.omg.md v2/api.omg.md
 
@@ -65,6 +74,9 @@ omg changelog v1/api.omg.md v2/api.omg.md
 
 # Contract-test a live API against its spec
 omg test api.omg.md --against https://api.example.com
+
+# Render browsable HTML documentation
+omg docs api.omg.md -o api-docs.html
 ```
 
 ## Global options

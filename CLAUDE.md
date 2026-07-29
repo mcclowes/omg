@@ -185,11 +185,12 @@ Returns details of a specific account.
 
 ### Partials System
 
-Partials allow reuse via two syntaxes:
+Partials allow reuse via three syntaxes:
 - `@params/company` - OMG-style (recommended)
 - `{{> params/company }}` - Handlebars-style (also supported)
-- Stored in `partials/` directories
-- Resolved relative to the document
+- `[label](../partials/headers/x.omg.md)` - Markdown-link style (renders as a clickable link on GitHub)
+
+The `@name` and `{{> name }}` forms resolve a logical name under a `partials/` directory; a Markdown-link partial (destination ending in `.omg.md`) is resolved relative to the referencing document.
 
 ## Development Workflow
 
@@ -301,7 +302,7 @@ omg-mock-server → bundled into omg-md-cli
 omg-test        → bundled into omg-md-cli (depends on omg-parser, omg-compiler, ajv)
 ```
 
-Packages use semver references (e.g., `^0.4.2`) for npm dependencies — all published packages currently share a single version line, bumped together at release time.
+Packages use semver references (e.g., `^0.5.0`) for npm dependencies — all published packages currently share a single version line, bumped together at release time.
 
 ### Schema Type System
 
@@ -406,6 +407,7 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 - **LEGIBILITY.md**: Readability design decisions
 - **IMPORTS.md**: Partial/import resolution
 - **MCP-OMG.md**: MCP server integration notes
+- **OAS-LIMITATIONS-BRAINSTORM.md**: Brainstorm of OpenAPI gaps OMG could address (extends BEHAVIORS.md)
 - **CONTRIBUTING.md**: Contribution guide
 - **CHANGELOG.md**: Release history (keep `[Unreleased]` current with every user-visible change)
 - **docusaurus/**: Hosted documentation site (run `npm run docs:dev`)

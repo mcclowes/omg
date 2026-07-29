@@ -59,7 +59,9 @@ license: MIT | Apache-2.0 | { name: "Custom", url: "..." }
 terms: https://example.com/terms
 ```
 
-### Imports
+### Imports (proposed, not implemented)
+
+> Status: design proposal. The parser has no `import` statement — the implemented reuse mechanism is partials, below.
 
 ```oal
 // Import entire file
@@ -74,6 +76,18 @@ import types from "./types/"
 // Import from OpenAPI (migration support)
 import schema Account from "./legacy/Account.yaml"
 ```
+
+### Partials
+
+A partial is a `.omg.md` file whose blocks are inlined where referenced. Three forms are supported:
+
+```markdown
+@params/company
+{{> params/company }}
+[idempotency-ref](../partials/headers/idempotency-ref.omg.md)
+```
+
+The `@name` and `{{> name }}` forms resolve a logical name under a `partials/` directory. A Markdown-link partial (destination ending in `.omg.md`) is resolved relative to the referencing document, and renders as a clickable link in GitHub's Markdown view.
 
 ### Tags/Groups
 
@@ -868,6 +882,8 @@ Quoted field names are also accepted for backwards compatibility, but unquoted i
 ---
 
 ## Grammar (BNF)
+
+> This sketch predates the implementation and includes proposed constructs (e.g. `import`). The executable grammar, validated against the example corpus, lives at [`grammar/omg.peg`](grammar/omg.peg).
 
 ```bnf
 <document>     ::= <header>? <import>* <declaration>*
