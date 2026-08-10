@@ -204,6 +204,28 @@ interface VagueGeneratorInterface {
   generateArray: (schema: OmgSchema, count: number) => Promise<unknown[]>;
 }
 
+export function selectMockResponse(endpoint: ParsedEndpoint): {
+  statusCode: number;
+  response: ParsedEndpoint['responses'][string] | undefined;
+} {
+  const responseCodes = Object.keys(endpoint.responses)
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+
+  let statusCode =
+    responseCodes.find((code) => code >= 200 && code < 300) ?? responseCodes[0] ?? 200;
+
+  if (endpoint.method === 'POST' && endpoint.responses[201]) {
+    statusCode = 201;
+  }
+
+  return {
+    statusCode,
+    response: endpoint.responses[statusCode] ?? endpoint.responses.default,
+  };
+}
+
 /**
  * Create a route handler for an endpoint
  */
@@ -222,18 +244,7 @@ function createRouteHandler(
         }
       }
 
-      // Determine response status code
-      const responseCodes = Object.keys(endpoint.responses)
-        .map(Number)
-        .sort((a, b) => a - b);
-
-      // Default to first success code (2xx) or 200
-      let statusCode = responseCodes.find((c) => c >= 200 && c < 300) || responseCodes[0] || 200;
-
-      // For POST, prefer 201 if available
-      if (endpoint.method === 'POST' && endpoint.responses[201]) {
-        statusCode = 201;
-      }
+      const { statusCode, response: responseInfo } = selectMockResponse(endpoint);
 
       // For DELETE, prefer 204 if available
       if (endpoint.method === 'DELETE' && endpoint.responses[204]) {
@@ -242,7 +253,6 @@ function createRouteHandler(
       }
 
       // Get response schema
-      const responseInfo = endpoint.responses[statusCode];
       if (!responseInfo || !responseInfo.schema) {
         // No response schema defined, return empty object
         res.status(statusCode).json({});
