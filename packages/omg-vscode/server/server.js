@@ -21964,17 +21964,21 @@ ht.onInitialized(() => {
 ht.onDidChangeWatchedFiles(() => {
   ((Hi = null), ht.console.log('Type index invalidated due to file changes'));
 });
+function z0(e, t, n = '.') {
+  let r = n,
+    i = t;
+  try {
+    let o = (0, ra.fileURLToPath)(t);
+    ((r = Y0.dirname(o)), (i = Y0.basename(o)));
+  } catch {}
+  let s = (0, Gt.parseDocument)(e, i);
+  return (0, Gt.resolveDocument)(s, { basePath: r });
+}
 async function G0(e) {
   let t = e.getText(),
     n = [];
   try {
-    let r = (0, Gt.parseDocument)(t, e.uri),
-      i;
-    try {
-      i = (0, Gt.resolveDocument)(r, { basePath: '.' });
-    } catch {
-      i = { ...r, resolvedBlocks: r.blocks };
-    }
+    let i = z0(t, e.uri, na ?? '.');
     let o = Ll({ document: i });
     for (let s of o) {
       let a = WR(s.severity),

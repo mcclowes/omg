@@ -38,16 +38,15 @@ import * as path from 'path';
 
 import {
   parseDocument,
-  resolveDocument,
   buildTypeIndex,
   findTypeDefinition,
   formatTypeForHover,
   formatDocument,
   type TypeIndex,
-  type OmgDocument,
   type OmgBlock,
 } from 'omg-parser';
 import { lintDocument, type Severity } from 'omg-linter';
+import { resolveTextDocument } from './document-resolver.js';
 
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
@@ -122,16 +121,7 @@ async function validateDocument(textDocument: TextDocument): Promise<void> {
   const diagnostics: Diagnostic[] = [];
 
   try {
-    // Parse the document
-    const doc = parseDocument(text, textDocument.uri);
-
-    // Try to resolve (may fail for partials)
-    let resolved;
-    try {
-      resolved = resolveDocument(doc, { basePath: '.' });
-    } catch {
-      resolved = { ...doc, resolvedBlocks: doc.blocks };
-    }
+    const resolved = resolveTextDocument(text, textDocument.uri, workspaceRoot ?? '.');
 
     // Run linter
     const lintResults = lintDocument({ document: resolved });
