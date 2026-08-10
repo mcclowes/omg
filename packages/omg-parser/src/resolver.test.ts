@@ -189,6 +189,54 @@ path: /test
 
       expect(() => resolveDocument(doc, { basePath: '/project' })).toThrow(/Circular/);
     });
+
+    it('allows sibling partials to include the same shared partial', () => {
+      const mainContent = `# Main
+
+@shared/a
+@shared/b
+`;
+      const partials: Record<string, string> = {
+        '/project/partials/shared/a.omg.md': `@shared/common`,
+        '/project/partials/shared/b.omg.md': `@shared/common`,
+        '/project/partials/shared/common.omg.md': `\`\`\`omg.response.500
+{ error: string }
+\`\`\``,
+      };
+
+      vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => p.toString() in partials);
+      vi.mocked(fs.readFileSync).mockImplementation(
+        (p: fs.PathOrFileDescriptor) => partials[p.toString()] ?? ''
+      );
+
+      const doc = parseDocument(mainContent, 'api.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/project', noCache: true });
+
+      expect(resolved.resolvedBlocks.filter((block) => block.statusCode === 500)).toHaveLength(2);
+    });
+
+    it('resolves relative links from the directory of a logical partial', () => {
+      const mainContent = `# Main
+
+@shared/parent
+`;
+      const partials: Record<string, string> = {
+        '/project/partials/shared/parent.omg.md': `[child](./child.omg.md)`,
+        '/project/partials/shared/child.omg.md': `\`\`\`omg.response.400
+{ error: string }
+\`\`\``,
+      };
+
+      vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => p.toString() in partials);
+      vi.mocked(fs.readFileSync).mockImplementation(
+        (p: fs.PathOrFileDescriptor) => partials[p.toString()] ?? ''
+      );
+
+      const doc = parseDocument(mainContent, 'api.omg.md');
+      const resolved = resolveDocument(doc, { basePath: '/project', noCache: true });
+
+      expect(resolved.resolvedBlocks.some((block) => block.statusCode === 400)).toBe(true);
+    });
   });
 
   describe('schema parsing in blocks', () => {

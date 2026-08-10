@@ -243,8 +243,7 @@ export function resolveDocument(
 
     // The nested document's filePath must let resolveDocument recompute the
     // same absolute path, so its own relative links resolve correctly.
-    const nestedFilePath =
-      partial.kind === 'path' ? path.relative(options.basePath, partialPath) : partial.path;
+    const nestedFilePath = path.relative(options.basePath, partialPath);
 
     // Try to get cached document, or parse and cache it
     let partialDoc: OmgDocument;
@@ -261,7 +260,9 @@ export function resolveDocument(
     }
 
     // Recursively resolve the partial
-    const resolvedPartial = resolveDocument(partialDoc, options, visited);
+    // Each branch gets its own active recursion stack. A shared set would
+    // mistake a partial already completed by a sibling branch for a cycle.
+    const resolvedPartial = resolveDocument(partialDoc, options, new Set(visited));
 
     // Add the partial's blocks and warnings
     resolvedBlocks.push(...resolvedPartial.resolvedBlocks);
