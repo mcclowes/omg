@@ -1,0 +1,26 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.4/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "omg-parser",
+      "omg-compiler",
+      "omg-linter",
+      "omg-importer",
+      "omg-mock-server",
+      "omg-test",
+      "omg-lsp",
+      "omg-md-cli"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["omg-vscode"],
+  "privatePackages": {
+    "version": true,
+    "tag": false
+  }
+}
