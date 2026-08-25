@@ -10,8 +10,8 @@
 #
 # A ready-to-copy workflow lives at examples/github-workflow.yml.
 
-name: 'OMG — OpenAPI Markdown Grammar'
-description: 'Build, lint, and check OpenAPI Markdown Grammar (OMG) specs in CI/CD.'
+name: 'OMG - OpenAPI Markdown Grammar'
+description: 'Build, lint, and check OMG API specs for breaking changes.'
 author: 'mcclowes'
 
 branding:

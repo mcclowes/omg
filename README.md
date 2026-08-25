@@ -60,6 +60,26 @@ Or use directly with npx:
 npx omg-md-cli init my-api
 ```
 
+## GitHub Action
+
+Build, lint, and check OMG API specs for breaking changes in CI:
+
+```yaml
+steps:
+  - uses: actions/checkout@v4
+  - uses: mcclowes/omg@v1
+    with:
+      command: lint
+      input: api
+```
+
+The Action supports `build`, `lint`, `breaking`, and `changelog` commands. It
+sets up Node.js, runs the OMG CLI, and installs `oasdiff` when a command needs
+change detection.
+
+See the [GitHub Action guide](https://www.omg.gs/docs/github-action) for every
+input and more workflow examples.
+
 ## Getting Started
 
 ```bash
