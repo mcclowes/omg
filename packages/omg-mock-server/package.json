@@ -38,7 +38,7 @@
   "dependencies": {
     "omg-parser": "^0.5.0",
     "vague-lang": "^3.3.0",
-    "express": "^4.21.0",
+    "express": "^4.22.2",
     "cors": "^2.8.6"
   },
   "devDependencies": {
