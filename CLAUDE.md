@@ -411,6 +411,7 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 - **CONTRIBUTING.md**: Contribution guide
 - **CHANGELOG.md**: Release history (keep `[Unreleased]` current with every user-visible change)
 - **docusaurus/**: Hosted documentation site (run `npm run docs:dev`)
+- **docusaurus/docs/cli/**: Command references, including `mock` and `import`; update option tables when command registration changes.
 
 ## Common Tasks
 

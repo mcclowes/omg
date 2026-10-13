@@ -28,8 +28,8 @@ npx omg-md-cli <command>
 | [`parse`](/docs/cli/parse) | Parse and inspect AST |
 | [`lint`](/docs/cli/lint) | Lint OMG files |
 | [`fmt`](/docs/cli/fmt) | Format OMG files |
-| `import` | Import an OpenAPI spec into OMG format |
-| `mock` | Start a mock server from an OMG spec |
+| [`import`](/docs/cli/import) | Import an OpenAPI spec into OMG format |
+| [`mock`](/docs/cli/mock) | Start a mock server from an OMG spec |
 | [`diff`](/docs/cli/change-management#diff) | Compare two API specifications |
 | [`breaking`](/docs/cli/change-management#breaking) | Detect breaking changes |
 | [`changelog`](/docs/cli/change-management#changelog) | Generate API changelog |

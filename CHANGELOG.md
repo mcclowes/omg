@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- CLI reference pages for `omg mock` and `omg import`, including every option and default, generated-file behavior, and verified current limitations. The CLI sidebar also includes the existing contract-test reference. (#126)
 - Markdown-link partial includes — a partial can now be referenced with a plain Markdown link whose destination ends in `.omg.md` (e.g. `[idempotency-ref](../partials/headers/idempotency-ref.omg.md)`), in addition to the existing `@name` and `{{> name }}` forms. Unlike the logical-name forms (resolved under `partials/`), a link partial is resolved relative to the referencing document, so the same reference also renders as a **clickable link** in GitHub's rendered Markdown view instead of showing literal `{{> ... }}` / `@...` text. (#121)
 
 ### Changed

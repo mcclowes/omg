@@ -56,7 +56,7 @@ Annotations add constraints and metadata to fields using the `@` prefix.
 ## Mock data: `@vague`
 
 The `@vague("...")` annotation controls how the mock server
-([`omg mock`](../cli/index.md)) generates a value for a field. Its argument is
+([`omg mock`](../cli/mock.md)) generates a value for a field. Its argument is
 a Vague type expression that is used **verbatim** — it overrides the
 field-name heuristics and constraint inference the mock server applies by
 default.
