@@ -136,7 +136,7 @@ omg/
 
 OMG files are Markdown with YAML frontmatter and special code blocks:
 
-```markdown
+````markdown
 ---
 method: GET
 path: /accounts/{accountId}
@@ -163,29 +163,30 @@ Returns details of a specific account.
 ```
 
 {{> responses/errors }}
-```
+````
 
 ### Code Block Types
 
-| Block Type | Purpose |
-|------------|---------|
-| `omg.path` | Path parameters |
-| `omg.query` | Query parameters |
-| `omg.headers` | Header parameters |
-| `omg.body` | Request body schema |
-| `omg.response` | Default (200) response |
-| `omg.response.{code}` | Specific status code response |
+| Block Type             | Purpose                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `omg.path`             | Path parameters                                                                      |
+| `omg.query`            | Query parameters                                                                     |
+| `omg.headers`          | Header parameters                                                                    |
+| `omg.body`             | Request body schema                                                                  |
+| `omg.response`         | Default (200) response                                                               |
+| `omg.response.{code}`  | Specific status code response                                                        |
 | `omg.response.default` | Catch-all response for any status not otherwise listed (OpenAPI `responses.default`) |
-| `omg.returns` | Conditional responses with status codes |
-| `omg.example` | Example data |
-| `omg.type` | Reusable type definitions |
-| `omg.errors` | Error response definitions |
-| `omg.config` | Configuration block |
-| `http` | Raw HTTP example |
+| `omg.returns`          | Conditional responses with status codes                                              |
+| `omg.example`          | Example data                                                                         |
+| `omg.type`             | Reusable type definitions                                                            |
+| `omg.errors`           | Error response definitions                                                           |
+| `omg.config`           | Configuration block                                                                  |
+| `http`                 | Raw HTTP example                                                                     |
 
 ### Partials System
 
 Partials allow reuse via three syntaxes:
+
 - `@params/company` - OMG-style (recommended)
 - `{{> params/company }}` - Handlebars-style (also supported)
 - `[label](../partials/headers/x.omg.md)` - Markdown-link style (renders as a clickable link on GitHub)
@@ -312,18 +313,19 @@ The parser represents types using discriminated unions:
 
 ```typescript
 type OmgType =
-  | OmgPrimitive     // string, integer, number, decimal, boolean, date, datetime, uuid, any
-  | OmgObject        // { field: type }
-  | OmgArray         // type[]
-  | OmgEnum          // "a" | "b" | "c"
-  | OmgUnion         // Type1 | Type2
-  | OmgIntersection  // Type1 & Type2
-  | OmgReference;    // Referenced type name
+  | OmgPrimitive // string, integer, number, decimal, boolean, date, datetime, uuid, any
+  | OmgObject // { field: type }
+  | OmgArray // type[]
+  | OmgEnum // "a" | "b" | "c"
+  | OmgUnion // Type1 | Type2
+  | OmgIntersection // Type1 & Type2
+  | OmgReference; // Referenced type name
 ```
 
 ### Annotations
 
 Schema fields support annotations:
+
 - `@min(n)`, `@max(n)` - Numeric constraints
 - `@minLength(n)`, `@maxLength(n)` - String constraints
 - `@pattern("regex")` - String pattern
@@ -335,6 +337,7 @@ Schema fields support annotations:
 ### Pre-commit Hooks
 
 Husky is configured for pre-commit hooks in `.husky/`. The pre-commit hook runs:
+
 1. `npm run format:check` - Verify code is formatted
 2. `npm run typecheck` - TypeScript type checking
 3. `npm run test` - Run all tests
@@ -348,19 +351,20 @@ at `examples/github-workflow.yml`.
 
 ## Important Files
 
-| File | Purpose |
-|------|---------|
-| `package.json` | Root workspace config |
-| `packages/*/package.json` | Package-specific configs |
-| `packages/*/tsconfig.json` | TypeScript configuration |
-| `.prettierrc` | Prettier configuration |
-| `.prettierignore` | Files to ignore for formatting |
-| `.spectral-omg.yaml` | Linting rules configuration |
-| `.husky/pre-commit` | Pre-commit hook |
+| File                       | Purpose                        |
+| -------------------------- | ------------------------------ |
+| `package.json`             | Root workspace config          |
+| `packages/*/package.json`  | Package-specific configs       |
+| `packages/*/tsconfig.json` | TypeScript configuration       |
+| `.prettierrc`              | Prettier configuration         |
+| `.prettierignore`          | Files to ignore for formatting |
+| `.spectral-omg.yaml`       | Linting rules configuration    |
+| `.husky/pre-commit`        | Pre-commit hook                |
 
 ## When Making Changes
 
 **IMPORTANT**: After implementing any changes, always update:
+
 - `CHANGELOG.md` - Add user-visible changes under `[Unreleased]` using Keep a Changelog sections (Added / Changed / Fixed / Removed / Deprecated). On release, move entries under a new version heading.
 - `CLAUDE.md` - Update if architecture/commands/structure changed
 - `docusaurus/docs/` - Update user-facing documentation
@@ -438,6 +442,7 @@ npx @apidevtools/swagger-cli validate /tmp/test.yaml
 ## Skills
 
 The `.claude/skills/` directory contains multiple Claude Code skills:
+
 - `openapi` - OpenAPI specification expertise
 - `omg` - OMG syntax and usage
 - `vague` - Vague constraint-based data generation
