@@ -7,6 +7,7 @@
  */
 
 import { Command } from 'commander';
+import { readFileSync } from 'node:fs';
 import {
   registerBuildCommand,
   registerParseCommand,
@@ -23,11 +24,14 @@ import {
 } from './commands/index.js';
 
 const program = new Command();
+const { version: packageVersion } = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8')
+) as { version: string };
 
 program
   .name('omg')
   .description('OpenAPI Markdown Grammar - A human-first DSL for API specification')
-  .version('0.1.0');
+  .version(packageVersion);
 
 // Register all commands
 registerBuildCommand(program);

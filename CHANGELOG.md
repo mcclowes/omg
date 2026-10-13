@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `omg --version` and `omg -V` now report the installed CLI package version instead of the fixed `0.1.0` value, including when run outside the project directory. (#137)
 - Contributor instructions now render the complete nested OMG example and the code-block reference, partials, and development sections correctly. (#136)
 - `omg mock --watch` now observes `.omg.md` files recursively with Chokidar 5, including endpoint and partial edits and file additions/removals. Hidden paths and other files are ignored, and shutdown closes the watcher and cancels pending restarts. Idle keep-alive connections no longer block reloads on Node 18; concurrent and repeated stop calls complete safely. Edits received during an active restart are processed sequentially. (#133)
 - Documentation drift: the partials docs (site and `SYNTAX.md`) now cover all three include syntaxes, the CLI overview lists the shipped `import`, `mock`, and `docs` commands, the `omg fmt` docs mention the `// no response body` insertion, and `SYNTAX.md` / `TOOLCHAIN.md` flag their proposal-era content (`import` statements, the `oal` CLI name) as not implemented.
