@@ -269,6 +269,8 @@ node packages/omg-md-cli/dist/cli.js test my-api/api.omg.md --against https://ap
 node packages/omg-md-cli/dist/cli.js docs my-api/api.omg.md -o api-docs.html
 ```
 
+Mock watch mode uses a directory watcher with an `.omg.md` filter, not glob inputs. It recurses under the API file's directory, ignores hidden paths, and closes watcher/timer resources on shutdown.
+
 ## Code Conventions
 
 ### TypeScript

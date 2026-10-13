@@ -65,11 +65,19 @@ export function createMockServer(api: ParsedApi, options: MockServerOptions = {}
   } = options;
 
   const app = express();
+  let server: ReturnType<typeof app.listen> | null = null;
+  let stoppingServer: ReturnType<typeof app.listen> | null = null;
+  let stopPromise: Promise<void> | null = null;
   const mockGenerator = createMockGenerator(api, seed);
   const vagueGenerator = useVague ? createVagueGenerator(api, seed) : null;
   const routes: RouteInfo[] = [];
 
   // Middleware
+  // Reap draining sockets when their active responses finish.
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.once('finish', () => stoppingServer?.closeIdleConnections?.());
+    next();
+  });
   app.use(express.json());
   if (enableCors) {
     app.use(cors());
@@ -145,9 +153,6 @@ export function createMockServer(api: ParsedApi, options: MockServerOptions = {}
     });
   });
 
-  // Server instance
-  let server: ReturnType<typeof app.listen> | null = null;
-
   return {
     app,
     routes,
@@ -177,16 +182,23 @@ export function createMockServer(api: ParsedApi, options: MockServerOptions = {}
     },
 
     async stop() {
-      return new Promise((resolve, reject) => {
-        if (server) {
-          server.close((err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        } else {
-          resolve();
-        }
+      if (stopPromise) return stopPromise;
+      if (!server) return;
+      const closingServer = server;
+      stoppingServer = closingServer;
+      stopPromise = new Promise<void>((resolve, reject) => {
+        closingServer.close((err) => {
+          stoppingServer = null;
+          stopPromise = null;
+          if (err) reject(err);
+          else {
+            if (server === closingServer) server = null;
+            resolve();
+          }
+        });
+        closingServer.closeIdleConnections?.();
       });
+      return stopPromise;
     },
   };
 }

@@ -19,17 +19,17 @@ omg mock <input> [options]
 
 ## Options
 
-| Option                   | Default                 | Description                                                                     |
-| ------------------------ | ----------------------- | ------------------------------------------------------------------------------- |
-| `-p, --port <port>`      | `3000`                  | Port to listen on                                                               |
-| `-b, --base-path <path>` | No prefix               | Prefix endpoint paths, for example `/api/v1`                                    |
-| `-d, --delay <ms>`       | `0`                     | Add a response delay in milliseconds                                            |
-| `-s, --seed <seed>`      | Unset                   | Set the random seed; see the current determinism limitation below               |
-| `--no-cors`              | CORS enabled            | Disable CORS response headers                                                   |
-| `-q, --quiet`            | Request logging enabled | Disable request logs; startup messages still appear                             |
-| `--simple`               | Vague generator         | Use the simple generator instead of Vague                                       |
-| `-w, --watch`            | Off                     | Request automatic restarts after file changes; see the current limitation below |
-| `-h, --help`             | —                       | Show command help                                                               |
+| Option                   | Default                 | Description                                                             |
+| ------------------------ | ----------------------- | ----------------------------------------------------------------------- |
+| `-p, --port <port>`      | `3000`                  | Port to listen on                                                       |
+| `-b, --base-path <path>` | No prefix               | Prefix endpoint paths, for example `/api/v1`                            |
+| `-d, --delay <ms>`       | `0`                     | Add a response delay in milliseconds                                    |
+| `-s, --seed <seed>`      | Unset                   | Set the random seed; see the current determinism limitation below       |
+| `--no-cors`              | CORS enabled            | Disable CORS response headers                                           |
+| `-q, --quiet`            | Request logging enabled | Disable request logs; startup messages still appear                     |
+| `--simple`               | Vague generator         | Use the simple generator instead of Vague                               |
+| `-w, --watch`            | Off                     | Watch `.omg.md` files under the API directory and restart after changes |
+| `-h, --help`             | —                       | Show command help                                                       |
 
 ## Examples
 
@@ -45,15 +45,22 @@ omg mock my-api/api.omg.md --delay 250 --no-cors --quiet
 
 # Use the simple generator
 omg mock my-api/api.omg.md --simple
+
+# Restart after specification edits
+omg mock my-api/api.omg.md --watch
 ```
 
 The default Vague generator supports the [`@vague` annotation](../syntax/annotations.md#mock-data-vague), which supplies an expression for a field's mock value. `--simple` selects the alternative generator.
 
+## Watch mode
+
+`--watch` observes `.omg.md` files recursively under the input API file's directory, including endpoints and partials. Changes, additions, and removals restart the server after a short debounce. Hidden paths and other file types are ignored.
+
+Restarts wait for active responses to finish. Edits received during a restart are processed sequentially, and subsequent requests use the updated specification.
+
+The `Watching for changes...` message appears when the initial directory scan is complete. Ctrl+C closes the watcher and stops the server.
+
 ## Current limitations
-
-### Watch mode
-
-The current `--watch` implementation passes glob patterns to Chokidar 5, which no longer supports them. Edits to `.omg.md` files do not trigger a restart. Stop the server and rerun the command after editing the specification. The fix is tracked in [#133](https://github.com/mcclowes/omg/issues/133).
 
 ### Named response types
 

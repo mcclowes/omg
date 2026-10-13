@@ -74,10 +74,18 @@ export function registerMockCommand(program: Command): void {
       };
 
       let server = await startServer();
+      let watcher: ReturnType<typeof chokidar.watch> | null = null;
+      let restartTimeout: ReturnType<typeof setTimeout> | null = null;
+      let restartQueue = Promise.resolve();
+      let stopping = false;
 
       // Handle graceful shutdown
       const shutdown = async () => {
+        if (stopping) return;
+        stopping = true;
         console.log(chalk.yellow('\nShutting down mock server...'));
+        if (restartTimeout) clearTimeout(restartTimeout);
+        await watcher?.close();
         await server.stop();
         process.exit(0);
       };
@@ -87,42 +95,42 @@ export function registerMockCommand(program: Command): void {
 
       // Watch mode
       if (options.watch) {
-        console.log(chalk.blue('Watching for changes...'));
-
         const inputDir = path.dirname(inputPath);
-        const watchPatterns = [
-          path.join(inputDir, '**/*.omg.md'),
-          path.join(inputDir, 'partials/**/*.omg.md'),
-        ];
-
-        let restartTimeout: ReturnType<typeof setTimeout> | null = null;
         const debounceMs = 500;
 
-        const watcher = chokidar.watch(watchPatterns, {
-          ignored: /(^|[\/\\])\../,
+        watcher = chokidar.watch(inputDir, {
+          ignored: (filePath: string, stats?: fs.Stats) =>
+            /(^|[\/\\])\../.test(filePath) ||
+            (stats?.isFile() === true && !filePath.endsWith('.omg.md')),
           persistent: true,
           ignoreInitial: true,
         });
 
-        const triggerRestart = async (changedPath: string) => {
+        const triggerRestart = (changedPath: string) => {
+          if (stopping || !changedPath.endsWith('.omg.md')) return;
           if (restartTimeout) {
             clearTimeout(restartTimeout);
           }
-          restartTimeout = setTimeout(async () => {
-            console.log(
-              chalk.yellow(`\nFile changed: ${path.relative(process.cwd(), changedPath)}`)
-            );
-            console.log(chalk.blue('Restarting server...'));
+          restartTimeout = setTimeout(() => {
+            restartTimeout = null;
+            restartQueue = restartQueue.then(async () => {
+              if (stopping) return;
+              console.log(
+                chalk.yellow(`\nFile changed: ${path.relative(process.cwd(), changedPath)}`)
+              );
+              console.log(chalk.blue('Restarting server...'));
 
-            try {
-              await server.stop();
-              server = await startServer();
-            } catch (error) {
-              console.error(chalk.red(`Error restarting server: ${(error as Error).message}`));
-            }
+              try {
+                await server.stop();
+                if (!stopping) server = await startServer();
+              } catch (error) {
+                console.error(chalk.red(`Error restarting server: ${(error as Error).message}`));
+              }
+            });
           }, debounceMs);
         };
 
+        watcher.on('ready', () => console.log(chalk.blue('Watching for changes...')));
         watcher.on('change', triggerRestart).on('add', triggerRestart).on('unlink', triggerRestart);
       }
     });
