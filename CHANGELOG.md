@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- CLI reference pages for `omg mock` and `omg import`, including every option and default, generated-file behavior, and verified current limitations. The CLI sidebar also includes the existing contract-test reference. (#126)
 - Markdown-link partial includes — a partial can now be referenced with a plain Markdown link whose destination ends in `.omg.md` (e.g. `[idempotency-ref](../partials/headers/idempotency-ref.omg.md)`), in addition to the existing `@name` and `{{> name }}` forms. Unlike the logical-name forms (resolved under `partials/`), a link partial is resolved relative to the referencing document, so the same reference also renders as a **clickable link** in GitHub's rendered Markdown view instead of showing literal `{{> ... }}` / `@...` text. (#121)
 
 ### Changed
@@ -17,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The docs build now uses Docusaurus's supported Markdown-link hook without the deprecated-option warning. Broken Markdown links still produce warnings. (#138)
+- `omg --version` and `omg -V` now report the installed CLI package version instead of the fixed `0.1.0` value, including when run outside the project directory. (#137)
+- Contributor instructions now render the complete nested OMG example and the code-block reference, partials, and development sections correctly. (#136)
+- `omg mock --watch` now observes `.omg.md` files recursively with Chokidar 5, including endpoint and partial edits and file additions/removals. Hidden paths and other files are ignored, and shutdown closes the watcher and cancels pending restarts. Idle keep-alive connections no longer block reloads on Node 18; concurrent and repeated stop calls complete safely. Edits received during an active restart are processed sequentially. (#133)
 - Documentation drift: the partials docs (site and `SYNTAX.md`) now cover all three include syntaxes, the CLI overview lists the shipped `import`, `mock`, and `docs` commands, the `omg fmt` docs mention the `// no response body` insertion, and `SYNTAX.md` / `TOOLCHAIN.md` flag their proposal-era content (`import` statements, the `oal` CLI name) as not implemented.
 
 ## [0.5.0] - 2026-05-22

@@ -21,20 +21,20 @@ npx omg-md-cli <command>
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| [`init`](/docs/cli/init) | Initialize a new OMG project |
-| [`build`](/docs/cli/build) | Compile OMG to OpenAPI |
-| [`parse`](/docs/cli/parse) | Parse and inspect AST |
-| [`lint`](/docs/cli/lint) | Lint OMG files |
-| [`fmt`](/docs/cli/fmt) | Format OMG files |
-| `import` | Import an OpenAPI spec into OMG format |
-| `mock` | Start a mock server from an OMG spec |
-| [`diff`](/docs/cli/change-management#diff) | Compare two API specifications |
-| [`breaking`](/docs/cli/change-management#breaking) | Detect breaking changes |
-| [`changelog`](/docs/cli/change-management#changelog) | Generate API changelog |
-| [`test`](/docs/cli/test) | Contract-test a live API against its spec |
-| [`docs`](/docs/cli/docs) | Render browsable HTML documentation |
+| Command                                              | Description                               |
+| ---------------------------------------------------- | ----------------------------------------- |
+| [`init`](/docs/cli/init)                             | Initialize a new OMG project              |
+| [`build`](/docs/cli/build)                           | Compile OMG to OpenAPI                    |
+| [`parse`](/docs/cli/parse)                           | Parse and inspect AST                     |
+| [`lint`](/docs/cli/lint)                             | Lint OMG files                            |
+| [`fmt`](/docs/cli/fmt)                               | Format OMG files                          |
+| [`import`](/docs/cli/import)                         | Import an OpenAPI spec into OMG format    |
+| [`mock`](/docs/cli/mock)                             | Start a mock server from an OMG spec      |
+| [`diff`](/docs/cli/change-management#diff)           | Compare two API specifications            |
+| [`breaking`](/docs/cli/change-management#breaking)   | Detect breaking changes                   |
+| [`changelog`](/docs/cli/change-management#changelog) | Generate API changelog                    |
+| [`test`](/docs/cli/test)                             | Contract-test a live API against its spec |
+| [`docs`](/docs/cli/docs)                             | Render browsable HTML documentation       |
 
 ## Quick reference
 
@@ -81,7 +81,7 @@ omg docs api.omg.md -o api-docs.html
 
 ## Global options
 
-| Option | Description |
-|--------|-------------|
-| `--help` | Show help |
-| `--version` | Show version |
+| Option            | Description                            |
+| ----------------- | -------------------------------------- |
+| `--help`          | Show help                              |
+| `--version`, `-V` | Show the installed CLI package version |

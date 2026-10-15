@@ -13,6 +13,9 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CLI_PATH = path.resolve(__dirname, '../dist/cli.js');
+const CLI_VERSION: string = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf-8')
+).version;
 const FIXTURES_DIR = path.join(os.tmpdir(), 'omg-cli-test-fixtures');
 
 // Helper to run CLI commands
@@ -122,10 +125,11 @@ describe('CLI', () => {
       expect(result.stdout).toContain('lint');
     });
 
-    it('displays version', () => {
-      const result = runCli(['--version']);
+    it.each(['--version', '-V'])('displays the installed package version with %s', (flag) => {
+      const result = runCli([flag], { cwd: FIXTURES_DIR });
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toMatch(/\d+\.\d+\.\d+/);
+      expect(result.stdout.trim()).toBe(CLI_VERSION);
+      expect(result.stderr).toBe('');
     });
   });
 
