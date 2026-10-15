@@ -58,8 +58,23 @@ class Lexer {
   private pos = 0;
   private line = 1;
   private column = 1;
+  /** Trailing `// ...` comments collected during lexing, keyed by source line. */
+  private comments = new Map<number, string>();
 
   constructor(private input: string) {}
+
+  /**
+   * Consume and return a trailing comment on the given source line, if any.
+   * Used by the parser to attach `// description` comments to the field whose
+   * value ends on that line. Returns undefined when no comment was seen there.
+   */
+  takeCommentOnLine(line: number): string | undefined {
+    const text = this.comments.get(line);
+    if (text !== undefined) {
+      this.comments.delete(line);
+    }
+    return text;
+  }
 
   private peek(): string {
     return this.input[this.pos] || '';
@@ -84,8 +99,20 @@ class Lexer {
 
   private skipComment(): boolean {
     if (this.peek() === '/' && this.input[this.pos + 1] === '/') {
+      const line = this.line;
+      this.advance(); // consume first '/'
+      this.advance(); // consume second '/'
+      let text = '';
       while (this.peek() && this.peek() !== '\n') {
-        this.advance();
+        text += this.advance();
+      }
+      const trimmed = text.trim();
+      if (trimmed) {
+        // Keep the first comment seen on a line; trailing field comments are
+        // the common case and there is at most one per line in practice.
+        if (!this.comments.has(line)) {
+          this.comments.set(line, trimmed);
+        }
       }
       return true;
     }
@@ -263,6 +290,8 @@ class Lexer {
 class Parser {
   private currentToken: Token;
   private lexer: Lexer;
+  /** Source line of the most recently consumed token. */
+  private lastTokenLine = 0;
 
   constructor(input: string) {
     this.lexer = new Lexer(input);
@@ -271,6 +300,7 @@ class Parser {
 
   private advance(): Token {
     const token = this.currentToken;
+    this.lastTokenLine = token.line;
     this.currentToken = this.lexer.nextToken();
     return token;
   }
@@ -767,6 +797,15 @@ class Parser {
       // Comma is optional
       if (this.check('COMMA')) {
         this.advance();
+      }
+
+      // Attach a trailing `// ...` comment as the field description. The comment
+      // sits on the same source line as the end of the value (or the comma), so
+      // it has been collected by the lexer by now. Only set when the parser/
+      // serializer or importer hasn't already supplied an explicit description.
+      const trailing = this.lexer.takeCommentOnLine(this.lastTokenLine);
+      if (trailing && (valueType as any).description === undefined) {
+        (valueType as any).description = trailing;
       }
     }
 

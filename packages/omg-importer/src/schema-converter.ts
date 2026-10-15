@@ -682,27 +682,47 @@ function applySchemaMetadata(type: OmgType, schema: SchemaObject): OmgType {
  * Apply OpenAPI metadata fields to a type for round-trip preservation
  */
 function applyOasMetadata(type: OmgType, schema: SchemaObject): void {
+  // Metadata is mirrored onto `type.annotations` (in addition to the structured
+  // fields below) so it survives serialization to `.omg.md` and back: the
+  // generator only writes annotations and descriptions, not bare metadata
+  // fields. The compiler reads both, so the duplication is idempotent.
+  const addAnnotation = (name: string, args: (string | number | boolean)[] = []): void => {
+    if (!type.annotations.some((a) => a.name === name)) {
+      type.annotations.push({ name, args });
+    }
+  };
+
   // Example value
   if (schema.example !== undefined) {
     type.example = schema.example;
+    // Only scalars fit the annotation arg model; complex examples stay as
+    // metadata (lossy across a serialize round-trip, but rare).
+    const ex = schema.example;
+    if (typeof ex === 'string' || typeof ex === 'number' || typeof ex === 'boolean') {
+      addAnnotation('example', [ex]);
+    }
   }
 
   // Read/write only flags
   if (schema.readOnly) {
     type.readOnly = true;
+    addAnnotation('readOnly');
   }
   if (schema.writeOnly) {
     type.writeOnly = true;
+    addAnnotation('writeOnly');
   }
 
   // Deprecated flag
   if (schema.deprecated) {
     type.deprecated = true;
+    addAnnotation('deprecated');
   }
 
   // Title
   if (schema.title) {
     type.title = schema.title;
+    addAnnotation('title', [schema.title]);
   }
 
   // Vendor extensions
