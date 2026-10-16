@@ -1,6 +1,6 @@
 {
   "name": "omg-test",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "private": true,
   "description": "Contract testing for OMG (OpenAPI Markdown Grammar) - validate live APIs against specs",
   "author": "mcclowes",
@@ -36,8 +36,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "omg-parser": "^0.5.0",
-    "omg-compiler": "^0.5.0",
+    "omg-parser": "^0.5.1",
+    "omg-compiler": "^0.5.1",
     "ajv": "^8.12.0",
     "ajv-formats": "^3.0.1"
   },
