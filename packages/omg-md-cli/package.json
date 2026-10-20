@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsc --emitDeclarationOnly && node build.mjs",
     "dev": "tsc --watch",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run --exclude \"dist/**\" --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

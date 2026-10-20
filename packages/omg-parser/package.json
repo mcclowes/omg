@@ -30,7 +30,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest run",
+    "test": "vitest run --exclude \"dist/**\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
