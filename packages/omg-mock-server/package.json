@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "omg-parser": "^0.5.0",
-    "vague-lang": "^3.3.0",
+    "vague-lang": "^3.4.3",
     "express": "^4.22.3",
     "cors": "^2.8.6"
   },
